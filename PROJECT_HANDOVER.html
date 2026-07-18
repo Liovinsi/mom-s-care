@@ -1,0 +1,294 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PG Booking Platform - Project Handover</title>
+  <style>
+    body {
+      margin: 48px;
+      color: #1E1E24;
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.55;
+    }
+    h1, h2, h3 {
+      color: #1E1E24;
+      line-height: 1.2;
+    }
+    h1 {
+      font-size: 30px;
+      border-bottom: 3px solid #D4AF37;
+      padding-bottom: 12px;
+    }
+    h2 {
+      margin-top: 32px;
+      font-size: 22px;
+      border-bottom: 1px solid #E5E5E5;
+      padding-bottom: 8px;
+    }
+    h3 {
+      margin-top: 22px;
+      font-size: 17px;
+    }
+    code, pre {
+      background: #F8F8F8;
+      border: 1px solid #E5E5E5;
+      border-radius: 6px;
+      font-family: Consolas, monospace;
+    }
+    code {
+      padding: 2px 5px;
+    }
+    pre {
+      padding: 12px;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+    }
+    ul {
+      margin-top: 8px;
+    }
+    li {
+      margin: 4px 0;
+    }
+    .meta {
+      background: #F8F8F8;
+      border-left: 4px solid #D4AF37;
+      padding: 14px 18px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>PG Booking Platform - Project Handover</h1>
+
+  <div class="meta">
+    <p><strong>Project Type:</strong> Production-ready frontend UI/UX</p>
+    <p><strong>Scope:</strong> Frontend only with dummy data</p>
+    <p><strong>Design Direction:</strong> Luxury hotel-inspired PG booking experience</p>
+    <p><strong>Next Page:</strong> Page 8 - Review Booking</p>
+  </div>
+
+  <h2>Project Overview</h2>
+  <p>
+    PG Booking Platform is a premium frontend experience for browsing PG branches,
+    viewing room details, selecting a specific bed, logging in as a guest, and entering
+    booking information before review and payment. The product should feel elegant,
+    trustworthy, minimal, and modern, inspired by Marriott, Hilton, Hyatt, Taj Hotels,
+    Airbnb Luxe, and Booking.com Luxury Collection.
+  </p>
+
+  <h2>Core Rules</h2>
+  <ul>
+    <li>Frontend only.</li>
+    <li>Use dummy data only.</li>
+    <li>Do not create backend, APIs, authentication logic, validation logic, database, JWT, payment integration, or business logic.</li>
+    <li>Do not redesign previous pages.</li>
+    <li>Do not change the design language, colors, typography, spacing, or component style.</li>
+    <li>Create only the requested page when the user asks for a new page.</li>
+    <li>Do not modify previous pages unless the user explicitly asks for that.</li>
+    <li>Keep every page responsive for desktop, tablet, and mobile.</li>
+    <li>Reuse existing components where practical.</li>
+  </ul>
+
+  <h2>Tech Stack</h2>
+  <ul>
+    <li>React</li>
+    <li>Vite</li>
+    <li>Tailwind CSS</li>
+    <li>React Router DOM</li>
+    <li>Lucide React</li>
+    <li>Framer Motion is listed in the requested stack, but it was not installed locally when Page 5 was created. Do not add dependencies unless explicitly approved.</li>
+  </ul>
+
+  <h2>Design System</h2>
+  <h3>Style</h3>
+  <ul>
+    <li>Luxury hotel style.</li>
+    <li>Minimal, elegant, premium, modern, professional, and trustworthy.</li>
+    <li>Large white space.</li>
+    <li>Rounded cards.</li>
+    <li>Soft shadows.</li>
+    <li>Elegant typography.</li>
+  </ul>
+
+  <h3>Colors</h3>
+  <ul>
+    <li>Primary Background: <code>#FFFFFF</code></li>
+    <li>Primary Text: <code>#1E1E24</code></li>
+    <li>Accent: <code>#D4AF37</code></li>
+    <li>Secondary Text: <code>#555555</code></li>
+    <li>Border: <code>#E5E5E5</code></li>
+    <li>Light Background: <code>#F8F8F8</code></li>
+    <li>Success: <code>#2E7D32</code></li>
+    <li>Warning: <code>#F9A825</code></li>
+    <li>Danger: <code>#C62828</code></li>
+    <li>Selected Bed Blue: <code>#2563EB</code></li>
+  </ul>
+
+  <h3>UI Rules</h3>
+  <ul>
+    <li>Cards should use about 18px radius.</li>
+    <li>Login card used 20px radius.</li>
+    <li>Buttons should feel premium, rounded, and have smooth hover states.</li>
+    <li>Inputs should have comfortable height and gold focus border/ring.</li>
+    <li>Use Lucide icons.</li>
+    <li>Prefer real imagery for luxury pages.</li>
+  </ul>
+
+  <h2>Project Structure</h2>
+  <pre>pg-booking-platform/frontend/
+src/
+  components/
+    ui/
+      Button.jsx
+      Card.jsx
+      Input.jsx
+      Badge.jsx
+      SectionHeader.jsx
+    layout/
+      PublicLayout.jsx
+      DashboardLayout.jsx
+    booking/
+      BedGrid.jsx
+  pages/
+    Login.jsx
+    guest/
+      Home.jsx
+      BranchListing.jsx
+      BranchListingPage2.jsx
+      RoomDetails.jsx
+      RoomDetailsPage4.jsx
+      BedSelection.jsx
+      BedSelectionPage5.jsx
+      GuestLoginPage6.jsx
+      Booking.jsx
+      BookingFormPage7.jsx
+      BookingStatus.jsx
+      Payment.jsx
+  data/
+    fallback.js
+    landing.js
+  App.jsx
+  index.css
+  main.jsx</pre>
+
+  <h2>Reusable Components</h2>
+  <ul>
+    <li><strong>Button:</strong> <code>src/components/ui/Button.jsx</code>. Variants include primary, secondary, ghost, and danger.</li>
+    <li><strong>Card:</strong> <code>src/components/ui/Card.jsx</code>. Uses rounded 18px cards, border, soft shadow, and hover lift.</li>
+    <li><strong>Input:</strong> <code>src/components/ui/Input.jsx</code>. Uses gold focus border/ring and comfortable height.</li>
+    <li><strong>PublicLayout:</strong> <code>src/components/layout/PublicLayout.jsx</code>. Contains the existing sticky luxury navbar.</li>
+  </ul>
+
+  <h2>Important Implementation Note</h2>
+  <p>
+    Several newly created pages are standalone components and are not wired into routes,
+    because the user repeatedly instructed not to modify previous pages or existing files.
+    Do not assume these files are routed. Only connect them if the user explicitly asks.
+  </p>
+
+  <h2>Completed Pages</h2>
+
+  <h3>Page 1 - Landing Page</h3>
+  <p><strong>Existing file:</strong> <code>src/pages/guest/Home.jsx</code></p>
+  <ul>
+    <li>Luxury PG landing page.</li>
+    <li>Includes hero, featured PGs, popular branches, amenities, testimonials, FAQ, and footer.</li>
+    <li>Uses premium imagery, gold accent, white background, rounded cards, luxury shadow, and responsive layout.</li>
+  </ul>
+
+  <h3>Page 2 - Branch Listing</h3>
+  <p><strong>Created file:</strong> <code>src/pages/guest/BranchListingPage2.jsx</code></p>
+  <ul>
+    <li>Allows users to browse all PG branches and find suitable accommodation.</li>
+    <li>Includes luxury navbar, hero search, filter sidebar, top bar, branch grid/list cards, empty state, loading skeleton, and footer.</li>
+    <li>Filter sidebar includes location, gender, room type, sharing type, price range, available beds, amenities, reset, and apply controls.</li>
+    <li>Branch cards include image, name, location, rating, beds, rent, description, amenity icons, view details, and wishlist button.</li>
+    <li>Uses dummy data only and no API calls.</li>
+    <li>Existing <code>BranchListing.jsx</code> was not modified.</li>
+  </ul>
+
+  <h3>Page 3 - Branch Details</h3>
+  <ul>
+    <li>Marked as completed in the user handover.</li>
+    <li>Original prompt details are not visible in this conversation.</li>
+    <li>Do not redesign or alter it unless explicitly requested.</li>
+    <li>Expected to follow the same luxury branch detail design pattern with gallery, overview, amenities, rooms, location, and CTA sections.</li>
+  </ul>
+
+  <h3>Page 4 - Room Details</h3>
+  <p><strong>Created file:</strong> <code>src/pages/guest/RoomDetailsPage4.jsx</code></p>
+  <ul>
+    <li>Provides full information about a selected room before bed selection.</li>
+    <li>Includes navbar, breadcrumb, image gallery, room info, pricing card, amenities, bed summary, house rules, reviews, sticky booking card, related rooms, and footer.</li>
+    <li>Gallery includes hero image, thumbnails, previous/next buttons, counter, and view all photos button.</li>
+    <li>Pricing includes rent, deposit, maintenance, electricity, food, available date, and move-in date UI.</li>
+    <li>Uses dummy data only and no API calls.</li>
+    <li>Existing <code>RoomDetails.jsx</code> was not modified.</li>
+  </ul>
+
+  <h3>Page 5 - Bed Selection</h3>
+  <p><strong>Created file:</strong> <code>src/pages/guest/BedSelectionPage5.jsx</code></p>
+  <ul>
+    <li>Lets users visually choose a specific bed before booking.</li>
+    <li>Experience is inspired by train seat booking, flight seat selection, and premium hotel room selection.</li>
+    <li>Includes navbar, breadcrumb, room summary, legend, interactive bed layout, selected bed panel, booking summary, sticky sidebar, empty state, loading skeleton, and footer.</li>
+    <li>Bed statuses: available green, booked red, reserved orange, selected blue.</li>
+    <li>Only available beds are clickable. One selected bed at a time.</li>
+    <li>Booked and reserved beds are disabled.</li>
+    <li>Includes keyboard focus states and tooltip text.</li>
+    <li>Uses dummy data only and no API calls.</li>
+    <li>Existing <code>BedSelection.jsx</code> was not modified.</li>
+  </ul>
+
+  <h3>Page 6 - Guest Login</h3>
+  <p><strong>Created file:</strong> <code>src/pages/guest/GuestLoginPage6.jsx</code></p>
+  <ul>
+    <li>Premium guest login experience.</li>
+    <li>Includes luxury navbar, two-column layout, welcome illustration, highlights, login card, why-login card, security card, help section, and footer.</li>
+    <li>Login options include Google button, Facebook button, divider, and disabled mobile number UI marked Coming Soon.</li>
+    <li>No authentication logic and no API calls.</li>
+    <li>Existing <code>Login.jsx</code> was not modified.</li>
+  </ul>
+
+  <h3>Page 7 - Booking Form</h3>
+  <p><strong>Created file:</strong> <code>src/pages/guest/BookingFormPage7.jsx</code></p>
+  <ul>
+    <li>Premium booking form for guest personal details before payment.</li>
+    <li>Includes navbar, breadcrumb, page header, guest form, sticky booking summary, promo card, terms checkboxes, bottom actions, help card, and footer.</li>
+    <li>Form sections: personal information, move-in information, emergency contact, and identity verification upload cards.</li>
+    <li>Upload cards are visual only.</li>
+    <li>No validation logic, submit logic, business logic, or API calls.</li>
+    <li>Existing <code>Booking.jsx</code> was not modified.</li>
+  </ul>
+
+  <h2>Focused Verification Already Run</h2>
+  <p>
+    A focused esbuild bundle check was run for each standalone page, with output written
+    to <code>/tmp</code> instead of project source. All checks passed.
+  </p>
+  <ul>
+    <li><code>BranchListingPage2.jsx</code></li>
+    <li><code>RoomDetailsPage4.jsx</code></li>
+    <li><code>BedSelectionPage5.jsx</code></li>
+    <li><code>GuestLoginPage6.jsx</code></li>
+    <li><code>BookingFormPage7.jsx</code></li>
+  </ul>
+
+  <h2>Future Work Guidance</h2>
+  <ul>
+    <li>Wait for explicit user instruction before creating Page 8.</li>
+    <li>The next expected page is Page 8 - Review Booking.</li>
+    <li>Create only the requested page.</li>
+    <li>Prefer a new standalone file if the user says not to modify previous pages.</li>
+    <li>Do not wire routes unless explicitly requested.</li>
+    <li>Use dummy data.</li>
+    <li>Use existing Button, Card, and Input components where practical.</li>
+    <li>Use Lucide icons.</li>
+    <li>Use local UI state only for interactions such as tabs, selected item, gallery, or toggles.</li>
+    <li>Do not import API services, sockets, auth context, or navigation business flows in dummy UI pages.</li>
+    <li>Do not add dependencies unless the user explicitly permits package modification.</li>
+    <li>Run a focused bundle check after creating a page.</li>
+    <li>Stop after completing the requested page and wait for approval for the next page.</li>
+  </ul>
+</body>
+</html>
