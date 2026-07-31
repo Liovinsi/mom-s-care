@@ -1,30 +1,31 @@
-import { Download, Eye, FileText, Printer, Search, ShieldCheck, UserCheck, X, XCircle } from "lucide-react";
+import { Download, Eye, FileText, Plus, Printer, Search, ShieldCheck, UserCheck, X, XCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import StatCard from "../../components/ui/StatCard";
 import { AREAS } from "../../data/adminBranches";
 import { BOOKING_ACTION_STATUSES, PAYMENT_STATUSES, REJECTION_REASONS, defaultWardens, loadBookings, saveBookings } from "../../data/adminBookings";
-import { loadBeds } from "../../data/adminBeds";
+import { loadBeds, saveBeds } from "../../data/adminBeds";
+import { PAYMENT_METHODS, createPaymentReceiptNo, loadPayments, savePayments } from "../../data/adminPayments";
 import { loadRooms } from "../../data/adminRooms";
 import { saveAvailabilitySnapshot } from "../../lib/liveAvailability";
 
 const rowsPerPage = 10;
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15";
-const activeBookingStatuses = ["Approved", "Assigned to Warden", "Checked In"];
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
+const activeBookingStatuses = ["Pending", "Approved", "Assigned to Warden", "Checked In"];
 
 const statusStyles = {
-  Pending: "bg-amber-50 text-amber-700",
-  Approved: "bg-emerald-50 text-emerald-700",
-  "Assigned to Warden": "bg-gold/10 text-gold",
-  Rejected: "bg-red-50 text-red-700",
+  Pending: "bg-brand/10 text-brandDark",
+  Approved: "bg-brand/10 text-brandDark",
+  "Assigned to Warden": "bg-brand/10 text-brand",
+  Rejected: "bg-paper text-brandDark",
   Cancelled: "bg-slate-100 text-slate-600",
-  "Checked In": "bg-blue-50 text-blue-700"
+  "Checked In": "bg-brand/10 text-brandDark"
 };
 
 const paymentStyles = {
-  Paid: "bg-emerald-50 text-emerald-700",
-  Pending: "bg-amber-50 text-amber-700",
+  Paid: "bg-brand/10 text-brandDark",
+  Pending: "bg-brand/10 text-brandDark",
   Refunded: "bg-slate-100 text-slate-600"
 };
 
@@ -63,11 +64,19 @@ const DetailGrid = ({ items }) => (
 
 const DocumentPreview = ({ label, src }) => (
   <div>
-    <img src={src} alt={label} className="h-40 w-full rounded-2xl border border-line object-cover" />
-    <div className="mt-2 flex items-center justify-between gap-2">
-      <p className="text-xs font-bold uppercase text-slate-500">{label}</p>
-      <a href={src} download className="text-xs font-bold text-gold hover:underline">Download</a>
-    </div>
+    {src ? (
+      <>
+        <img src={src} alt={label} className="h-40 w-full rounded-2xl border border-line object-cover" />
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <p className="text-xs font-bold uppercase text-slate-500">{label}</p>
+          <a href={src} download className="text-xs font-bold text-brand hover:underline">Download</a>
+        </div>
+      </>
+    ) : (
+      <div className="grid h-40 place-items-center rounded-2xl border border-line bg-paper px-4 text-center text-sm font-semibold text-slate-500">
+        {label} not uploaded
+      </div>
+    )}
   </div>
 );
 
@@ -84,7 +93,7 @@ const updateBedForBooking = (beds, booking, nextBookingStatus) =>
         checkOutDate: ""
       };
     }
-    if (["Approved", "Assigned to Warden"].includes(nextBookingStatus)) {
+    if (["Pending", "Approved", "Assigned to Warden"].includes(nextBookingStatus)) {
       return {
         ...bed,
         status: "Reserved",
@@ -121,19 +130,279 @@ const syncBedsWithBookings = (beds, bookings) =>
 const canApproveBooking = (bookings, booking) =>
   !bookings.some((item) => item.id !== booking.id && item.bedId === booking.bedId && activeBookingStatuses.includes(item.bookingStatus));
 
-const ApprovalDialog = ({ booking, onClose, onApprove }) => (
-  <div className="fixed inset-0 z-[60] grid place-items-center bg-ink/40 px-4">
-    <Card className="w-full max-w-md">
-      <h2 className="text-xl font-bold text-ink">Approve this booking?</h2>
-      <p className="mt-2 text-sm text-slate-600">The selected bed will be marked as reserved for this booking.</p>
-      <p className="mt-4 rounded-xl bg-paper p-3 text-sm font-semibold text-ink">{booking.id} · {booking.customerName} · {booking.bedName}</p>
-      <div className="mt-5 flex justify-end gap-3">
-        <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-        <Button type="button" onClick={() => onApprove(booking)}>Approve</Button>
-      </div>
-    </Card>
-  </div>
-);
+const todayValue = () => new Date().toISOString().slice(0, 10);
+
+const createBookingId = (bookings) => {
+  const maxId = bookings.reduce((value, booking) => Math.max(value, Number(String(booking.id).replace(/\D/g, "") || 0)), 0);
+  return `BK${String(maxId + 1).padStart(4, "0")}`;
+};
+
+const DirectBookingDialog = ({ bookings, beds, rooms, onClose, onCreate }) => {
+  const branchOptions = useMemo(
+    () => [...new Map(rooms.map((room) => [room.branchId, { id: room.branchId, name: room.branchName }])).values()],
+    [rooms]
+  );
+  const [form, setForm] = useState({
+    customerName: "",
+    phone: "",
+    email: "",
+    gender: "",
+    occupation: "",
+    organization: "",
+    branchId: branchOptions[0]?.id || "",
+    roomId: "",
+    bedId: "",
+    moveInDate: todayValue(),
+    expectedStay: "12 Months",
+    tokenAmount: "",
+    notes: ""
+  });
+  const [errors, setErrors] = useState({});
+
+  const branchRooms = rooms.filter((room) => room.branchId === form.branchId);
+  const roomBeds = beds.filter((bed) => bed.roomId === form.roomId && bed.status === "Available");
+  const selectedRoom = rooms.find((room) => room.id === form.roomId);
+  const selectedBed = beds.find((bed) => bed.id === form.bedId);
+
+  const update = (field, value) => {
+    setForm((current) => {
+      const next = { ...current, [field]: value };
+      if (field === "branchId") {
+        next.roomId = "";
+        next.bedId = "";
+        next.tokenAmount = "";
+      }
+      if (field === "roomId") {
+        const room = rooms.find((item) => item.id === value);
+        next.bedId = "";
+        next.tokenAmount = room ? String(Math.min(5000, room.monthlyRent || 0)) : "";
+      }
+      return next;
+    });
+  };
+
+  const submit = (event) => {
+    event.preventDefault();
+    const nextErrors = {};
+    if (!form.customerName.trim()) nextErrors.customerName = "Customer name is required";
+    if (!/^[6-9]\d{9}$/.test(form.phone.trim())) nextErrors.phone = "Enter a valid 10 digit mobile number";
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) nextErrors.email = "Enter a valid email address";
+    if (!form.branchId) nextErrors.branchId = "Branch is required";
+    if (!form.roomId) nextErrors.roomId = "Room is required";
+    if (!form.bedId) nextErrors.bedId = "Available bed is required";
+    if (!form.moveInDate) nextErrors.moveInDate = "Move-in date is required";
+    if (!Number(form.tokenAmount || 0) || Number(form.tokenAmount) < 0) nextErrors.tokenAmount = "Enter a valid token amount";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length || !selectedRoom || !selectedBed) return;
+
+    onCreate({
+      id: createBookingId(bookings),
+      customerName: form.customerName.trim(),
+      gender: form.gender,
+      dob: "",
+      phone: form.phone.trim(),
+      email: form.email.trim(),
+      emergencyContact: "",
+      occupation: form.occupation,
+      organization: form.organization,
+      aadhaarNumber: "",
+      aadhaarFront: "",
+      aadhaarBack: "",
+      branchId: selectedRoom.branchId,
+      branchName: selectedRoom.branchName,
+      roomId: selectedRoom.id,
+      roomNumber: selectedRoom.roomNumber,
+      bedId: selectedBed.id,
+      bedName: selectedBed.bedName,
+      sharingType: selectedRoom.sharingType,
+      roomType: selectedRoom.roomType,
+      bookingDate: todayValue(),
+      moveInDate: form.moveInDate,
+      expectedStay: form.expectedStay,
+      tokenAmount: Number(form.tokenAmount || 0),
+      transactionId: "",
+      paymentMethod: "Manual",
+      paymentDate: "",
+      paymentScreenshot: "",
+      paymentStatus: "Pending",
+      bookingStatus: "Pending",
+      assignedWardenId: "",
+      assignedWardenName: "",
+      rejectionReason: "",
+      notes: form.notes
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-ink/40">
+      <form onSubmit={submit} className="h-full w-full max-w-3xl overflow-y-auto bg-white p-5 shadow-luxury">
+        <div className="sticky top-0 z-10 -mx-5 -mt-5 mb-5 flex items-center justify-between border-b border-line bg-white px-5 py-4">
+          <div>
+            <h2 className="text-xl font-bold text-ink">Create Booking</h2>
+            <p className="text-sm text-slate-500">Add walk-in or phone enquiry bookings directly.</p>
+          </div>
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Customer Name *</span>
+            <input className={fieldClass} value={form.customerName} onChange={(event) => update("customerName", event.target.value)} />
+            {errors.customerName && <span className="mt-1 block text-xs font-semibold text-danger">{errors.customerName}</span>}
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Mobile Number *</span>
+            <input className={fieldClass} inputMode="numeric" maxLength="10" value={form.phone} onChange={(event) => update("phone", event.target.value)} />
+            {errors.phone && <span className="mt-1 block text-xs font-semibold text-danger">{errors.phone}</span>}
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Email</span>
+            <input className={fieldClass} type="email" value={form.email} onChange={(event) => update("email", event.target.value)} />
+            {errors.email && <span className="mt-1 block text-xs font-semibold text-danger">{errors.email}</span>}
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Gender</span>
+            <select className={fieldClass} value={form.gender} onChange={(event) => update("gender", event.target.value)}>
+              <option value="">Select</option>
+              {["Male", "Female", "Other"].map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Occupation</span>
+            <select className={fieldClass} value={form.occupation} onChange={(event) => update("occupation", event.target.value)}>
+              <option value="">Select</option>
+              {["Student", "Working Professional"].map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Company / College</span>
+            <input className={fieldClass} value={form.organization} onChange={(event) => update("organization", event.target.value)} />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Branch *</span>
+            <select className={fieldClass} value={form.branchId} onChange={(event) => update("branchId", event.target.value)}>
+              {branchOptions.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+            </select>
+            {errors.branchId && <span className="mt-1 block text-xs font-semibold text-danger">{errors.branchId}</span>}
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Room *</span>
+            <select className={fieldClass} value={form.roomId} onChange={(event) => update("roomId", event.target.value)}>
+              <option value="">Select room</option>
+              {branchRooms.map((room) => <option key={room.id} value={room.id}>Room {room.roomNumber} · {room.sharingType} · {room.roomType}</option>)}
+            </select>
+            {errors.roomId && <span className="mt-1 block text-xs font-semibold text-danger">{errors.roomId}</span>}
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Available Bed *</span>
+            <select className={fieldClass} value={form.bedId} onChange={(event) => update("bedId", event.target.value)} disabled={!form.roomId}>
+              <option value="">Select bed</option>
+              {roomBeds.map((bed) => <option key={bed.id} value={bed.id}>{bed.bedName}</option>)}
+            </select>
+            {form.roomId && !roomBeds.length && <span className="mt-1 block text-xs font-semibold text-danger">No available beds in this room</span>}
+            {errors.bedId && <span className="mt-1 block text-xs font-semibold text-danger">{errors.bedId}</span>}
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Move-in Date *</span>
+            <input className={fieldClass} type="date" value={form.moveInDate} onChange={(event) => update("moveInDate", event.target.value)} />
+            {errors.moveInDate && <span className="mt-1 block text-xs font-semibold text-danger">{errors.moveInDate}</span>}
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Expected Stay</span>
+            <input className={fieldClass} value={form.expectedStay} onChange={(event) => update("expectedStay", event.target.value)} />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Token Amount *</span>
+            <input className={fieldClass} type="number" min="0" value={form.tokenAmount} onChange={(event) => update("tokenAmount", event.target.value)} />
+            {errors.tokenAmount && <span className="mt-1 block text-xs font-semibold text-danger">{errors.tokenAmount}</span>}
+          </label>
+          <label className="block md:col-span-2">
+            <span className="mb-2 block text-sm font-semibold text-ink">Notes</span>
+            <textarea className={`${fieldClass} min-h-24 py-3`} value={form.notes} onChange={(event) => update("notes", event.target.value)} />
+          </label>
+        </div>
+
+        <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-line pt-4">
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button type="submit">Create Booking</Button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+const ApprovalDialog = ({ booking, onClose, onApprove }) => {
+  const [payment, setPayment] = useState({
+    amount: String(booking.tokenAmount || ""),
+    paymentMethod: "Cash",
+    referenceNumber: "",
+    paymentDate: todayValue(),
+    remarks: ""
+  });
+  const [error, setError] = useState("");
+
+  const update = (field, value) => {
+    setPayment((current) => ({ ...current, [field]: value }));
+    setError("");
+  };
+
+  const submit = () => {
+    const amount = Number(payment.amount || 0);
+    if (!amount || amount <= 0) {
+      setError("Enter the amount received before approving.");
+      return;
+    }
+    if (!payment.paymentMethod) {
+      setError("Select the payment method.");
+      return;
+    }
+    onApprove(booking, { ...payment, amount });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] grid place-items-center bg-ink/40 px-4">
+      <Card className="w-full max-w-lg">
+        <h2 className="text-xl font-bold text-ink">Approve this booking?</h2>
+        <p className="mt-2 text-sm text-slate-600">Record the amount received manually before final confirmation.</p>
+        <p className="mt-4 rounded-xl bg-paper p-3 text-sm font-semibold text-ink">{booking.id} · {booking.customerName} · {booking.bedName}</p>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Amount Received *</span>
+            <input className={fieldClass} type="number" min="1" value={payment.amount} onChange={(event) => update("amount", event.target.value)} />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Payment Method *</span>
+            <select className={fieldClass} value={payment.paymentMethod} onChange={(event) => update("paymentMethod", event.target.value)}>
+              {PAYMENT_METHODS.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Payment Date</span>
+            <input className={fieldClass} type="date" value={payment.paymentDate} onChange={(event) => update("paymentDate", event.target.value)} />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-ink">Reference Number</span>
+            <input className={fieldClass} value={payment.referenceNumber} onChange={(event) => update("referenceNumber", event.target.value)} />
+          </label>
+          <label className="block sm:col-span-2">
+            <span className="mb-2 block text-sm font-semibold text-ink">Remarks</span>
+            <textarea className={`${fieldClass} min-h-20 py-3`} value={payment.remarks} onChange={(event) => update("remarks", event.target.value)} />
+          </label>
+        </div>
+
+        {error && <p className="mt-3 rounded-xl bg-paper p-3 text-sm font-semibold text-danger">{error}</p>}
+
+        <div className="mt-5 flex justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button type="button" onClick={submit}>Approve & Record Payment</Button>
+        </div>
+      </Card>
+    </div>
+  );
+};
 
 const RejectDialog = ({ booking, onClose, onReject }) => {
   const [reason, setReason] = useState(REJECTION_REASONS[0]);
@@ -190,7 +459,7 @@ const BookingViewModal = ({ booking, onClose }) => (
           <h2 className="text-2xl font-bold text-ink">{booking.id}</h2>
           <p className="text-sm text-slate-500">{booking.customerName} · {booking.branchName} · Room {booking.roomNumber}</p>
         </div>
-        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -226,7 +495,7 @@ const BookingViewModal = ({ booking, onClose }) => (
         <Card>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="text-lg font-bold text-ink">Identity Details</h3>
-            <a href={booking.aadhaarFront} download className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-gold hover:text-gold">
+            <a href={booking.aadhaarFront} download className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-brandDark hover:text-brandDark">
               <Download className="h-4 w-4" /> Download Documents
             </a>
           </div>
@@ -262,11 +531,11 @@ const printReceipt = (booking) => {
       <head>
         <title>Booking Receipt ${booking.id}</title>
         <style>
-          body { font-family: Arial, sans-serif; color: #1E1E24; padding: 32px; }
-          h1 { color: #D4AF37; margin-bottom: 4px; }
+          body { font-family: Arial, sans-serif; color: #1F2937; padding: 32px; }
+          h1 { color: #DD5E67; margin-bottom: 4px; }
           table { width: 100%; border-collapse: collapse; margin-top: 24px; }
           td { border: 1px solid #E5E5E5; padding: 12px; }
-          .label { font-weight: 700; background: #F8F8F8; width: 34%; }
+          .label { font-weight: 700; background: #FFF4F6; width: 34%; }
         </style>
       </head>
       <body>
@@ -299,6 +568,7 @@ const BookingsPage = () => {
   const [approveBooking, setApproveBooking] = useState(null);
   const [rejectBooking, setRejectBooking] = useState(null);
   const [assignBooking, setAssignBooking] = useState(null);
+  const [createBookingOpen, setCreateBookingOpen] = useState(false);
   const [workflowError, setWorkflowError] = useState("");
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", branch: "All Branches", status: "All", paymentStatus: "All", dateRange: "This Month" });
@@ -316,6 +586,7 @@ const BookingsPage = () => {
 
   const persistBeds = (nextBeds) => {
     setBeds(nextBeds);
+    saveBeds(nextBeds);
     saveAvailabilitySnapshot(nextBeds, rooms);
   };
 
@@ -327,6 +598,10 @@ const BookingsPage = () => {
     checkedIn: bookings.filter((booking) => booking.bookingStatus === "Checked In").length,
     cancelled: bookings.filter((booking) => booking.bookingStatus === "Cancelled").length
   }), [bookings]);
+  const blockedBedNotifications = useMemo(
+    () => bookings.filter((booking) => booking.bookingStatus === "Pending").slice(0, 3),
+    [bookings]
+  );
 
   const filteredBookings = useMemo(() => {
     const query = filters.search.trim().toLowerCase();
@@ -360,13 +635,60 @@ const BookingsPage = () => {
     return nextBooking;
   };
 
-  const confirmApprove = (booking) => {
+  const confirmApprove = (booking, payment) => {
     if (!canApproveBooking(bookings, booking)) {
       setWorkflowError(`Bed ${booking.bedName} in Room ${booking.roomNumber} already has an active booking.`);
       setApproveBooking(null);
       return;
     }
-    applyStatusChange(booking, "Approved", { rejectionReason: "" });
+
+    const payments = loadPayments();
+    const receiptNo = createPaymentReceiptNo(payments);
+    savePayments([
+      {
+        id: receiptNo,
+        receiptNo,
+        residentId: "",
+        residentName: booking.customerName,
+        bookingId: booking.id,
+        branchId: booking.branchId,
+        branchName: booking.branchName,
+        roomId: booking.roomId,
+        roomNumber: booking.roomNumber,
+        bedId: booking.bedId,
+        bedName: booking.bedName,
+        paymentType: "Booking Token",
+        amount: payment.amount,
+        paymentMethod: payment.paymentMethod,
+        transactionId: payment.referenceNumber,
+        referenceNumber: payment.referenceNumber,
+        paymentDate: payment.paymentDate || todayValue(),
+        paymentStatus: "Paid",
+        remarks: payment.remarks || "Manual payment recorded during booking confirmation.",
+        paymentProof: "",
+        proofName: "",
+        proofType: "",
+        createdBy: "Admin",
+        collectedBy: "Admin",
+        month: (payment.paymentDate || todayValue()).slice(0, 7),
+        monthlyRent: 0,
+        paidAmount: payment.amount,
+        lateFees: 0,
+        originalPaymentId: "",
+        refundReason: "",
+        refundMethod: ""
+      },
+      ...payments
+    ]);
+
+    applyStatusChange(booking, "Approved", {
+      rejectionReason: "",
+      tokenAmount: payment.amount,
+      transactionId: payment.referenceNumber,
+      paymentMethod: payment.paymentMethod,
+      paymentDate: payment.paymentDate || todayValue(),
+      paymentStatus: "Paid"
+    });
     setApproveBooking(null);
   };
 
@@ -380,6 +702,20 @@ const BookingsPage = () => {
     setAssignBooking(null);
   };
 
+  const createDirectBooking = (booking) => {
+    if (!canApproveBooking(bookings, booking)) {
+      setWorkflowError(`Bed ${booking.bedName} in Room ${booking.roomNumber} already has an active booking.`);
+      return;
+    }
+
+    const nextBookings = [booking, ...bookings];
+    persistBookings(nextBookings);
+    persistBeds(updateBedForBooking(beds, booking, "Pending"));
+    setCreateBookingOpen(false);
+    setFilters((current) => ({ ...current, search: booking.id, status: "All", paymentStatus: "All", dateRange: "Custom" }));
+    setPage(1);
+  };
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -387,14 +723,38 @@ const BookingsPage = () => {
           <h1 className="text-2xl font-bold text-ink">Bookings</h1>
           <p className="text-sm text-slate-500">Manage all customer bookings across every branch.</p>
         </div>
-        <Button variant="secondary" onClick={() => window.print()}><Download className="h-4 w-4" /> Export</Button>
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={() => setCreateBookingOpen(true)}><Plus className="h-4 w-4" /> Create Booking</Button>
+          <Button variant="secondary" onClick={() => window.print()}><Download className="h-4 w-4" /> Export</Button>
+        </div>
       </div>
 
       {workflowError && (
-        <div className="mt-4 flex items-start justify-between gap-3 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-700">
+        <div className="mt-4 flex items-start justify-between gap-3 rounded-2xl border border-brand/20 bg-paper p-4 text-sm font-semibold text-brandDark">
           <p>{workflowError}</p>
           <button type="button" onClick={() => setWorkflowError("")} aria-label="Dismiss workflow error"><X className="h-4 w-4" /></button>
         </div>
+      )}
+
+      {blockedBedNotifications.length > 0 && (
+        <Card className="mt-5 hover:translate-y-0">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-ink">Blocked Bed Notifications</h2>
+              <p className="text-sm text-slate-500">Follow up with guests who blocked beds online.</p>
+            </div>
+            <span className="rounded-full bg-brand/10 px-3 py-1 text-xs font-bold text-brandDark">{blockedBedNotifications.length} pending</span>
+          </div>
+          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+            {blockedBedNotifications.map((booking) => (
+              <div key={booking.id} className="rounded-xl border border-brand/20 bg-brand/10 p-3 text-sm">
+                <p className="font-semibold text-ink">{booking.customerName}</p>
+                <p className="mt-1 text-slate-600">{booking.phone}</p>
+                <p className="mt-2 font-semibold text-slate-700">{booking.branchName} · Room {booking.roomNumber} · {booking.bedName}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
@@ -455,19 +815,19 @@ const BookingsPage = () => {
                 <td className="px-4 py-3"><Badge value={booking.bookingStatus} styles={statusStyles} /></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setViewBooking(booking)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="View booking">
+                    <button type="button" onClick={() => setViewBooking(booking)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View booking">
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setApproveBooking(booking)} disabled={!["Pending", "Rejected", "Cancelled"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-40" aria-label="Approve booking">
+                    <button type="button" onClick={() => setApproveBooking(booking)} disabled={!["Pending", "Rejected", "Cancelled"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark disabled:cursor-not-allowed disabled:opacity-40" aria-label="Approve booking">
                       <ShieldCheck className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setRejectBooking(booking)} disabled={["Rejected", "Cancelled", "Checked In"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Reject booking">
+                    <button type="button" onClick={() => setRejectBooking(booking)} disabled={["Rejected", "Cancelled", "Checked In"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40" aria-label="Reject booking">
                       <XCircle className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setAssignBooking(booking)} disabled={!["Approved", "Assigned to Warden"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-40" aria-label="Assign warden">
+                    <button type="button" onClick={() => setAssignBooking(booking)} disabled={!["Approved", "Assigned to Warden"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark disabled:cursor-not-allowed disabled:opacity-40" aria-label="Assign warden">
                       <UserCheck className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => printReceipt(booking)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Print booking">
+                    <button type="button" onClick={() => printReceipt(booking)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Print booking">
                       <Printer className="h-4 w-4" />
                     </button>
                   </div>
@@ -495,7 +855,7 @@ const BookingsPage = () => {
           {[["Pending", "Pending"], ["Approve", "Approved"], ["Assign to Warden", "Assigned to Warden"], ["Warden Receives Notification", "Assigned to Warden"], ["Resident Check-in", "Checked In"]].map(([label, status], index) => (
             <div key={`${label}-${index}`} className="flex items-center gap-3">
               <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusStyles[status]}`}>{label}</span>
-              {index < 4 && <FileText className="h-4 w-4 text-gold" />}
+              {index < 4 && <FileText className="h-4 w-4 text-brand" />}
             </div>
           ))}
         </div>
@@ -505,6 +865,15 @@ const BookingsPage = () => {
       {approveBooking && <ApprovalDialog booking={approveBooking} onClose={() => setApproveBooking(null)} onApprove={confirmApprove} />}
       {rejectBooking && <RejectDialog booking={rejectBooking} onClose={() => setRejectBooking(null)} onReject={confirmReject} />}
       {assignBooking && <AssignWardenDialog booking={assignBooking} onClose={() => setAssignBooking(null)} onAssign={confirmAssign} />}
+      {createBookingOpen && (
+        <DirectBookingDialog
+          bookings={bookings}
+          beds={beds}
+          rooms={rooms}
+          onClose={() => setCreateBookingOpen(false)}
+          onCreate={createDirectBooking}
+        />
+      )}
     </div>
   );
 };

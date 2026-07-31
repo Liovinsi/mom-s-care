@@ -145,9 +145,7 @@ const LuxuryNavbar = () => (
   <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur-xl">
     <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
       <Link to="/" className="flex items-center gap-3 text-lg font-semibold text-ink">
-        <span className="grid h-10 w-10 place-items-center rounded-xl border border-gold/30 bg-gold/10">
-          <Building2 className="h-5 w-5 text-gold" />
-        </span>
+        <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-brand/20 bg-white shadow-soft"><img src="/logo.jpeg" alt="PG Stay logo" className="h-full w-full object-cover" /></span>
         <span>
           PGStay
           <span className="block text-[10px] font-bold uppercase tracking-[0.28em] text-muted">Luxe Living</span>
@@ -155,7 +153,7 @@ const LuxuryNavbar = () => (
       </Link>
       <nav className="hidden items-center gap-7 md:flex">
         {["Home", "Branches", "Amenities", "Reviews"].map((item) => (
-          <a key={item} href={item === "Home" ? "/" : `#${item.toLowerCase()}`} className="text-sm font-semibold text-secondary transition hover:text-gold">
+          <a key={item} href={item === "Home" ? "/" : `#${item.toLowerCase()}`} className="text-sm font-semibold text-secondary transition hover:text-brandDark">
             {item}
           </a>
         ))}
@@ -169,16 +167,16 @@ const LuxuryNavbar = () => (
 
 const Breadcrumb = () => (
   <nav className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-5 text-sm font-semibold text-secondary sm:px-6 lg:px-8">
-    <Link to="/" className="hover:text-gold">Home</Link>
+    <Link to="/" className="hover:text-brandDark">Home</Link>
     <ChevronRight className="h-4 w-4 text-muted" />
-    <Link to="/branches" className="hover:text-gold">Branch</Link>
+    <Link to="/branches" className="hover:text-brandDark">Branch</Link>
     <ChevronRight className="h-4 w-4 text-muted" />
     <span className="text-ink">Room Details</span>
   </nav>
 );
 
 const Badge = ({ children }) => (
-  <span className="inline-flex items-center rounded-full bg-gold/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-gold">
+  <span className="inline-flex items-center rounded-full bg-brand/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-brand">
     {children}
   </span>
 );
@@ -201,10 +199,10 @@ const ImageGallery = () => {
             <Camera className="h-4 w-4" /> View All Photos
           </Button>
         </div>
-        <button onClick={previous} className="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-ink shadow-soft transition hover:text-gold" aria-label="Previous image">
+        <button onClick={previous} className="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-ink shadow-soft transition hover:text-brandDark" aria-label="Previous image">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <button onClick={next} className="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-ink shadow-soft transition hover:text-gold" aria-label="Next image">
+        <button onClick={next} className="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-ink shadow-soft transition hover:text-brandDark" aria-label="Next image">
           <ArrowRight className="h-5 w-5" />
         </button>
       </div>
@@ -213,7 +211,7 @@ const ImageGallery = () => {
           <button
             key={image}
             onClick={() => setActive(index)}
-            className={`overflow-hidden rounded-[18px] border-2 transition ${active === index ? "border-gold shadow-soft" : "border-transparent opacity-75 hover:opacity-100"}`}
+            className={`overflow-hidden rounded-[18px] border-2 transition ${active === index ? "border-brand shadow-soft" : "border-transparent opacity-75 hover:opacity-100"}`}
           >
             <img src={image} alt={`${room.number} thumbnail ${index + 1}`} className="h-20 w-full object-cover sm:h-28" />
           </button>
@@ -225,7 +223,7 @@ const ImageGallery = () => {
 
 const SectionTitle = ({ eyebrow, title }) => (
   <div className="mb-6">
-    {eyebrow && <p className="text-xs font-bold uppercase tracking-[0.28em] text-gold">{eyebrow}</p>}
+    {eyebrow && <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">{eyebrow}</p>}
     <h2 className="mt-2 text-2xl font-semibold text-ink">{title}</h2>
   </div>
 );
@@ -264,7 +262,7 @@ const AmenitiesGrid = () => (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {amenities.map(([name, Icon]) => (
         <div key={name} className="rounded-[18px] border border-line bg-white p-5 shadow-soft transition duration-300 hover:-translate-y-1 hover:shadow-luxury">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-gold/10 text-gold">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand/10 text-brand">
             <Icon className="h-5 w-5" />
           </span>
           <p className="mt-4 font-semibold text-ink">{name}</p>
@@ -280,7 +278,7 @@ const BedSummary = () => (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {bedSummary.map(([label, value, Icon]) => (
         <div key={label} className="rounded-[18px] border border-line p-4">
-          <Icon className="h-5 w-5 text-gold" />
+          <Icon className="h-5 w-5 text-brand" />
           <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-muted">{label}</p>
           <p className="mt-1 text-lg font-semibold text-ink">{value}</p>
         </div>
@@ -299,7 +297,7 @@ const HouseRules = () => (
       {houseRules.map(([title, detail]) => (
         <div key={title} className="rounded-[18px] border border-line bg-white p-5 shadow-soft">
           <div className="flex items-start gap-3">
-            <Check className="mt-1 h-5 w-5 shrink-0 text-gold" />
+            <Check className="mt-1 h-5 w-5 shrink-0 text-brand" />
             <div>
               <h3 className="font-semibold text-ink">{title}</h3>
               <p className="mt-1 text-sm leading-6 text-secondary">{detail}</p>
@@ -318,7 +316,7 @@ const Reviews = () => (
       <div className="rounded-[18px] border border-line bg-white px-5 py-4 shadow-soft">
         <p className="text-xs font-bold uppercase tracking-widest text-muted">Overall Rating</p>
         <p className="mt-1 flex items-center gap-2 text-2xl font-semibold text-ink">
-          <Star className="h-5 w-5 fill-gold text-gold" /> {room.rating}
+          <Star className="h-5 w-5 fill-brand text-brand" /> {room.rating}
         </p>
       </div>
     </div>
@@ -332,8 +330,8 @@ const Reviews = () => (
               <p className="text-xs font-semibold text-muted">{review.date}</p>
             </div>
           </div>
-          <p className="mt-4 flex items-center gap-1 text-sm font-semibold text-gold">
-            <Star className="h-4 w-4 fill-gold" /> {review.rating}
+          <p className="mt-4 flex items-center gap-1 text-sm font-semibold text-brand">
+            <Star className="h-4 w-4 fill-brand" /> {review.rating}
           </p>
           <p className="mt-3 text-sm leading-6 text-secondary">{review.comment}</p>
         </Card>
@@ -346,7 +344,7 @@ const Reviews = () => (
 const BookingSidebar = () => (
   <aside className="lg:sticky lg:top-24 lg:self-start">
     <Card className="hover:translate-y-0">
-      <p className="text-xs font-bold uppercase tracking-[0.28em] text-gold">Booking Summary</p>
+      <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Booking Summary</p>
       <h2 className="mt-2 text-2xl font-semibold text-ink">₹{room.rent}<span className="text-sm font-medium text-muted"> / month</span></h2>
       <div className="mt-5 space-y-3 text-sm">
         {[
@@ -409,11 +407,11 @@ const RoomDetailsPage4 = () => (
               </div>
               <h1 className="mt-4 text-4xl font-semibold leading-tight text-ink">{room.number}</h1>
               <p className="mt-3 flex items-center gap-2 text-secondary">
-                <MapPin className="h-4 w-4 text-gold" /> {room.branch}, {room.location}
+                <MapPin className="h-4 w-4 text-brand" /> {room.branch}, {room.location}
               </p>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-4 py-2 text-sm font-semibold text-gold">
-              <Star className="h-4 w-4 fill-gold" /> {room.rating}
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-4 py-2 text-sm font-semibold text-brand">
+              <Star className="h-4 w-4 fill-brand" /> {room.rating}
             </span>
           </div>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -424,7 +422,7 @@ const RoomDetailsPage4 = () => (
               ["Sharing Type", room.sharing, BedDouble]
             ].map(([label, value, Icon]) => (
               <div key={label} className="rounded-[18px] border border-line bg-white p-5 shadow-soft">
-                <Icon className="h-5 w-5 text-gold" />
+                <Icon className="h-5 w-5 text-brand" />
                 <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-muted">{label}</p>
                 <p className="mt-1 font-semibold text-ink">{value}</p>
               </div>
@@ -452,8 +450,8 @@ const RoomDetailsPage4 = () => (
           <p className="mt-2">Premium PG discovery with hotel-inspired room detail experiences.</p>
         </div>
         <div className="flex flex-wrap gap-4">
-          <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-gold" /> Move-in ready</span>
-          <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-gold" /> 24x7 support</span>
+          <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-brand" /> Move-in ready</span>
+          <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-brand" /> 24x7 support</span>
         </div>
       </div>
     </footer>

@@ -6,6 +6,7 @@ const roomSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     floor: { type: String, required: true },
     sharingType: { type: Number, required: true, min: 1 },
+    roomType: { type: String, enum: ["AC", "Non AC"], required: true },
     monthlyRent: { type: Number, required: true, min: 0 },
     tokenAmount: { type: Number, required: true, min: 0 },
     amenities: [{ type: String }],

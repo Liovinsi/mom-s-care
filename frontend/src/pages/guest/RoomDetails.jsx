@@ -109,7 +109,7 @@ const RoomDetails = () => {
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-14">
           <div className="grid gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Branch Gallery</p>
+              <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Branch Gallery</p>
               <img src={selectedGallery.image} alt={`${branch.name} ${selectedGallery.label}`} className="mt-4 h-80 w-full rounded-[18px] object-cover shadow-luxury" />
             </div>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -118,7 +118,7 @@ const RoomDetails = () => {
                   key={item.label}
                   type="button"
                   onClick={() => setSelectedGalleryIndex(index)}
-                  className={`overflow-hidden rounded-[18px] border bg-white text-left shadow-soft transition ${selectedGalleryIndex === index ? "border-gold ring-2 ring-gold/20" : "border-line hover:border-gold"}`}
+                  className={`overflow-hidden rounded-[18px] border bg-white text-left shadow-soft transition ${selectedGalleryIndex === index ? "border-brand ring-2 ring-brand/20" : "border-line hover:border-brandDark"}`}
                 >
                   <img src={item.image} alt={`${branch.name} ${item.label}`} className="h-24 w-full object-cover" />
                   <span className="block px-3 py-2 text-xs font-semibold text-secondary">{item.label}</span>
@@ -128,20 +128,20 @@ const RoomDetails = () => {
           </div>
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Branch Overview</p>
+            <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Branch Overview</p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-3 py-1 text-sm font-semibold text-gold">
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-3 py-1 text-sm font-semibold text-brand">
                 <span aria-hidden="true">★★★★★</span> {branch.rating}
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1 text-sm font-semibold text-secondary">
-                <ShieldCheck className="h-4 w-4 text-gold" /> Verified PG
+                <ShieldCheck className="h-4 w-4 text-brand" /> Verified PG
               </span>
             </div>
             <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
               <h1 className="text-4xl font-semibold leading-tight text-ink sm:text-5xl">{branch.name}</h1>
             </div>
             <p className="mt-5 flex items-start gap-2 text-secondary">
-              <MapPin className="mt-1 h-5 w-5 shrink-0 text-gold" />
+              <MapPin className="mt-1 h-5 w-5 shrink-0 text-brand" />
               <span>{branch.addressLines.map((line) => <span key={line} className="block">{line}</span>)}</span>
             </p>
 
@@ -175,14 +175,14 @@ const RoomDetails = () => {
                 </div>
                 <div className="mt-4 grid gap-3 text-sm text-secondary">
                   <p className="flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                     <span>{branch.fullAddress.split("\n").map((line) => <span key={line} className="block">{line}</span>)}</span>
                   </p>
                   <a
                     href={directionsUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 font-semibold text-gold transition hover:text-ink"
+                    className="inline-flex items-center gap-2 font-semibold text-brand transition hover:text-ink"
                   >
                     <Navigation className="h-4 w-4" /> Get Directions
                   </a>
@@ -191,7 +191,7 @@ const RoomDetails = () => {
               <Card className="hover:translate-y-0">
                 <p className="text-xs font-semibold uppercase tracking-widest text-muted">Contact Number</p>
                 <p className="mt-5 flex items-center gap-2 text-xl font-semibold text-ink">
-                  <Phone className="h-5 w-5 text-gold" /> {branch.contactNumber}
+                  <Phone className="h-5 w-5 text-brand" /> {branch.contactNumber}
                 </p>
               </Card>
             </div>
@@ -201,11 +201,11 @@ const RoomDetails = () => {
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
         <Card className="hover:translate-y-0">
-          <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Quick Highlights</p>
+          <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Quick Highlights</p>
           <div className="mt-5 flex flex-wrap gap-3">
             {quickHighlights.map((highlight) => (
               <span key={highlight} className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-secondary">
-                <Check className="h-4 w-4 text-gold" /> {highlight}
+                <Check className="h-4 w-4 text-brand" /> {highlight}
               </span>
             ))}
           </div>
@@ -226,12 +226,12 @@ const RoomDetails = () => {
         </div>
 
         <Card className="mt-8 hover:translate-y-0">
-          <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Nearby Places</p>
+          <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Nearby Places</p>
           <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {nearbyPlaces.map(([place, distance, Icon]) => (
               <div key={place} className="flex items-center justify-between gap-4 rounded-xl border border-line bg-white px-4 py-3">
                 <span className="inline-flex items-center gap-2 font-semibold text-secondary">
-                  <Icon className="h-4 w-4 text-gold" /> {place}
+                  <Icon className="h-4 w-4 text-brand" /> {place}
                 </span>
                 <span className="font-semibold text-ink">{distance}</span>
               </div>
@@ -240,11 +240,11 @@ const RoomDetails = () => {
         </Card>
 
         <Card className="mt-8 hover:translate-y-0">
-          <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Amenities</p>
+          <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Amenities</p>
           <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {amenityCards.map(([amenity, Icon]) => (
               <div key={amenity} className="rounded-[18px] border border-line bg-white p-4">
-                <Icon className="h-5 w-5 text-gold" />
+                <Icon className="h-5 w-5 text-brand" />
                 <p className="mt-3 font-semibold text-ink">{amenity}</p>
               </div>
             ))}
@@ -254,7 +254,7 @@ const RoomDetails = () => {
         <Card className="mt-8 hover:translate-y-0">
           <div className="flex flex-wrap items-end justify-between gap-5">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Room Filters</p>
+              <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Room Filters</p>
               <h2 className="mt-2 text-2xl font-semibold text-ink">Find Matching Rooms</h2>
             </div>
             <Button variant="secondary" onClick={() => { setSharingType(""); setRoomType(""); }}>Reset Filters</Button>
@@ -269,7 +269,7 @@ const RoomDetails = () => {
                     key={option}
                     type="button"
                     onClick={() => setSharingType((current) => (current === option ? "" : option))}
-                    className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${sharingType === option ? "border-gold bg-gold text-white" : "border-line bg-white text-secondary hover:border-gold hover:text-gold"}`}
+                    className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${sharingType === option ? "border-brand bg-brand text-white" : "border-line bg-white text-secondary hover:border-brandDark hover:text-brandDark"}`}
                   >
                     {option}
                   </button>
@@ -284,7 +284,7 @@ const RoomDetails = () => {
                     key={option}
                     type="button"
                     onClick={() => setRoomType((current) => (current === option ? "" : option))}
-                    className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${roomType === option ? "border-gold bg-gold text-white" : "border-line bg-white text-secondary hover:border-gold hover:text-gold"}`}
+                    className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${roomType === option ? "border-brand bg-brand text-white" : "border-line bg-white text-secondary hover:border-brandDark hover:text-brandDark"}`}
                   >
                     {option}
                   </button>
@@ -310,7 +310,7 @@ const RoomDetails = () => {
                     <p className="text-xs font-semibold uppercase tracking-widest text-muted">Room {room.number}</p>
                     <h3 className="mt-2 text-2xl font-semibold text-ink">Room {room.number}</h3>
                   </div>
-                  <span className="rounded-full bg-gold/10 px-3 py-1 text-sm font-semibold text-gold">{room.status}</span>
+                  <span className="rounded-full bg-brand/10 px-3 py-1 text-sm font-semibold text-brand">{room.status}</span>
                 </div>
                 <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
                   <p className="rounded-xl border border-line px-3 py-2 font-semibold text-secondary">{room.sharingType}</p>
@@ -329,7 +329,7 @@ const RoomDetails = () => {
 
           {!rooms.length && (
             <Card className="text-center hover:translate-y-0">
-              <Building2 className="mx-auto h-8 w-8 text-gold" />
+              <Building2 className="mx-auto h-8 w-8 text-brand" />
               <p className="mt-4 font-semibold text-ink">No rooms match this filter combination.</p>
               <p className="mt-2 text-sm text-secondary">Change sharing type or room type to view available rooms.</p>
             </Card>

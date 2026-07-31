@@ -29,4 +29,19 @@ const emitPaymentUpdate = (payment) => {
   });
 };
 
-module.exports = { attachSocket, emitBedAvailability, emitPaymentUpdate };
+const emitBookingBlocked = (booking) => {
+  if (!io || !booking) return;
+  io.emit("booking:blocked", {
+    id: booking._id,
+    guestName: booking.guestName,
+    guestPhone: booking.guestPhone,
+    branch: booking.branch,
+    room: booking.room,
+    bed: booking.bed,
+    status: booking.status,
+    source: booking.source,
+    createdAt: booking.createdAt
+  });
+};
+
+module.exports = { attachSocket, emitBedAvailability, emitPaymentUpdate, emitBookingBlocked };

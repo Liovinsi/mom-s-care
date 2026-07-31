@@ -100,10 +100,10 @@ const statusStyles = {
   },
   selected: {
     label: "Selected",
-    dot: "bg-blue-600",
-    border: "border-blue-600",
-    background: "bg-blue-600/10",
-    text: "text-blue-600",
+    dot: "bg-brand",
+    border: "border-brand",
+    background: "bg-brand/10",
+    text: "text-brand",
     icon: Check
   }
 };
@@ -114,9 +114,7 @@ const LuxuryNavbar = () => (
   <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur-xl">
     <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
       <Link to="/" className="flex items-center gap-3 text-lg font-semibold text-ink">
-        <span className="grid h-10 w-10 place-items-center rounded-xl border border-gold/30 bg-gold/10">
-          <Building2 className="h-5 w-5 text-gold" />
-        </span>
+        <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-brand/20 bg-white shadow-soft"><img src="/logo.jpeg" alt="PG Stay logo" className="h-full w-full object-cover" /></span>
         <span>
           PGStay
           <span className="block text-[10px] font-bold uppercase tracking-[0.28em] text-muted">Luxe Living</span>
@@ -124,7 +122,7 @@ const LuxuryNavbar = () => (
       </Link>
       <nav className="hidden items-center gap-7 md:flex">
         {["Home", "Branches", "Rooms", "Support"].map((item) => (
-          <a key={item} href={item === "Home" ? "/" : "#"} className="text-sm font-semibold text-secondary transition hover:text-gold">
+          <a key={item} href={item === "Home" ? "/" : "#"} className="text-sm font-semibold text-secondary transition hover:text-brandDark">
             {item}
           </a>
         ))}
@@ -138,11 +136,11 @@ const LuxuryNavbar = () => (
 
 const Breadcrumb = () => (
   <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-5 text-sm font-semibold text-secondary sm:px-6 lg:px-8">
-    <Link to="/" className="hover:text-gold">Home</Link>
+    <Link to="/" className="hover:text-brandDark">Home</Link>
     <ChevronRight className="h-4 w-4 text-muted" />
-    <Link to="/branches" className="hover:text-gold">Branch</Link>
+    <Link to="/branches" className="hover:text-brandDark">Branch</Link>
     <ChevronRight className="h-4 w-4 text-muted" />
-    <Link to="/branches/aurelia-indiranagar/rooms" className="hover:text-gold">Room</Link>
+    <Link to="/branches/aurelia-indiranagar/rooms" className="hover:text-brandDark">Room</Link>
     <ChevronRight className="h-4 w-4 text-muted" />
     <span className="text-ink">Select Bed</span>
   </nav>
@@ -162,13 +160,13 @@ const RoomSummary = () => (
   <Card className="hover:translate-y-0">
     <div className="grid gap-6 lg:grid-cols-[1fr_260px] lg:items-center">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.28em] text-gold">Room Summary</p>
+        <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Room Summary</p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-semibold text-ink">{room.roomNumber}</h1>
           <StatusBadge status="available" />
         </div>
         <p className="mt-3 flex items-center gap-2 text-secondary">
-          <Building2 className="h-4 w-4 text-gold" /> {room.branch}
+          <Building2 className="h-4 w-4 text-brand" /> {room.branch}
         </p>
         <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
@@ -179,7 +177,7 @@ const RoomSummary = () => (
             ["Available Beds", `${room.availableBeds} beds`, Check]
           ].map(([label, value, Icon]) => (
             <div key={label} className="rounded-[18px] border border-line bg-white p-4">
-              <Icon className="h-5 w-5 text-gold" />
+              <Icon className="h-5 w-5 text-brand" />
               <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-muted">{label}</p>
               <p className="mt-1 font-semibold text-ink">{value}</p>
             </div>
@@ -192,7 +190,7 @@ const RoomSummary = () => (
             <img src={image} alt={`${room.roomNumber} preview ${index + 1}`} className="h-24 w-full object-cover lg:h-24" />
             {index === 0 && (
               <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-1 text-[11px] font-semibold text-ink">
-                <Image className="h-3 w-3 text-gold" /> Preview
+                <Image className="h-3 w-3 text-brand" /> Preview
               </span>
             )}
           </div>
@@ -227,10 +225,10 @@ const BedCard = ({ bed, selected, onSelect }) => {
       aria-label={`Bed ${bed.id}, ${style.label}, ${bed.position}, ${bed.features.join(", ")}`}
       aria-pressed={selected}
       onClick={() => onSelect(bed)}
-      className={`group relative min-h-44 rounded-[18px] border-2 p-4 text-left shadow-soft outline-none transition duration-300 focus:ring-4 focus:ring-gold/20 ${
+      className={`group relative min-h-44 rounded-[18px] border-2 p-4 text-left shadow-soft outline-none transition duration-300 focus:ring-4 focus:ring-brand/20 ${
         style.border
       } ${style.background} ${
-        selected ? "scale-[1.02] shadow-[0_24px_60px_rgba(37,99,235,0.25)] ring-4 ring-blue-600/15" : "hover:-translate-y-1 hover:shadow-luxury"
+        selected ? "scale-[1.02] shadow-[0_24px_60px_rgba(221,94,103,0.25)] ring-4 ring-brand/15" : "hover:-translate-y-1 hover:shadow-luxury"
       } ${disabled ? "cursor-not-allowed opacity-75" : "cursor-pointer"}`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -262,17 +260,17 @@ const BedLayout = ({ selectedBed, onSelect }) => (
   <Card className="overflow-hidden hover:translate-y-0">
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.28em] text-gold">Interactive Bed Layout</p>
+        <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Interactive Bed Layout</p>
         <h2 className="mt-2 text-2xl font-semibold text-ink">Choose Your Preferred Bed</h2>
       </div>
       <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-secondary">
-        <DoorOpen className="h-4 w-4 text-gold" /> Entrance
+        <DoorOpen className="h-4 w-4 text-brand" /> Entrance
       </span>
     </div>
 
     <div className="rounded-[18px] border border-line bg-paper p-4 sm:p-6">
-      <div className="mb-4 flex items-center justify-center gap-2 rounded-xl border border-gold/30 bg-white px-4 py-3 text-sm font-semibold text-ink shadow-soft">
-        <Window className="h-4 w-4 text-gold" /> Window Side
+      <div className="mb-4 flex items-center justify-center gap-2 rounded-xl border border-brand/30 bg-white px-4 py-3 text-sm font-semibold text-ink shadow-soft">
+        <Window className="h-4 w-4 text-brand" /> Window Side
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_88px_1fr] lg:items-stretch">
@@ -282,7 +280,7 @@ const BedLayout = ({ selectedBed, onSelect }) => (
           ))}
         </div>
 
-        <div className="flex min-h-20 items-center justify-center rounded-[18px] border border-dashed border-gold/50 bg-white px-3 py-5 text-center text-xs font-bold uppercase tracking-[0.2em] text-gold lg:[writing-mode:vertical-rl]">
+        <div className="flex min-h-20 items-center justify-center rounded-[18px] border border-dashed border-brand/50 bg-white px-3 py-5 text-center text-xs font-bold uppercase tracking-[0.2em] text-brand lg:[writing-mode:vertical-rl]">
           Walkway
         </div>
 
@@ -298,7 +296,7 @@ const BedLayout = ({ selectedBed, onSelect }) => (
 
 const SelectedBedPanel = ({ selectedBed }) => (
   <Card className="hover:translate-y-0">
-    <p className="text-xs font-bold uppercase tracking-[0.28em] text-gold">Selected Bed</p>
+    <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Selected Bed</p>
     {selectedBed ? (
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {[
@@ -336,10 +334,10 @@ const BookingSummary = ({ selectedBed }) => {
 
   return (
     <Card className="hover:translate-y-0">
-      <p className="text-xs font-bold uppercase tracking-[0.28em] text-gold">Booking Summary</p>
+      <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Booking Summary</p>
       <div className="mt-4 space-y-3">
         {items.map(([label, value], index) => (
-          <div key={label} className={`flex items-center justify-between gap-4 rounded-xl px-4 py-3 ${index === items.length - 1 ? "bg-gold/10 text-ink" : "border border-line"}`}>
+          <div key={label} className={`flex items-center justify-between gap-4 rounded-xl px-4 py-3 ${index === items.length - 1 ? "bg-brand/10 text-ink" : "border border-line"}`}>
             <span className="text-sm font-semibold text-secondary">{label}</span>
             <span className="font-semibold text-ink">{value}</span>
           </div>
@@ -353,7 +351,7 @@ const BookingSummary = ({ selectedBed }) => {
 const StickySidebar = ({ selectedBed }) => (
   <aside className="lg:sticky lg:top-24 lg:self-start">
     <Card className="hover:translate-y-0">
-      <p className="text-xs font-bold uppercase tracking-[0.28em] text-gold">Selection</p>
+      <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Selection</p>
       <h2 className="mt-2 text-2xl font-semibold text-ink">{selectedBed ? `Bed ${selectedBed.id}` : "No bed selected"}</h2>
       <div className="mt-5 space-y-3 text-sm">
         {[
@@ -377,8 +375,8 @@ const StickySidebar = ({ selectedBed }) => (
 
 const EmptyState = () => (
   <Card className="text-center hover:translate-y-0">
-    <div className="mx-auto grid h-28 w-28 place-items-center rounded-full bg-gold/10">
-      <BedDouble className="h-14 w-14 text-gold" />
+    <div className="mx-auto grid h-28 w-28 place-items-center rounded-full bg-brand/10">
+      <BedDouble className="h-14 w-14 text-brand" />
     </div>
     <h2 className="mt-6 text-2xl font-semibold text-ink">No Beds Available</h2>
     <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-secondary">
@@ -440,9 +438,9 @@ const BedSelectionPage5 = () => {
             <p className="mt-2">Premium bed selection for confident PG booking.</p>
           </div>
           <div className="flex flex-wrap gap-4">
-            <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-gold" /> {room.moveInDate}</span>
-            <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-gold" /> Assisted booking</span>
-            <span className="inline-flex items-center gap-2"><Star className="h-4 w-4 fill-gold text-gold" /> Luxury room fit</span>
+            <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-brand" /> {room.moveInDate}</span>
+            <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-brand" /> Assisted booking</span>
+            <span className="inline-flex items-center gap-2"><Star className="h-4 w-4 fill-brand text-brand" /> Luxury room fit</span>
           </div>
         </div>
       </footer>

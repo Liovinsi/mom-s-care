@@ -24,7 +24,7 @@ const issueImage = (id) => `https://images.unsplash.com/${id}?auto=format&fit=cr
 export const defaultComplaints = [
   {
     id: "CMP0001",
-    userId: "dummy-user",
+    userId: "dev-user",
     residentId: "RES0001",
     residentName: "Rahul Kumar",
     phone: "9876542101",
@@ -58,7 +58,7 @@ export const defaultComplaints = [
   },
   {
     id: "CMP0002",
-    userId: "dummy-user",
+    userId: "dev-user",
     residentId: "RES0001",
     residentName: "Rahul Kumar",
     phone: "9876542101",

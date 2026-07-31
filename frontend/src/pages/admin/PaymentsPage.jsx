@@ -12,15 +12,15 @@ import { calculatePaymentAnalytics, calculateRentDue, printPaymentReceipt, saveP
 const rowsPerPage = 10;
 const maxProofSize = 10 * 1024 * 1024;
 const proofTypes = ["image/jpeg", "image/png", "application/pdf"];
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15 disabled:bg-paper disabled:text-slate-500";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25 disabled:bg-paper disabled:text-slate-500";
 
 const statusStyles = {
-  Paid: "bg-emerald-50 text-emerald-700",
-  Pending: "bg-amber-50 text-amber-700",
-  Failed: "bg-red-50 text-red-700",
+  Paid: "bg-brand/10 text-brandDark",
+  Pending: "bg-brand/10 text-brandDark",
+  Failed: "bg-paper text-brandDark",
   Refunded: "bg-slate-100 text-slate-600",
-  Overdue: "bg-orange-50 text-orange-700",
-  Partial: "bg-blue-50 text-blue-700"
+  Overdue: "bg-paper text-brandDark",
+  Partial: "bg-brand/10 text-brandDark"
 };
 
 const emptyPayment = {
@@ -117,7 +117,7 @@ const ProofUpload = ({ proof, proofName, proofType, onChange, error, onError }) 
             <p className="px-3 text-sm font-bold text-slate-500">No Proof Uploaded</p>
           )}
         </div>
-        <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line bg-paper px-4 text-center text-sm font-semibold text-ink transition hover:border-gold hover:text-gold">
+        <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line bg-paper px-4 text-center text-sm font-semibold text-ink transition hover:border-brandDark hover:text-brandDark">
           <ImagePlus className="mb-2 h-5 w-5" />
           Upload Payment Proof
           <span className="mt-1 text-xs font-medium text-slate-500">JPG, PNG, PDF up to 10 MB</span>
@@ -209,7 +209,7 @@ const PaymentDrawer = ({ payment, payments, residents, bookings, onClose, onSave
             <h2 className="text-xl font-bold text-ink">{editingId ? "Edit Payment" : "Record Payment"}</h2>
             <p className="text-sm text-slate-500">Manage booking payments, rent, deposits, refunds, and payment proof.</p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -309,7 +309,7 @@ const PaymentProofPreview = ({ payment }) => {
   return (
     <div className="mt-4">
       {isPdf ? (
-        <a href={payment.paymentProof} download={payment.proofName || "payment-proof.pdf"} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line bg-white px-4 text-sm font-bold text-ink hover:border-gold hover:text-gold">Download PDF Proof</a>
+        <a href={payment.paymentProof} download={payment.proofName || "payment-proof.pdf"} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line bg-white px-4 text-sm font-bold text-ink hover:border-brandDark hover:text-brandDark">Download PDF Proof</a>
       ) : (
         <img src={payment.paymentProof} alt="Payment proof" className="h-48 w-full rounded-2xl border border-line object-cover" />
       )}
@@ -327,7 +327,7 @@ const PaymentViewModal = ({ payment, onClose }) => (
           <p className="text-sm text-slate-500">{payment.residentName} · {payment.branchName} · {payment.paymentType}</p>
           <div className="mt-2"><StatusBadge status={payment.paymentStatus} /></div>
         </div>
-        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -372,7 +372,7 @@ const qrDataUrl = (payment) => {
     if (!filled) return "";
     const x = (index % 7) * 10;
     const y = Math.floor(index / 7) * 10;
-    return `<rect x="${x}" y="${y}" width="8" height="8" fill="#1E1E24"/>`;
+    return `<rect x="${x}" y="${y}" width="8" height="8" fill="#1F2937"/>`;
   }).join("");
   return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 70 70"><rect width="70" height="70" fill="#fff"/>${squares}</svg>`)}`;
 };
@@ -385,20 +385,20 @@ const printReceipt = (payment) => {
       <head>
         <title>Payment Receipt ${payment.receiptNo}</title>
         <style>
-          body { font-family: Arial, sans-serif; color: #1E1E24; padding: 32px; }
-          h1 { color: #D4AF37; margin-bottom: 4px; }
+          body { font-family: Arial, sans-serif; color: #1F2937; padding: 32px; }
+          h1 { color: #DD5E67; margin-bottom: 4px; }
           table { width: 100%; border-collapse: collapse; margin-top: 24px; }
           td { border: 1px solid #E5E5E5; padding: 12px; }
-          .label { font-weight: 700; background: #F8F8F8; width: 34%; }
+          .label { font-weight: 700; background: #FFF4F6; width: 34%; }
           .top { display: flex; justify-content: space-between; align-items: start; gap: 24px; }
-          .logo { font-weight: 800; color: #D4AF37; letter-spacing: .16em; }
+          .logo { width: 72px; height: 72px; object-fit: cover; border-radius: 16px; }
           .qr { width: 86px; height: 86px; border: 1px solid #E5E5E5; padding: 8px; border-radius: 12px; }
         </style>
       </head>
       <body>
         <div class="top">
           <div>
-            <div class="logo">PGSTAY</div>
+            <img class="logo" src="/logo.jpeg" alt="PG Stay logo" />
             <h1>Payment Receipt</h1>
             <p>Receipt Number: ${payment.receiptNo}</p>
           </div>
@@ -643,7 +643,7 @@ const PaymentsPage = () => {
             <Card key={title}>
               <h2 className="text-lg font-bold text-ink">{title}</h2>
               <div className="mt-5 h-3 overflow-hidden rounded-full bg-paper">
-                <div className="h-full rounded-full bg-gold" style={{ width: `${percent}%` }} />
+                <div className="h-full rounded-full bg-brand" style={{ width: `${percent}%` }} />
               </div>
               <p className="mt-3 text-sm font-semibold text-slate-600">{percent}%</p>
             </Card>
@@ -678,19 +678,19 @@ const PaymentsPage = () => {
                 <td className="px-4 py-3"><StatusBadge status={payment.paymentStatus} /></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setViewPayment(payment)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="View payment">
+                    <button type="button" onClick={() => setViewPayment(payment)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View payment">
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => { setDrawerPayment(payment); setShowDrawer(true); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Edit payment">
+                    <button type="button" onClick={() => { setDrawerPayment(payment); setShowDrawer(true); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Edit payment">
                       <Pencil className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => printPaymentReceipt(payment)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Download receipt">
+                    <button type="button" onClick={() => printPaymentReceipt(payment)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Download receipt">
                       <Download className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => printPaymentReceipt(payment)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Print payment">
+                    <button type="button" onClick={() => printPaymentReceipt(payment)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Print payment">
                       <Printer className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setRefundPayment(payment)} disabled={payment.paymentStatus === "Refunded" || payment.paymentType === "Refund"} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Refund payment">
+                    <button type="button" onClick={() => setRefundPayment(payment)} disabled={payment.paymentStatus === "Refunded" || payment.paymentType === "Refund"} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40" aria-label="Refund payment">
                       <RotateCcw className="h-4 w-4" />
                     </button>
                   </div>

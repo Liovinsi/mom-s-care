@@ -22,7 +22,7 @@ import { useMemo, useState } from "react";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15 disabled:bg-paper disabled:text-slate-500";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25 disabled:bg-paper disabled:text-slate-500";
 const textareaClass = `${fieldClass} min-h-28 py-3`;
 
 const menuItems = [
@@ -176,10 +176,10 @@ const Toggle = ({ label, checked, onChange }) => (
   <button
     type="button"
     onClick={() => onChange(!checked)}
-    className="flex min-h-12 items-center justify-between rounded-xl border border-line bg-white px-4 text-left transition hover:border-gold"
+    className="flex min-h-12 items-center justify-between rounded-xl border border-line bg-white px-4 text-left transition hover:border-brandDark"
   >
     <span className="text-sm font-semibold text-ink">{label}</span>
-    <span className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-gold" : "bg-slate-300"}`}>
+    <span className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-brand" : "bg-slate-300"}`}>
       <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${checked ? "left-6" : "left-1"}`} />
     </span>
   </button>
@@ -192,7 +192,7 @@ const FileUpload = ({ label, value, accept = "image/*", onChange }) => (
       <div className="grid h-28 place-items-center overflow-hidden rounded-xl border border-line bg-paper">
         {value ? <img src={value} alt={label} className="h-full w-full object-cover" /> : <ImagePlus className="h-7 w-7 text-muted" />}
       </div>
-      <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line bg-white px-4 text-center text-sm font-semibold text-ink transition hover:border-gold hover:text-gold">
+      <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line bg-white px-4 text-center text-sm font-semibold text-ink transition hover:border-brandDark hover:text-brandDark">
         <Upload className="mb-2 h-5 w-5" />
         Upload {label}
         <span className="mt-1 text-xs font-medium text-slate-500">JPG, PNG, WEBP preferred</span>
@@ -216,7 +216,7 @@ const FileUpload = ({ label, value, accept = "image/*", onChange }) => (
 const SaveBar = ({ onSave, saved }) => (
   <div className="flex flex-wrap items-center gap-3 border-t border-line pt-5">
     <Button onClick={onSave}><Save className="h-4 w-4" /> Save Changes</Button>
-    {saved && <span className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700"><CheckCircle2 className="h-4 w-4" /> Settings saved</span>}
+    {saved && <span className="inline-flex items-center gap-2 text-sm font-semibold text-brandDark"><CheckCircle2 className="h-4 w-4" /> Settings saved</span>}
   </div>
 );
 
@@ -267,7 +267,7 @@ const SettingsPage = () => {
           <div className="grid gap-4 lg:grid-cols-2">
             {input("general", "systemName", "System Name")}
             {select("general", "timezone", "Timezone", ["Asia/Kolkata", "UTC", "Asia/Dubai", "Asia/Singapore"])}
-            {select("general", "currency", "Currency", ["INR", "USD", "AED", "SGD"])}
+            {select("general", "currency", "Currency", ["INR"])}
             {select("general", "language", "Language", ["English", "Tamil", "Hindi"])}
             <FileUpload label="System Logo" value={settings.general.systemLogo} onChange={(value) => update("general", "systemLogo", value)} />
             <FileUpload label="Favicon" value={settings.general.favicon} onChange={(value) => update("general", "favicon", value)} />
@@ -404,9 +404,9 @@ const SettingsPage = () => {
     return (
       <SettingsPanel title="Backup" icon={Database}>
         <div className="grid gap-4 lg:grid-cols-2">
-          <Card className="border-gold/30 bg-gold/5">
+          <Card className="border-brand/30 bg-brand/5">
             <div className="flex items-start gap-3">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-white text-gold">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-white text-brand">
                 <Clock className="h-5 w-5" />
               </div>
               <div>
@@ -424,7 +424,7 @@ const SettingsPage = () => {
           </Card>
           <div className="lg:col-span-2">
             <span className="mb-2 block text-sm font-semibold text-ink">Restore Backup</span>
-            <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line bg-white px-4 text-center text-sm font-semibold text-ink transition hover:border-gold hover:text-gold">
+            <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line bg-white px-4 text-center text-sm font-semibold text-ink transition hover:border-brandDark hover:text-brandDark">
               <RotateCcw className="mb-2 h-5 w-5" />
               {settings.backup.restoreFile || "Upload Backup File"}
               <span className="mt-1 text-xs font-medium text-slate-500">Select a database backup file to restore</span>
@@ -459,7 +459,7 @@ const SettingsPage = () => {
                     setSavedSection("");
                   }}
                   className={`flex min-h-12 items-center gap-3 rounded-xl px-4 text-left text-sm font-bold transition ${
-                    active ? "bg-gold text-white shadow-[0_12px_24px_rgba(212,175,55,0.22)]" : "text-slate-600 hover:bg-paper hover:text-ink"
+                    active ? "bg-brand text-white shadow-[0_12px_24px_rgba(221,94,103,0.22)]" : "text-slate-600 hover:bg-paper hover:text-ink"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -472,7 +472,7 @@ const SettingsPage = () => {
 
         <div>
           <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-500">
-            {activeMenu && <activeMenu.icon className="h-4 w-4 text-gold" />}
+            {activeMenu && <activeMenu.icon className="h-4 w-4 text-brand" />}
             {activeMenu?.label}
           </div>
           {renderPanel()}
@@ -485,7 +485,7 @@ const SettingsPage = () => {
 const SettingsPanel = ({ title, icon: Icon, children }) => (
   <Card className="space-y-5">
     <div className="flex items-center gap-3 border-b border-line pb-5">
-      <div className="grid h-11 w-11 place-items-center rounded-xl bg-gold/10 text-gold">
+      <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand/10 text-brand">
         <Icon className="h-5 w-5" />
       </div>
       <h2 className="text-xl font-bold text-ink">{title}</h2>

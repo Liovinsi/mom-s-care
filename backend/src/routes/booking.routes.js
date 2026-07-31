@@ -9,6 +9,7 @@ const router = express.Router();
 router.use(authenticate);
 router.get("/", controller.list);
 router.post("/", authorize("GUEST"), bookingRules, validate, controller.create);
+router.post("/direct", authorize("SUPER_ADMIN"), controller.createDirect);
 router.patch("/:id/approve", authorize("SUPER_ADMIN"), mongoId(), validate, controller.approve);
 router.patch("/:id/reject", authorize("SUPER_ADMIN"), mongoId(), validate, controller.reject);
 

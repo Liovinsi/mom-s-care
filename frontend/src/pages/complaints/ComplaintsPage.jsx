@@ -37,18 +37,18 @@ import { ROLES } from "../../routes/roleRoutes";
 
 const rowsPerPage = 10;
 const today = "2026-07-18";
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15 disabled:bg-paper disabled:text-slate-500";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25 disabled:bg-paper disabled:text-slate-500";
 const textareaClass = `${fieldClass} min-h-28 py-3`;
 
 const statusStyles = {
-  Open: "bg-blue-50 text-blue-700",
-  New: "bg-blue-50 text-blue-700",
+  Open: "bg-brand/10 text-brandDark",
+  New: "bg-brand/10 text-brandDark",
   Assigned: "bg-purple-50 text-purple-700",
-  "In Progress": "bg-amber-50 text-amber-700",
-  "Waiting for Resident": "bg-orange-50 text-orange-700",
-  Resolved: "bg-emerald-50 text-emerald-700",
+  "In Progress": "bg-brand/10 text-brandDark",
+  "Waiting for Resident": "bg-paper text-brandDark",
+  Resolved: "bg-brand/10 text-brandDark",
   Closed: "bg-slate-100 text-slate-700",
-  Escalated: "bg-red-50 text-red-700"
+  Escalated: "bg-paper text-brandDark"
 };
 
 const ADMIN_CATEGORIES = ["Maintenance", "Electrical", "Plumbing", "Cleaning", "Water", "WiFi", "Food", "Laundry", "Security", "Housekeeping", "AC", "Fan", "Other"];
@@ -66,17 +66,19 @@ const statusAliases = {
 
 const priorityStyles = {
   Low: "bg-slate-100 text-slate-700",
-  Medium: "bg-blue-50 text-blue-700",
-  High: "bg-orange-50 text-orange-700",
-  Emergency: "bg-red-50 text-red-700"
+  Medium: "bg-brand/10 text-brandDark",
+  High: "bg-paper text-brandDark",
+  Emergency: "bg-paper text-brandDark"
 };
 
 const currentResidentByUser = {
-  "dummy-user": "RES0001"
+  "dev-user": "RES0001",
+  "demo-google-guest": "RES0001",
+  "demo-facebook-guest": "RES0001"
 };
 
 const wardenBranchByUser = {
-  "dummy-warden": "Anna Nagar"
+  "dev-warden-wd001": "Anna Nagar"
 };
 
 const formatDate = (value) => {
@@ -145,7 +147,7 @@ const Modal = ({ title, children, onClose, wide = false }) => (
     <div className={`max-h-[92vh] w-full overflow-y-auto rounded-2xl bg-white p-5 shadow-luxury ${wide ? "max-w-5xl" : "max-w-xl"}`}>
       <div className="mb-5 flex items-center justify-between gap-3 border-b border-line pb-4">
         <h2 className="text-xl font-bold text-ink">{title}</h2>
-        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold">
+        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -178,7 +180,7 @@ const ImageUploader = ({ images, onChange, error }) => {
           </div>
         ))}
         {images.length < 5 && (
-          <label className="grid h-24 cursor-pointer place-items-center rounded-xl border border-dashed border-line bg-white text-center text-sm font-semibold text-ink hover:border-gold hover:text-gold">
+          <label className="grid h-24 cursor-pointer place-items-center rounded-xl border border-dashed border-line bg-white text-center text-sm font-semibold text-ink hover:border-brandDark hover:text-brandDark">
             <span>
               <ImagePlus className="mx-auto mb-1 h-5 w-5" />
               Add Image
@@ -193,7 +195,7 @@ const ImageUploader = ({ images, onChange, error }) => {
   );
 };
 
-const RaiseComplaintModal = ({ resident, complaints, onClose, onSave }) => {
+const RaiseComplaintModal = ({ resident, complaints, userId, onClose, onSave }) => {
   const [form, setForm] = useState({ category: "Maintenance", priority: "Medium", title: "", description: "", images: [] });
   const [errors, setErrors] = useState({});
 
@@ -209,7 +211,7 @@ const RaiseComplaintModal = ({ resident, complaints, onClose, onSave }) => {
 
     const complaint = {
       id: createComplaintId(complaints),
-      userId: "dummy-user",
+      userId,
       residentId: resident.id,
       residentName: resident.fullName,
       phone: resident.phone,
@@ -304,7 +306,7 @@ const ComplaintDetails = ({ complaint, role, wardens, onClose, onComment, onStat
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-slate-500">Complaint Information</p>
-                <p className="mt-1 text-sm font-bold text-gold">{complaint.id}</p>
+                <p className="mt-1 text-sm font-bold text-brand">{complaint.id}</p>
                 <h3 className="mt-1 text-xl font-bold text-ink">{complaint.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{complaint.description}</p>
               </div>
@@ -354,7 +356,7 @@ const ComplaintDetails = ({ complaint, role, wardens, onClose, onComment, onStat
               {complaint.images.length ? complaint.images.map((image, index) => (
                 <div key={`${image}-${index}`} className="overflow-hidden rounded-xl border border-line">
                   <img src={image} alt={`Complaint ${index + 1}`} className="h-32 w-full object-cover" />
-                  <a href={image} download={`${complaint.id}-image-${index + 1}.jpg`} className="flex min-h-10 items-center justify-center gap-2 text-sm font-bold text-ink hover:text-gold">
+                  <a href={image} download={`${complaint.id}-image-${index + 1}.jpg`} className="flex min-h-10 items-center justify-center gap-2 text-sm font-bold text-ink hover:text-brandDark">
                     <Download className="h-4 w-4" /> Download
                   </a>
                 </div>
@@ -389,7 +391,7 @@ const ComplaintDetails = ({ complaint, role, wardens, onClose, onComment, onStat
             <div className="mt-4 space-y-4">
               {complaint.timeline.map((item, index) => (
                 <div key={`${item.label}-${index}`} className="flex gap-3">
-                  <span className="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gold/10 text-gold">
+                  <span className="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand/10 text-brand">
                     <CheckCircle2 className="h-4 w-4" />
                   </span>
                   <div>
@@ -421,7 +423,7 @@ const ComplaintDetails = ({ complaint, role, wardens, onClose, onComment, onStat
                 <Button onClick={() => onRate(complaint.id, rating)} disabled={!rating}><Star className="h-4 w-4" /> Rate Resolution & Close</Button>
               </div>
             )}
-            {complaint.residentRating && <p className="text-sm font-bold text-gold">Resident Rating: {complaint.residentRating} / 5</p>}
+            {complaint.residentRating && <p className="text-sm font-bold text-brand">Resident Rating: {complaint.residentRating} / 5</p>}
           </Card>
 
           {role === ROLES.ADMIN && (
@@ -435,7 +437,7 @@ const ComplaintDetails = ({ complaint, role, wardens, onClose, onComment, onStat
                   <div>
                     <p className="text-lg font-bold text-ink">{complaint.assignedWarden || "Unassigned"}</p>
                     <p className="text-sm text-slate-500">{assignedWarden?.phone || "No phone available"}</p>
-                    <p className="mt-1 text-sm font-semibold text-gold">{assignedWarden?.status || "Unassigned"}</p>
+                    <p className="mt-1 text-sm font-semibold text-brand">{assignedWarden?.status || "Unassigned"}</p>
                   </div>
                 </div>
               </Card>
@@ -448,7 +450,7 @@ const ComplaintDetails = ({ complaint, role, wardens, onClose, onComment, onStat
               </Card>
 
               {complaint.status === "Escalated" && (
-                <Card className="border-red-100 bg-red-50/40">
+                <Card className="border-brand/20 bg-paper">
                   <h3 className="text-lg font-bold text-ink">Escalated Complaint</h3>
                   <div className="mt-4 grid gap-3">
                     <p className="text-sm"><span className="font-bold text-ink">Escalation Reason:</span> {complaint.escalationReason || "-"}</p>
@@ -838,14 +840,14 @@ const ComplaintsPage = ({ role }) => {
         </div>
       </Card>
 
-      <Card className="mt-5 border-gold/30 bg-gold/5">
+      <Card className="mt-5 border-brand/30 bg-brand/5">
         <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-ink">
-          <AlertTriangle className="h-4 w-4 text-gold" />
+          <AlertTriangle className="h-4 w-4 text-brand" />
           Notifications are queued on complaint creation, status changes, and escalation.
         </div>
       </Card>
 
-      {raiseOpen && <RaiseComplaintModal resident={currentResident} complaints={complaints} onClose={() => setRaiseOpen(false)} onSave={createComplaint} />}
+      {raiseOpen && <RaiseComplaintModal resident={currentResident} complaints={complaints} userId={user?.id || "dev-user"} onClose={() => setRaiseOpen(false)} onSave={createComplaint} />}
       {selected && (
         <ComplaintDetails
           complaint={selected}

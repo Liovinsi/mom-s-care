@@ -75,15 +75,15 @@ export const testimonials = [
 export const faqs = [
   {
     question: "How do I book a bed in a PG?",
-    answer: "Search for your preferred location, select a PG branch, choose your room type (1, 2, 3, or 4 Sharing), pick an available bed, complete the booking form, and pay the ₹5,000 booking token to reserve your bed."
+    answer: "Search for your preferred location, select a PG branch, choose your room type (1, 2, 3, or 4 Sharing), pick an available bed, and complete the booking form to block it for manual confirmation."
   },
   {
     question: "What documents are required for booking?",
     answer: "You need a valid Aadhaar Card, a recent passport-size photo, and parent or guardian contact details. Students should provide their college information, while working professionals should provide their company details."
   },
   {
-    question: "Is the ₹5,000 booking token refundable?",
-    answer: "The booking token is subject to the branch's cancellation and refund policy. Please review the booking terms before making your payment."
+    question: "How is the booking confirmed?",
+    answer: "After the bed is blocked, the team contacts you for an in-person confirmation. Payment details are recorded after final approval."
   },
   {
     question: "When can I move into the PG?",

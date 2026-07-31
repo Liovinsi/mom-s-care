@@ -1,4 +1,4 @@
-import { BarChart3, BedDouble, Building2, CalendarCheck, CreditCard, FileText, Home, LogOut, MessageSquareWarning, Moon, Settings, Sun, Users } from "lucide-react";
+import { BarChart3, BedDouble, Building2, CreditCard, FileText, Home, LogOut, MessageSquareWarning, Moon, Settings, Sun, Users } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -24,34 +24,27 @@ const wardenLinks = [
   ["Occupancy", "/pgbooking/warden/occupancy", BarChart3]
 ];
 
-const userLinks = [
-  ["Dashboard", "/pgbooking/user/dashboard", Home],
-  ["My Booking", "/pgbooking/user/booking", BedDouble],
-  ["Payments", "/pgbooking/user/payment", CreditCard],
-  ["Visits", "/pgbooking/user/visits", CalendarCheck]
-];
-
 const DashboardLayout = ({ role }) => {
   const { logout, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const linksByRole = {
     ADMIN: adminLinks,
-    WARDEN: wardenLinks,
-    USER: userLinks
+    WARDEN: wardenLinks
   };
   const roleLabels = {
     ADMIN: "Admin",
-    WARDEN: "Warden",
-    USER: "User"
+    WARDEN: "Warden"
   };
-  const links = linksByRole[role] ?? userLinks;
+  const links = linksByRole[role] ?? adminLinks;
 
   return (
     <div className="min-h-screen bg-paper lg:grid lg:grid-cols-[260px_1fr]">
       <aside className="border-r border-slate-200 bg-white p-4 lg:min-h-screen">
         <div className="mb-5 flex items-center gap-2 text-lg font-bold">
-          <Building2 className="h-6 w-6 text-mint" />
-          PGStay
+          <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-brand/20 bg-white shadow-soft">
+            <img src="/logo.jpeg" alt="PG Stay logo" className="h-full w-full object-cover" />
+          </span>
+          <span>PGStay</span>
         </div>
         <nav className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible">
           {links.map(([label, to, Icon]) => (

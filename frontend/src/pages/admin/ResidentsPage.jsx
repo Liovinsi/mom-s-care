@@ -12,12 +12,12 @@ import { loadRooms } from "../../data/adminRooms";
 import { saveAvailabilitySnapshot } from "../../lib/liveAvailability";
 
 const rowsPerPage = 10;
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
 
 const statusStyles = {
-  "Pending Check-In": "bg-amber-50 text-amber-700",
-  Active: "bg-emerald-50 text-emerald-700",
-  Vacating: "bg-orange-50 text-orange-700",
+  "Pending Check-In": "bg-brand/10 text-brandDark",
+  Active: "bg-brand/10 text-brandDark",
+  Vacating: "bg-paper text-brandDark",
   "Checked Out": "bg-slate-100 text-slate-600"
 };
 
@@ -52,7 +52,7 @@ const DocumentPreview = ({ label, src }) => (
     <BranchImage src={src} alt={label} className="h-40 w-full rounded-2xl border border-line object-cover" fallbackClassName="h-40 w-full rounded-2xl" />
     <div className="mt-2 flex items-center justify-between gap-2">
       <p className="text-xs font-bold uppercase text-slate-500">{label}</p>
-      <a href={src} download className="text-xs font-bold text-gold hover:underline">Download</a>
+      <a href={src} download className="text-xs font-bold text-brand hover:underline">Download</a>
     </div>
   </div>
 );
@@ -64,7 +64,7 @@ const qrDataUrl = (resident) => {
     if (!filled) return "";
     const x = (index % 7) * 10;
     const y = Math.floor(index / 7) * 10;
-    return `<rect x="${x}" y="${y}" width="8" height="8" fill="#1E1E24"/>`;
+    return `<rect x="${x}" y="${y}" width="8" height="8" fill="#1F2937"/>`;
   }).join("");
   return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 70 70"><rect width="70" height="70" fill="#fff"/>${squares}</svg>`)}`;
 };
@@ -95,7 +95,7 @@ const ResidentViewModal = ({ resident, onClose }) => (
             <div className="mt-2"><StatusBadge status={resident.status} /></div>
           </div>
         </div>
-        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -125,7 +125,7 @@ const ResidentViewModal = ({ resident, onClose }) => (
         <Card>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="text-lg font-bold text-ink">Identity</h3>
-            <a href={resident.aadhaarFront} download className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-gold hover:text-gold">
+            <a href={resident.aadhaarFront} download className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-brandDark hover:text-brandDark">
               <Download className="h-4 w-4" /> Download Documents
             </a>
           </div>
@@ -196,7 +196,7 @@ const ResidentEditModal = ({ resident, onClose, onSave }) => {
             <h2 className="text-xl font-bold text-ink">Edit Resident</h2>
             <p className="text-sm text-slate-500">{resident.fullName} · {resident.id}</p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -261,10 +261,10 @@ const printIdCard = (resident) => {
       <head>
         <title>Resident ID Card ${resident.id}</title>
         <style>
-          body { font-family: Arial, sans-serif; background: #F8F8F8; color: #1E1E24; padding: 28px; }
+          body { font-family: Arial, sans-serif; background: #FFF4F6; color: #1F2937; padding: 28px; }
           .card { width: 360px; margin: 0 auto; border: 1px solid #E5E5E5; border-radius: 18px; background: #fff; padding: 22px; box-shadow: 0 18px 45px rgba(30,30,36,.12); }
-          .brand { color: #D4AF37; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; }
-          .photo { width: 92px; height: 92px; border-radius: 18px; object-fit: cover; border: 3px solid #D4AF37; }
+          .brand { color: #DD5E67; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; }
+          .photo { width: 92px; height: 92px; border-radius: 18px; object-fit: cover; border: 3px solid #DD5E67; }
           h1 { font-size: 22px; margin: 14px 0 4px; }
           p { margin: 8px 0; font-size: 14px; }
           .qr { width: 86px; height: 86px; border: 1px solid #E5E5E5; padding: 8px; border-radius: 12px; }
@@ -465,16 +465,16 @@ const ResidentsPage = () => {
                 <td className="px-4 py-3"><StatusBadge status={resident.status} /></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setViewResident(resident)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="View resident">
+                    <button type="button" onClick={() => setViewResident(resident)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View resident">
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setEditResident(resident)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Edit resident">
+                    <button type="button" onClick={() => setEditResident(resident)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Edit resident">
                       <Pencil className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setCheckOutResident(resident)} disabled={resident.status === "Checked Out"} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Check-out resident">
+                    <button type="button" onClick={() => setCheckOutResident(resident)} disabled={resident.status === "Checked Out"} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40" aria-label="Check-out resident">
                       <X className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => printIdCard(resident)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Print resident ID card">
+                    <button type="button" onClick={() => printIdCard(resident)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Print resident ID card">
                       <Printer className="h-4 w-4" />
                     </button>
                   </div>

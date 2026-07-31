@@ -6,11 +6,14 @@ const bookingSchema = new mongoose.Schema(
     branch: { type: mongoose.Schema.Types.ObjectId, ref: "Branch", required: true },
     room: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
     bed: { type: mongoose.Schema.Types.ObjectId, ref: "Bed", required: true },
+    guestName: { type: String, trim: true },
+    guestPhone: { type: String, trim: true },
+    source: { type: String, enum: ["ONLINE", "WALK_IN", "PHONE"], default: "ONLINE" },
     moveInDate: { type: Date, required: true },
     status: {
       type: String,
-      enum: ["PENDING_PAYMENT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "CANCELLED"],
-      default: "PENDING_PAYMENT"
+      enum: ["BLOCKED", "PENDING_PAYMENT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "CANCELLED"],
+      default: "BLOCKED"
     },
     tokenAmount: { type: Number, required: true },
     notes: { type: String },

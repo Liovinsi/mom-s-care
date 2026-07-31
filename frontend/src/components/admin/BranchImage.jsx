@@ -10,7 +10,7 @@ const BranchImage = ({ src, alt, className = "", fallbackClassName = "", label =
 
   if (!src || failed) {
     return (
-      <div className={`grid place-items-center rounded-lg border border-line bg-gold/10 text-center text-gold ${fallbackClassName || className}`}>
+      <div className={`grid place-items-center rounded-lg border border-line bg-brand/10 text-center text-brand ${fallbackClassName || className}`}>
         <div className="px-2">
           <Building2 className="mx-auto h-5 w-5" />
           <p className="mt-1 text-[10px] font-bold leading-tight text-ink">{label}</p>

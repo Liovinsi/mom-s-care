@@ -1,13 +1,18 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { CreditCard, FileText } from "lucide-react";
+import { FileText, ShieldCheck } from "lucide-react";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import { bookingBranches, bookingRooms, formatCurrency } from "../../data/bookingFlow";
+import { loadBeds } from "../../data/adminBeds";
+import { loadBookings, saveBookings } from "../../data/adminBookings";
+import { loadRooms } from "../../data/adminRooms";
+import { publicBedIdFromAdminBed, saveAvailabilitySnapshot } from "../../lib/liveAvailability";
 
 const initialForm = {
   fullName: "",
+  mobileNumber: "",
   dateOfBirth: "",
   gender: "",
   residentType: "",
@@ -30,9 +35,25 @@ const initialForm = {
   emergencyMobile: ""
 };
 
-const selectClassName = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15";
-const textAreaClassName = "min-h-28 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted focus:border-gold focus:ring-4 focus:ring-gold/15";
+const selectClassName = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
+const textAreaClassName = "min-h-28 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted focus:border-brand focus:ring-4 focus:ring-brand/25";
 const tokenAmount = 5000;
+const mobilePattern = /^[6-9]\d{9}$/;
+const numericFields = {
+  mobileNumber: 10,
+  guardianMobile: 10,
+  alternateMobile: 10,
+  emergencyMobile: 10,
+  aadhaarNumber: 12,
+  pincode: 6
+};
+
+const todayValue = () => new Date().toISOString().slice(0, 10);
+
+const createBookingId = (bookings) => {
+  const maxId = bookings.reduce((value, booking) => Math.max(value, Number(String(booking.id).replace(/\D/g, "") || 0)), 0);
+  return `BK${String(maxId + 1).padStart(4, "0")}`;
+};
 
 const FieldGroup = ({ title, children }) => (
   <Card className="hover:translate-y-0">
@@ -71,7 +92,11 @@ const BookingDetails = () => {
   const branch = bookingBranches.find((item) => item.id === room.branchId) || bookingBranches[0];
   const selectedBed = room.bedList.find((bed) => bed.id === bedId) || state?.selectedBed || null;
 
-  const updateField = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }));
+  const updateField = (field) => (event) => {
+    const limit = numericFields[field];
+    const value = limit ? event.target.value.replace(/\D/g, "").slice(0, limit) : event.target.value;
+    setForm((current) => ({ ...current, [field]: value }));
+  };
 
   const handleFile = (event) => {
     const file = event.target.files?.[0] || null;
@@ -102,6 +127,7 @@ const BookingDetails = () => {
   const validation = useMemo(() => {
     const requiredFields = [
       "fullName",
+      "mobileNumber",
       "dateOfBirth",
       "residentType",
       "guardianName",
@@ -121,24 +147,86 @@ const BookingDetails = () => {
 
     const requiredComplete = requiredFields.every((field) => String(form[field]).trim());
     const aadhaarValid = /^\d{12}$/.test(form.aadhaarNumber);
-    const guardianMobileValid = /^\d{10}$/.test(form.guardianMobile);
-    const alternateMobileValid = !form.alternateMobile || /^\d{10}$/.test(form.alternateMobile);
-    const emergencyMobileValid = /^\d{10}$/.test(form.emergencyMobile);
+    const mobileNumberValid = mobilePattern.test(form.mobileNumber);
+    const guardianMobileValid = mobilePattern.test(form.guardianMobile);
+    const alternateMobileValid = !form.alternateMobile || mobilePattern.test(form.alternateMobile);
+    const emergencyMobileValid = mobilePattern.test(form.emergencyMobile);
     const fileValid = Boolean(form.aadhaarFile) && !fileError;
 
     return {
       aadhaarValid,
+      mobileNumberValid,
       guardianMobileValid,
       alternateMobileValid,
       emergencyMobileValid,
       fileValid,
-      formValid: requiredComplete && aadhaarValid && guardianMobileValid && alternateMobileValid && emergencyMobileValid && fileValid && Boolean(selectedBed)
+      formValid: requiredComplete && aadhaarValid && mobileNumberValid && guardianMobileValid && alternateMobileValid && emergencyMobileValid && fileValid && Boolean(selectedBed)
     };
   }, [fileError, form, selectedBed]);
 
-  const proceedToPayment = () => {
+  const blockBed = () => {
     if (!validation.formValid) return;
-    navigate("/payment", {
+
+    const storedBookings = loadBookings();
+    const bookingId = createBookingId(storedBookings);
+    const adminBeds = loadBeds();
+    const adminBed = adminBeds.find((bed) => bed.id === selectedBed.id || publicBedIdFromAdminBed(bed) === selectedBed.id);
+
+    if (adminBed) {
+      const nextBeds = adminBeds.map((bed) => (
+        bed.id === adminBed.id
+          ? {
+              ...bed,
+              status: "Reserved",
+              currentResident: "",
+              bookingId,
+              checkInDate: todayValue(),
+              checkOutDate: ""
+            }
+          : bed
+      ));
+      saveAvailabilitySnapshot(nextBeds, loadRooms());
+    }
+
+    const booking = {
+      id: bookingId,
+      customerName: form.fullName,
+      gender: form.gender,
+      dob: form.dateOfBirth,
+      phone: form.mobileNumber,
+      email: "",
+      emergencyContact: `${form.emergencyName} - ${form.emergencyMobile}`,
+      occupation: form.residentType,
+      organization: form.residentType === "Student" ? form.collegeName : form.companyName,
+      aadhaarNumber: `XXXX XXXX ${form.aadhaarNumber.slice(-4)}`,
+      aadhaarFront: "",
+      aadhaarBack: "",
+      branchId: String(branch.id).replace(/-pg$/, ""),
+      branchName: branch.name.replace(/\s*PG$/, ""),
+      roomId: room.id,
+      roomNumber: room.number,
+      bedId: adminBed?.id || selectedBed.id,
+      bedName: selectedBed.label,
+      sharingType: room.sharingType,
+      roomType: room.roomType,
+      bookingDate: todayValue(),
+      moveInDate: todayValue(),
+      expectedStay: "Pending discussion",
+      tokenAmount,
+      transactionId: "",
+      paymentMethod: "Manual",
+      paymentDate: "",
+      paymentScreenshot: "",
+      paymentStatus: "Pending",
+      bookingStatus: "Pending",
+      assignedWardenId: "",
+      assignedWardenName: "",
+      rejectionReason: ""
+    };
+
+    saveBookings([booking, ...storedBookings]);
+
+    navigate("/booking-status", {
       state: {
         booking: {
           branch: branch.name,
@@ -148,9 +236,11 @@ const BookingDetails = () => {
           selectedBed: selectedBed.label,
           monthlyRent: room.monthlyRent,
           securityDeposit: room.securityDeposit,
-          tokenAmount
-        },
-        resident: form
+          tokenAmount,
+          status: "Blocked",
+          guestName: form.fullName,
+          mobileNumber: form.mobileNumber
+        }
       }
     });
   };
@@ -159,9 +249,9 @@ const BookingDetails = () => {
     <main className="bg-paper/70">
       <section className="border-b border-line bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Booking Details</p>
+          <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Booking Details</p>
           <h1 className="mt-4 text-4xl font-semibold leading-tight text-ink sm:text-5xl">Resident Information</h1>
-          <p className="mt-4 text-lg text-secondary">Complete the required details to proceed to token payment.</p>
+          <p className="mt-4 text-lg text-secondary">Complete the required details to block this bed for manual confirmation.</p>
         </div>
       </section>
 
@@ -169,6 +259,7 @@ const BookingDetails = () => {
         <div className="grid gap-6">
           <FieldGroup title="Resident Information">
             <Input label="Full Name *" value={form.fullName} onChange={updateField("fullName")} />
+            <Input label="Mobile Number *" value={form.mobileNumber} onChange={updateField("mobileNumber")} inputMode="numeric" maxLength="10" />
             <Input label="Date of Birth *" type="date" value={form.dateOfBirth} onChange={updateField("dateOfBirth")} />
             <SelectField label="Gender" value={form.gender} onChange={updateField("gender")} options={["Male", "Female", "Other"]} />
             <SelectField label="Resident Type" required value={form.residentType} onChange={updateField("residentType")} options={["Student", "Working Professional"]} />
@@ -176,8 +267,9 @@ const BookingDetails = () => {
             <SelectField label="Relationship" value={form.guardianRelationship} onChange={updateField("guardianRelationship")} options={["Father", "Mother", "Husband", "Wife", "Guardian"]} />
             <Input label="Parent / Guardian Mobile Number *" value={form.guardianMobile} onChange={updateField("guardianMobile")} inputMode="numeric" maxLength="10" />
             <Input label="Alternate Mobile Number" value={form.alternateMobile} onChange={updateField("alternateMobile")} inputMode="numeric" maxLength="10" />
-            {!validation.guardianMobileValid && form.guardianMobile && <p className="text-sm font-semibold text-danger">Parent / Guardian mobile must contain exactly 10 digits.</p>}
-            {!validation.alternateMobileValid && form.alternateMobile && <p className="text-sm font-semibold text-danger">Alternate mobile must contain exactly 10 digits.</p>}
+            {!validation.mobileNumberValid && form.mobileNumber && <p className="text-sm font-semibold text-danger">Mobile number must contain exactly 10 digits and start with 6-9.</p>}
+            {!validation.guardianMobileValid && form.guardianMobile && <p className="text-sm font-semibold text-danger">Parent / Guardian mobile must contain exactly 10 digits and start with 6-9.</p>}
+            {!validation.alternateMobileValid && form.alternateMobile && <p className="text-sm font-semibold text-danger">Alternate mobile must contain exactly 10 digits and start with 6-9.</p>}
           </FieldGroup>
 
           <FieldGroup title="Address Information">
@@ -207,13 +299,13 @@ const BookingDetails = () => {
             <Input label="Aadhaar Number *" value={form.aadhaarNumber} onChange={updateField("aadhaarNumber")} inputMode="numeric" maxLength="12" />
             <label className="block">
               <span className="mb-2 block text-sm font-semibold text-ink">Upload Aadhaar *</span>
-              <input type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" onChange={handleFile} className="min-h-12 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm text-ink file:mr-4 file:rounded-lg file:border-0 file:bg-gold file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
+              <input type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" onChange={handleFile} className="min-h-12 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm text-ink file:mr-4 file:rounded-lg file:border-0 file:bg-brand file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
             </label>
             {!validation.aadhaarValid && form.aadhaarNumber && <p className="text-sm font-semibold text-danger">Aadhaar number must contain exactly 12 digits.</p>}
             {fileError && <p className="text-sm font-semibold text-danger">{fileError}</p>}
             {form.aadhaarFile && (
               <p className="inline-flex items-center gap-2 text-sm font-semibold text-secondary">
-                <FileText className="h-4 w-4 text-gold" /> {form.aadhaarFile.name}
+                <FileText className="h-4 w-4 text-brand" /> {form.aadhaarFile.name}
               </p>
             )}
           </FieldGroup>
@@ -222,12 +314,12 @@ const BookingDetails = () => {
             <Input label="Emergency Contact Name *" value={form.emergencyName} onChange={updateField("emergencyName")} />
             <Input label="Relationship *" value={form.emergencyRelationship} onChange={updateField("emergencyRelationship")} />
             <Input label="Emergency Contact Mobile *" value={form.emergencyMobile} onChange={updateField("emergencyMobile")} inputMode="numeric" maxLength="10" />
-            {!validation.emergencyMobileValid && form.emergencyMobile && <p className="text-sm font-semibold text-danger">Emergency contact mobile must contain exactly 10 digits.</p>}
+            {!validation.emergencyMobileValid && form.emergencyMobile && <p className="text-sm font-semibold text-danger">Emergency contact mobile must contain exactly 10 digits and start with 6-9.</p>}
           </FieldGroup>
         </div>
 
         <Card className="h-fit hover:translate-y-0 lg:sticky lg:top-24">
-          <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Booking Summary</p>
+          <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Booking Summary</p>
           <h2 className="mt-3 text-2xl font-semibold text-ink">Selected Bed</h2>
 
           <div className="mt-6 grid gap-4 text-sm">
@@ -239,7 +331,7 @@ const BookingDetails = () => {
               ["Selected Bed", selectedBed?.label || "No bed selected"],
               ["Monthly Rent", formatCurrency(room.monthlyRent)],
               ["Security Deposit", formatCurrency(room.securityDeposit)],
-              ["Token Amount", formatCurrency(tokenAmount)]
+              ["Manual Confirmation Amount", formatCurrency(tokenAmount)]
             ].map(([label, value]) => (
               <div key={label} className="flex items-start justify-between gap-4 border-b border-line pb-3 last:border-0 last:pb-0">
                 <span className="font-semibold text-secondary">{label}</span>
@@ -252,8 +344,8 @@ const BookingDetails = () => {
             <Link to={`/rooms/${room.id}/beds`}>
               <Button variant="secondary" className="w-full">Back</Button>
             </Link>
-            <Button className="w-full" disabled={!validation.formValid} onClick={proceedToPayment}>
-              <CreditCard className="h-4 w-4" /> Proceed to Payment
+            <Button className="w-full" disabled={!validation.formValid} onClick={blockBed}>
+              <ShieldCheck className="h-4 w-4" /> Block Bed
             </Button>
           </div>
         </Card>

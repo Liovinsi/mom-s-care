@@ -12,7 +12,7 @@ import { loadRooms } from "../../data/adminRooms";
 
 const rowsPerPage = 8;
 const today = new Date("2026-07-18T00:00:00");
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
 const tabs = ["Overview", "Revenue", "Bookings", "Occupancy", "Payments"];
 
 const formatCurrency = (value) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
@@ -52,7 +52,7 @@ const BarChart = ({ title, data, valueFormatter = (value) => value }) => {
           <div key={item.label} className="flex min-w-16 flex-1 flex-col items-center gap-2">
             <div className="flex h-44 w-full items-end rounded-xl bg-paper px-2">
               <div
-                className="w-full rounded-t-xl bg-gold shadow-[0_12px_24px_rgba(212,175,55,0.22)]"
+                className="w-full rounded-t-xl bg-brand shadow-[0_12px_24px_rgba(221,94,103,0.22)]"
                 style={{ height: `${Math.max((Number(item.value || 0) / max) * 100, item.value ? 8 : 0)}%` }}
                 title={`${item.label}: ${valueFormatter(item.value)}`}
               />
@@ -358,7 +358,7 @@ const ReportsPage = () => {
             key={tab}
             type="button"
             onClick={() => { setActiveTab(tab); setSearch(""); setPage(1); }}
-            className={`min-h-10 shrink-0 rounded-xl px-4 text-sm font-bold transition ${activeTab === tab ? "bg-gold text-white shadow-[0_12px_24px_rgba(212,175,55,0.25)]" : "text-slate-600 hover:bg-gold/10 hover:text-gold"}`}
+            className={`min-h-10 shrink-0 rounded-xl px-4 text-sm font-bold transition ${activeTab === tab ? "bg-brand text-white shadow-[0_12px_24px_rgba(221,94,103,0.25)]" : "text-slate-600 hover:bg-paper hover:text-brandDark"}`}
           >
             {tab}
           </button>

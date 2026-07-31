@@ -1,24 +1,25 @@
 const developmentAccounts = [
   {
     loginId: "admin@pgstay.com",
-    password: "Admin@123",
+    password: "admin123",
     token: "dev-token-admin",
     user: {
       id: "dev-admin",
       name: "Admin",
       email: "admin@pgstay.com",
-      role: "ADMIN"
+      role: "Admin"
     }
   },
   {
-    loginId: "WD001",
-    password: "Temp@123",
+    loginId: "warden@pgstay.com",
+    password: "warden123",
     token: "dev-token-warden-wd001",
     user: {
       id: "dev-warden-wd001",
-      name: "Arun Kumar",
-      employeeId: "WD001",
-      role: "WARDEN",
+      name: "Demo Warden",
+      email: "warden@pgstay.com",
+      employeeId: "WARDEN",
+      role: "Warden",
       branchId: "anna-nagar",
       branchName: "Anna Nagar"
     }
@@ -29,17 +30,38 @@ const developmentAccounts = [
     token: "dev-token-user",
     user: {
       id: "dev-user",
-      name: "User",
-      email: "user@pgstay.com",
-      role: "USER"
+      name: "Demo User",
+      email: "demo@gmail.com",
+      role: "User"
     }
   }
 ];
 
 const normalizeLoginId = (loginId) => loginId.trim().toLowerCase();
 
-// Local development only. Replace this service with API-backed authentication
-// when the database and backend auth flow are connected.
+const socialAccounts = {
+  google: {
+    token: "dev-token-google-guest",
+    user: {
+      id: "demo-google-guest",
+      name: "Demo User",
+      email: "demo@gmail.com",
+      role: "User",
+      provider: "google"
+    }
+  },
+  facebook: {
+    token: "dev-token-facebook-guest",
+    user: {
+      id: "demo-facebook-guest",
+      name: "Demo User",
+      email: "demo@facebook.com",
+      role: "User",
+      provider: "facebook"
+    }
+  }
+};
+
 export const authenticate = async ({ loginId, password }) => {
   const value = String(loginId || "").trim();
   if (!value) throw new Error("Login ID / Email is required.");
@@ -50,12 +72,19 @@ export const authenticate = async ({ loginId, password }) => {
   ));
 
   if (!account) {
-    if (value.toUpperCase().startsWith("WD")) throw new Error("Invalid Warden Employee ID or password.");
-    throw new Error("Invalid email or password.");
+    if (normalizeLoginId(value) === "warden@pgstay.com") throw new Error("Invalid Warden email or password.");
+    if (normalizeLoginId(value) === "admin@pgstay.com") throw new Error("Invalid Admin email or password.");
+    throw new Error("Invalid staff email or password.");
   }
 
   return {
     token: account.token,
     user: account.user
   };
+};
+
+export const authenticateSocial = async (provider) => {
+  const account = socialAccounts[provider];
+  if (!account) throw new Error("Unsupported social login provider.");
+  return account;
 };

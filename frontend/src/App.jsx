@@ -24,9 +24,8 @@ import BookingStatus from "./pages/guest/BookingStatus";
 import BranchListing from "./pages/guest/BranchListing";
 import FeaturedBranches from "./pages/guest/FeaturedBranches";
 import Home from "./pages/guest/Home";
-import Payment from "./pages/guest/Payment";
+import Profile from "./pages/guest/Profile";
 import RoomDetails from "./pages/guest/RoomDetails";
-import UserDashboard from "./pages/user/UserDashboard";
 import OccupancyPage from "./pages/warden/OccupancyPage";
 import WardenDashboard from "./pages/warden/WardenDashboard";
 import WardenPaymentsPage from "./pages/warden/WardenPaymentsPage";
@@ -42,21 +41,11 @@ const App = () => (
       <Route path="branches/:branchId/rooms" element={<RoomDetails />} />
       <Route path="rooms/:roomId/beds" element={<BedSelection />} />
       <Route path="booking-details" element={<BookingDetails />} />
-      <Route path="payment" element={<Payment />} />
       <Route path="booking-status" element={<BookingStatus />} />
       <Route element={<ProtectedRoute roles={[ROLES.USER]} />}>
         <Route path="booking" element={<Booking />} />
-      </Route>
-    </Route>
-
-    <Route element={<ProtectedRoute roles={[ROLES.USER]} />}>
-      <Route path="pgbooking/user" element={<DashboardLayout role={ROLES.USER} />}>
-        <Route index element={<Navigate to={getDashboardPathForRole(ROLES.USER)} replace />} />
-        <Route path="dashboard" element={<UserDashboard />} />
-        <Route path="booking" element={<BookingDetails />} />
-        <Route path="payment" element={<Payment />} />
-        <Route path="visits" element={<BookingStatus />} />
-        <Route path="complaints" element={<ComplaintsPage role={ROLES.USER} />} />
+        <Route path="my-bookings" element={<BookingStatus />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
     </Route>
 

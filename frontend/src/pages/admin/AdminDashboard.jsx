@@ -1,20 +1,46 @@
 import { useEffect, useState } from "react";
 import Card from "../../components/ui/Card";
 import StatCard from "../../components/ui/StatCard";
+import { loadBranches } from "../../data/adminBranches";
+import { loadBookings } from "../../data/adminBookings";
 import { loadResidents } from "../../data/adminResidents";
 import { useLiveAvailability } from "../../lib/liveAvailability";
 import { calculatePaymentAnalytics, formatCurrency, useLivePayments } from "../../lib/livePayments";
-import api from "../../services/api";
 
 const AdminDashboard = () => {
   const [summary, setSummary] = useState({});
+  const [bookings, setBookings] = useState(() => loadBookings());
   const { rooms } = useLiveAvailability();
   const { payments, notifications } = useLivePayments();
   const residents = loadResidents();
   const paymentAnalytics = calculatePaymentAnalytics(payments, residents);
+  const blockedBedNotifications = bookings.filter((booking) => booking.bookingStatus === "Pending").slice(0, 5);
 
   useEffect(() => {
-    api.get("/dashboard").then(({ data }) => setSummary(data.data)).catch(() => {});
+    const branches = loadBranches();
+    const totalBeds = rooms.reduce((sum, room) => sum + Number(room.totalBeds || room.beds || 0), 0);
+    const bookedBeds = rooms.reduce((sum, room) => sum + Number(room.occupiedBeds || 0), 0);
+    const fallbackSummary = {
+      branches: branches.length,
+      totalBeds,
+      bookedBeds,
+      occupancyRate: totalBeds ? Math.round((bookedBeds / totalBeds) * 100) : 0,
+      revenue: paymentAnalytics.monthlyRevenue
+    };
+
+    setSummary(fallbackSummary);
+  }, [paymentAnalytics.monthlyRevenue, rooms]);
+
+  useEffect(() => {
+    const refreshBookings = () => setBookings(loadBookings());
+
+    window.addEventListener("focus", refreshBookings);
+    window.addEventListener("storage", refreshBookings);
+
+    return () => {
+      window.removeEventListener("focus", refreshBookings);
+      window.removeEventListener("storage", refreshBookings);
+    };
   }, []);
 
   return (
@@ -45,7 +71,7 @@ const AdminDashboard = () => {
             <Card key={title}>
               <h2 className="text-lg font-bold text-ink">{title}</h2>
               <div className="mt-5 h-3 overflow-hidden rounded-full bg-paper">
-                <div className="h-full rounded-full bg-gold" style={{ width: `${percent}%` }} />
+                <div className="h-full rounded-full bg-brand" style={{ width: `${percent}%` }} />
               </div>
               <p className="mt-3 text-sm font-semibold text-slate-600">{percent}%</p>
             </Card>
@@ -72,7 +98,7 @@ const AdminDashboard = () => {
                 <td className="px-4 py-3 font-semibold">{room.reservedBeds}</td>
                 <td className="px-4 py-3 font-semibold">{room.maintenanceBeds}</td>
                 <td className="px-4 py-3">
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${room.overallAvailability === "Available" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{room.overallAvailability}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${room.overallAvailability === "Available" ? "bg-brand/10 text-brandDark" : "bg-slate-100 text-slate-600"}`}>{room.overallAvailability}</span>
                 </td>
               </tr>
             ))}
@@ -81,6 +107,19 @@ const AdminDashboard = () => {
             )}
           </tbody>
         </table>
+      </Card>
+
+      <Card className="mt-5">
+        <h2 className="text-lg font-bold text-ink">Blocked Bed Notifications</h2>
+        <div className="mt-4 grid gap-3">
+          {blockedBedNotifications.map((booking) => (
+            <div key={booking.id} className="rounded-xl border border-brand/20 bg-brand/10 p-3 text-sm">
+              <p className="font-semibold text-ink">{booking.customerName} blocked {booking.bedName}</p>
+              <p className="mt-1 text-slate-600">{booking.phone} · {booking.branchName} · Room {booking.roomNumber}</p>
+            </div>
+          ))}
+          {!blockedBedNotifications.length && <p className="rounded-xl bg-paper p-4 text-sm font-semibold text-slate-500">No blocked bed notifications yet.</p>}
+        </div>
       </Card>
 
       <Card className="mt-5">

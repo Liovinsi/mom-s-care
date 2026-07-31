@@ -253,6 +253,11 @@ export const savePayments = (payments) => {
   window.dispatchEvent(new CustomEvent("pg:payments-updated", { detail: { payments } }));
 };
 
+export const createPaymentReceiptNo = (payments) => {
+  const max = payments.reduce((value, payment) => Math.max(value, Number(String(payment.receiptNo || payment.id || "").replace(/\D/g, "") || 0)), 0);
+  return `RCPT${String(max + 1).padStart(4, "0")}`;
+};
+
 export const loadRentDueConfig = () => {
   const stored = localStorage.getItem(RENT_DUE_CONFIG_KEY);
   return stored ? JSON.parse(stored) : { defaultDueDay: 5, branchDueDays: {} };

@@ -36,7 +36,7 @@ const emptyBranch = {
   residents: 0
 };
 
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
 const maxImageSize = 5 * 1024 * 1024;
 const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
 
@@ -172,14 +172,14 @@ const AmenitiesManager = ({ amenities, selectedAmenities, onToggle, onRename, on
         {amenities.map((amenity) => (
           <div key={amenity} className="flex items-center justify-between gap-3 rounded-xl border border-line px-3 py-2 text-sm font-semibold text-ink">
             <label className="flex min-w-0 flex-1 items-center gap-3">
-              <input type="checkbox" checked={selectedAmenities.includes(amenity)} onChange={() => onToggle(amenity)} className="h-4 w-4 accent-gold" />
+              <input type="checkbox" checked={selectedAmenities.includes(amenity)} onChange={() => onToggle(amenity)} className="h-4 w-4 accent-[#DD5E67]" />
               <span className="truncate">{amenity}</span>
             </label>
             <div className="flex shrink-0 gap-1">
-              <button type="button" onClick={() => setNameModal({ mode: "edit", amenity })} className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-gold/10 hover:text-gold" aria-label={`Edit ${amenity}`}>
+              <button type="button" onClick={() => setNameModal({ mode: "edit", amenity })} className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-paper hover:text-brandDark" aria-label={`Edit ${amenity}`}>
                 <Pencil className="h-4 w-4" />
               </button>
-              <button type="button" onClick={() => setDeleteAmenity(amenity)} className="grid h-8 w-8 place-items-center rounded-lg text-danger hover:bg-red-50" aria-label={`Delete ${amenity}`}>
+              <button type="button" onClick={() => setDeleteAmenity(amenity)} className="grid h-8 w-8 place-items-center rounded-lg text-danger hover:bg-paper" aria-label={`Delete ${amenity}`}>
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
@@ -291,7 +291,7 @@ const BranchModal = ({ branch, branches, amenities, onAmenitiesChange, onClose, 
             <h2 className="text-xl font-bold text-ink">{editingId ? "Edit Branch" : "Add Branch"}</h2>
             <p className="text-sm text-slate-500">Maintain branch details, amenities, and statistics.</p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -537,17 +537,17 @@ const BranchesPage = () => {
                 <td className="px-4 py-3 font-semibold text-success">{branch.availableBeds}</td>
                 <td className="px-4 py-3 text-slate-600">{branch.contactNumber}</td>
                 <td className="px-4 py-3">
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${branch.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{branch.status}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${branch.status === "Active" ? "bg-brand/10 text-brandDark" : "bg-slate-100 text-slate-600"}`}>{branch.status}</span>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => navigate(`/pgbooking/admin/branches/${branch.id}`)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="View branch">
+                    <button type="button" onClick={() => navigate(`/pgbooking/admin/branches/${branch.id}`)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View branch">
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => { setModalBranch(branch); setShowModal(true); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Edit branch">
+                    <button type="button" onClick={() => { setModalBranch(branch); setShowModal(true); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Edit branch">
                       <Pencil className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setDeleteBranch(branch)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-red-50" aria-label="Delete branch">
+                    <button type="button" onClick={() => setDeleteBranch(branch)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-paper" aria-label="Delete branch">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>

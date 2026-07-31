@@ -9,7 +9,7 @@ import { ROOM_IMAGE_LABELS, loadRoomAmenities, loadRooms, saveRoomAmenities, sav
 import { summarizeRoomAvailability, useLiveAvailability } from "../../lib/liveAvailability";
 
 const rowsPerPage = 10;
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
 
 const emptyRoom = {
   branchId: "",
@@ -119,7 +119,7 @@ const RoomAmenitiesManager = ({ amenities, selectedAmenities, onToggle, onRename
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold uppercase text-slate-500">Room Amenities</h3>
-          <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gold">Default Amenities</p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-brand">Default Amenities</p>
         </div>
         <Button type="button" variant="secondary" className="min-h-10 px-4 py-2" onClick={() => setNameModal({ mode: "add" })}>
           <Plus className="h-4 w-4" /> Add Room Amenity
@@ -129,14 +129,14 @@ const RoomAmenitiesManager = ({ amenities, selectedAmenities, onToggle, onRename
         {amenities.map((amenity) => (
           <div key={amenity} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-white px-3 py-2 text-sm font-semibold text-ink">
             <label className="flex min-w-0 flex-1 items-center gap-3">
-              <input type="checkbox" checked={selectedAmenities.includes(amenity)} onChange={() => onToggle(amenity)} className="h-4 w-4 accent-gold" />
+              <input type="checkbox" checked={selectedAmenities.includes(amenity)} onChange={() => onToggle(amenity)} className="h-4 w-4 accent-[#DD5E67]" />
               <span className="truncate">{amenity}</span>
             </label>
             <div className="flex shrink-0 gap-1">
-              <button type="button" onClick={() => setNameModal({ mode: "edit", amenity })} className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-gold/10 hover:text-gold" aria-label={`Edit ${amenity}`}>
+              <button type="button" onClick={() => setNameModal({ mode: "edit", amenity })} className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-paper hover:text-brandDark" aria-label={`Edit ${amenity}`}>
                 <Pencil className="h-4 w-4" />
               </button>
-              <button type="button" onClick={() => setDeleteAmenity(amenity)} className="grid h-8 w-8 place-items-center rounded-lg text-danger hover:bg-red-50" aria-label={`Delete ${amenity}`}>
+              <button type="button" onClick={() => setDeleteAmenity(amenity)} className="grid h-8 w-8 place-items-center rounded-lg text-danger hover:bg-paper" aria-label={`Delete ${amenity}`}>
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
@@ -274,7 +274,7 @@ const RoomModal = ({ room, rooms, branches, roomAmenities, onRoomAmenitiesChange
             <h2 className="text-xl font-bold text-ink">{editingId ? "Edit Room" : "Add Room"}</h2>
             <p className="text-sm text-slate-500">Manage room details, rent, amenities, and images.</p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -360,7 +360,7 @@ const RoomViewModal = ({ room, onClose }) => (
           <h2 className="text-2xl font-bold text-ink">Room {room.roomNumber}</h2>
           <p className="text-sm text-slate-500">{room.branchName} · {room.floor}</p>
         </div>
-        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -398,7 +398,7 @@ const RoomViewModal = ({ room, onClose }) => (
           <h3 className="text-lg font-bold text-ink">Amenities</h3>
           <div className="mt-4 flex flex-wrap gap-2">
             {(room.roomAmenities || room.amenities || []).map((amenity) => (
-              <span key={amenity} className="rounded-full bg-gold/10 px-3 py-1 text-xs font-bold text-gold">{amenity}</span>
+              <span key={amenity} className="rounded-full bg-brand/10 px-3 py-1 text-xs font-bold text-brand">{amenity}</span>
             ))}
           </div>
         </Card>
@@ -539,17 +539,17 @@ const RoomsPage = () => {
                 <td className="px-4 py-3 font-semibold">{room.reservedBeds}</td>
                 <td className="px-4 py-3 font-semibold">{room.maintenanceBeds}</td>
                 <td className="px-4 py-3">
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${room.overallAvailability === "Available" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{room.overallAvailability}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${room.overallAvailability === "Available" ? "bg-brand/10 text-brandDark" : "bg-slate-100 text-slate-600"}`}>{room.overallAvailability}</span>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setViewRoom(room)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="View room">
+                    <button type="button" onClick={() => setViewRoom(room)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View room">
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => { setModalRoom(room); setShowModal(true); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Edit room">
+                    <button type="button" onClick={() => { setModalRoom(room); setShowModal(true); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Edit room">
                       <Pencil className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setDeleteRoom(room)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-red-50" aria-label="Delete room">
+                    <button type="button" onClick={() => setDeleteRoom(room)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-paper" aria-label="Delete room">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>

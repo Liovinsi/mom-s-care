@@ -4,8 +4,17 @@ import { CheckCircle2, Home, ReceiptText } from "lucide-react";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
-import api from "../../services/api";
+import { loadBookings } from "../../data/adminBookings";
 import { formatCurrency } from "../../data/bookingFlow";
+
+const bookingToStatusCard = (booking) => ({
+  _id: booking.id,
+  branch: { name: booking.branchName },
+  room: { name: `Room ${booking.roomNumber}` },
+  bed: { label: booking.bedName },
+  tokenAmount: booking.tokenAmount,
+  status: booking.bookingStatus === "Pending" ? "BLOCKED" : booking.bookingStatus?.toUpperCase()
+});
 
 const BookingStatus = () => {
   const { state } = useLocation();
@@ -13,7 +22,7 @@ const BookingStatus = () => {
   const confirmedBooking = state?.booking;
 
   useEffect(() => {
-    api.get("/bookings").then(({ data }) => setBookings(data.data)).catch(() => {});
+    setBookings(loadBookings().map(bookingToStatusCard));
   }, []);
 
   if (confirmedBooking) {
@@ -24,28 +33,30 @@ const BookingStatus = () => {
       ["AC / Non AC", confirmedBooking.roomType],
       ["Selected Bed", confirmedBooking.selectedBed],
       ["Monthly Rent", confirmedBooking.monthlyRent ? formatCurrency(confirmedBooking.monthlyRent) : ""],
-      ["Token Paid", confirmedBooking.tokenAmount ? formatCurrency(confirmedBooking.tokenAmount) : ""]
+      ["Amount To Confirm In Person", confirmedBooking.tokenAmount ? formatCurrency(confirmedBooking.tokenAmount) : ""],
+      ["Guest", confirmedBooking.guestName],
+      ["Mobile", confirmedBooking.mobileNumber]
     ].filter(([, value]) => value);
 
     return (
       <main className="bg-paper/70">
         <section className="border-b border-line bg-white">
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Booking Successful</p>
-            <h1 className="mt-4 text-4xl font-semibold leading-tight text-ink sm:text-5xl">Your Bed Is Reserved</h1>
+            <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Bed Blocked</p>
+            <h1 className="mt-4 text-4xl font-semibold leading-tight text-ink sm:text-5xl">Your Bed Is Blocked</h1>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-secondary">
-              The token payment has been marked complete. Your booking request is ready for approval tracking.
+              The selected bed has been blocked. Admin staff will contact you for in-person confirmation and payment.
             </p>
           </div>
         </section>
 
         <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
           <Card className="text-center hover:translate-y-0">
-            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gold/10 text-gold">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-brand/10 text-brand">
               <CheckCircle2 className="h-9 w-9" />
             </span>
-            <h2 className="mt-6 text-3xl font-semibold text-ink">Booking Successful</h2>
-            <p className="mt-3 text-secondary">Reference: {state?.reference || "UPI token payment recorded"}</p>
+            <h2 className="mt-6 text-3xl font-semibold text-ink">Bed Blocked Successfully</h2>
+            <p className="mt-3 text-secondary">Final booking and payment will be confirmed manually.</p>
 
             <div className="mt-8 grid gap-4 text-left text-sm sm:grid-cols-2">
               {summaryRows.map(([label, value]) => (
@@ -78,7 +89,7 @@ const BookingStatus = () => {
     <main className="bg-paper/70">
       <section className="border-b border-line bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Booking Status</p>
+          <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Booking Status</p>
           <h1 className="mt-4 text-4xl font-semibold leading-tight text-ink sm:text-5xl">Track Your Booking</h1>
         </div>
       </section>
@@ -90,7 +101,7 @@ const BookingStatus = () => {
           <Card key={booking._id} className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-semibold text-ink">{booking.branch?.name || "Branch"} · {booking.room?.name || "Room"}</p>
-              <p className="text-sm text-secondary">Bed {booking.bed?.label || ""} · Token ₹{booking.tokenAmount}</p>
+              <p className="text-sm text-secondary">Bed {booking.bed?.label || ""} · Manual amount {formatCurrency(booking.tokenAmount || 0)}</p>
             </div>
             <Badge value={booking.status} />
           </Card>

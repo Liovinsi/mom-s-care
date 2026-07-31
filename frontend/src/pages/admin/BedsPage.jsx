@@ -12,7 +12,7 @@ import { saveAvailabilitySnapshot, useLiveAvailability } from "../../lib/liveAva
 const rowsPerPage = 10;
 const maxImageSize = 5 * 1024 * 1024;
 const imageTypes = ["image/jpeg", "image/png", "image/webp"];
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15 disabled:bg-paper disabled:text-slate-500";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25 disabled:bg-paper disabled:text-slate-500";
 
 const emptyBed = {
   branchId: "",
@@ -41,9 +41,9 @@ const Field = ({ label, required, error, children }) => (
 );
 
 const statusStyles = {
-  Available: "bg-emerald-50 text-emerald-700",
-  Occupied: "bg-red-50 text-red-700",
-  Reserved: "bg-orange-50 text-orange-700",
+  Available: "bg-brand/10 text-brandDark",
+  Occupied: "bg-paper text-brandDark",
+  Reserved: "bg-paper text-brandDark",
   Maintenance: "bg-slate-100 text-slate-600"
 };
 
@@ -102,7 +102,7 @@ const BedImageUpload = ({ value, onChange, error, onError }) => {
     <div>
       <div className="grid gap-3 sm:grid-cols-[160px_1fr]">
         <BranchImage src={value} alt="Bed preview" className="h-32 w-full rounded-xl object-cover" fallbackClassName="h-32 w-full rounded-xl" />
-        <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line bg-paper px-4 text-center text-sm font-semibold text-ink transition hover:border-gold hover:text-gold">
+        <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line bg-paper px-4 text-center text-sm font-semibold text-ink transition hover:border-brandDark hover:text-brandDark">
           <ImagePlus className="mb-2 h-5 w-5" />
           Upload Bed Image
           <span className="mt-1 text-xs font-medium text-slate-500">JPG, PNG, WEBP up to 5 MB</span>
@@ -166,7 +166,7 @@ const BedDrawer = ({ bed, beds, rooms, branches, onClose, onSave }) => {
             <h2 className="text-xl font-bold text-ink">{editingId ? "Edit Bed" : "Add Bed"}</h2>
             <p className="text-sm text-slate-500">Manage bed details, room mapping, status, and image.</p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -229,7 +229,7 @@ const BedViewModal = ({ bed, onClose }) => (
           <h2 className="text-2xl font-bold text-ink">{bed.bedName}</h2>
           <p className="text-sm text-slate-500">{bed.bedCode} · {bed.branchName} · Room {bed.roomNumber}</p>
         </div>
-        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -416,13 +416,13 @@ const BedsPage = () => {
                 <td className="px-4 py-3"><StatusBadge status={bed.status} /></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setViewBed(bed)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="View bed">
+                    <button type="button" onClick={() => setViewBed(bed)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View bed">
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => { setDrawerBed(bed); setShowDrawer(true); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Edit bed">
+                    <button type="button" onClick={() => { setDrawerBed(bed); setShowDrawer(true); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Edit bed">
                       <Pencil className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setDeleteBed(bed)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-red-50" aria-label="Delete bed">
+                    <button type="button" onClick={() => setDeleteBed(bed)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-paper" aria-label="Delete bed">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>

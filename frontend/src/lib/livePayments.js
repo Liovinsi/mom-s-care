@@ -7,7 +7,6 @@ import {
   savePayments
 } from "../data/adminPayments";
 import { loadResidents, saveResidents } from "../data/adminResidents";
-import api from "../services/api";
 import { getSocket } from "../services/socket";
 
 export const today = "2026-07-18";
@@ -92,7 +91,7 @@ export const addPaymentNotification = (message, payment) => {
   savePaymentNotifications(nextNotifications);
 };
 
-export const savePaymentRecord = async (payment, options = {}) => {
+export const savePaymentRecord = async (payment) => {
   const payments = loadPayments();
   const receiptNo = payment.receiptNo || createReceiptNo(payments);
   const amount = Number(payment.amount || 0);
@@ -127,14 +126,6 @@ export const savePaymentRecord = async (payment, options = {}) => {
   });
   saveResidents(nextResidents);
 
-  if (options.persistToApi && /^[a-f\d]{24}$/i.test(String(nextPayment.bookingId))) {
-    try {
-      await api.post("/payments", nextPayment);
-    } catch {
-      // Local persistence remains the source for the current mock UI.
-    }
-  }
-
   return { payment: nextPayment, payments: nextPayments, residents: nextResidents };
 };
 
@@ -152,24 +143,24 @@ export const printPaymentReceipt = (payment) => {
       <head>
         <title>Fee Receipt ${payment.receiptNo}</title>
         <style>
-          body { font-family: Arial, sans-serif; color: #1E1E24; padding: 32px; }
-          .top { display: flex; justify-content: space-between; gap: 24px; border-bottom: 2px solid #D4AF37; padding-bottom: 18px; }
-          .logo { color: #D4AF37; font-size: 24px; font-weight: 900; letter-spacing: .18em; }
+          body { font-family: Arial, sans-serif; color: #1F2937; padding: 32px; }
+          .top { display: flex; justify-content: space-between; gap: 24px; border-bottom: 2px solid #DD5E67; padding-bottom: 18px; }
+          .logo { width: 72px; height: 72px; object-fit: cover; border-radius: 16px; }
           h1 { margin: 8px 0 0; font-size: 28px; }
           table { width: 100%; border-collapse: collapse; margin-top: 24px; }
           td { border: 1px solid #E5E5E5; padding: 12px; font-size: 14px; }
-          .label { width: 35%; background: #F8F8F8; font-weight: 700; }
+          .label { width: 35%; background: #FFF4F6; font-weight: 700; }
           .sign { margin-top: 54px; display: flex; justify-content: space-between; gap: 80px; }
-          .line { border-top: 1px solid #1E1E24; padding-top: 8px; width: 220px; text-align: center; font-size: 13px; }
+          .line { border-top: 1px solid #1F2937; padding-top: 8px; width: 220px; text-align: center; font-size: 13px; }
           .actions { margin-top: 28px; }
-          button { background: #D4AF37; border: 0; color: white; padding: 12px 18px; border-radius: 10px; font-weight: 700; }
+          button { background: #DD5E67; border: 0; color: white; padding: 12px 18px; border-radius: 10px; font-weight: 700; }
           @media print { .actions { display: none; } }
         </style>
       </head>
       <body>
         <div class="top">
           <div>
-            <div class="logo">PGSTAY</div>
+            <img class="logo" src="/logo.jpeg" alt="PG Stay logo" />
             <h1>Fee Receipt</h1>
             <p>${payment.branchName}</p>
           </div>

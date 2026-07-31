@@ -14,15 +14,15 @@ import { useLivePayments } from "../../lib/livePayments";
 const today = "2026-07-18";
 
 const wardenBranchByUser = {
-  "dummy-warden": "Anna Nagar"
+  "dev-warden-wd001": "Anna Nagar"
 };
 
 const fieldBadge = {
-  Pending: "bg-amber-50 text-amber-700",
-  Approved: "bg-emerald-50 text-emerald-700",
+  Pending: "bg-brand/10 text-brandDark",
+  Approved: "bg-brand/10 text-brandDark",
   "Assigned to Warden": "bg-purple-50 text-purple-700",
-  "Checked In": "bg-blue-50 text-blue-700",
-  Rejected: "bg-red-50 text-red-700",
+  "Checked In": "bg-brand/10 text-brandDark",
+  Rejected: "bg-paper text-brandDark",
   Cancelled: "bg-slate-100 text-slate-700"
 };
 
@@ -115,14 +115,14 @@ const WardenDashboard = () => {
       <section className="rounded-2xl border border-line bg-white p-5 shadow-soft sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[0.18em] text-gold">
+            <p className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[0.18em] text-brand">
               <UserCheck className="h-4 w-4" />
               Warden Dashboard
             </p>
             <h1 className="mt-2 text-2xl font-bold text-ink sm:text-3xl">Welcome, {wardenName}</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-secondary sm:text-base">Manage your assigned branch efficiently.</p>
           </div>
-          <div className="rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm font-semibold text-gold">
+          <div className="rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm font-semibold text-brand">
             Assigned Branch: {assignedBranch}
           </div>
         </div>
@@ -143,7 +143,7 @@ const WardenDashboard = () => {
         <h2 className="text-lg font-bold text-ink">Quick Actions</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
           {quickActions.map(([label, to, Icon]) => (
-            <Link key={label} to={to} className="flex min-h-24 flex-col justify-between rounded-xl border border-line bg-white p-4 text-sm font-bold text-ink transition hover:border-gold hover:text-gold">
+            <Link key={label} to={to} className="flex min-h-24 flex-col justify-between rounded-xl border border-line bg-white p-4 text-sm font-bold text-ink transition hover:border-brandDark hover:text-brandDark">
               <Icon className="h-5 w-5" />
               <span>{label}</span>
             </Link>
@@ -177,7 +177,7 @@ const WardenDashboard = () => {
 
       <Card className="overflow-hidden p-0">
         <div className="flex items-center gap-3 border-b border-line p-5">
-          <CalendarCheck className="h-5 w-5 text-gold" />
+          <CalendarCheck className="h-5 w-5 text-brand" />
           <h2 className="text-lg font-bold text-ink">Recent Bookings</h2>
         </div>
         <div className="overflow-x-auto">
@@ -199,7 +199,7 @@ const WardenDashboard = () => {
                   <td className="px-4 py-3 text-slate-600">{formatDate(booking.moveInDate)}</td>
                   <td className="px-4 py-3"><StatusBadge status={booking.bookingStatus} /></td>
                   <td className="px-4 py-3">
-                    <Link to="/pgbooking/warden/residents" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-line px-4 text-sm font-bold text-ink transition hover:border-gold hover:text-gold">
+                    <Link to="/pgbooking/warden/residents" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-line px-4 text-sm font-bold text-ink transition hover:border-brandDark hover:text-brandDark">
                       <DoorOpen className="h-4 w-4" /> Manage
                     </Link>
                   </td>
@@ -213,9 +213,9 @@ const WardenDashboard = () => {
         </div>
       </Card>
 
-      <Card className="border-gold/30 bg-gold/5">
+      <Card className="border-brand/30 bg-brand/5">
         <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-ink">
-          <CheckCircle2 className="h-4 w-4 text-gold" />
+          <CheckCircle2 className="h-4 w-4 text-brand" />
           This dashboard is scoped to {assignedBranch}. Other branch data, reports, branch management, room management, bed management, and settings are not shown.
         </div>
       </Card>

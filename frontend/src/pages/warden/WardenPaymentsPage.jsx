@@ -10,13 +10,13 @@ import { loadWardens } from "../../data/adminWardens";
 import { calculateRentDue, currentMonth, formatCurrency, formatDate, savePaymentRecord, today, useLivePayments } from "../../lib/livePayments";
 
 const rowsPerPage = 8;
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15 disabled:bg-paper disabled:text-slate-500";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25 disabled:bg-paper disabled:text-slate-500";
 
 const statusStyles = {
-  Paid: "bg-emerald-50 text-emerald-700",
-  Pending: "bg-amber-50 text-amber-700",
-  Partial: "bg-blue-50 text-blue-700",
-  Overdue: "bg-orange-50 text-orange-700"
+  Paid: "bg-brand/10 text-brandDark",
+  Pending: "bg-brand/10 text-brandDark",
+  Partial: "bg-brand/10 text-brandDark",
+  Overdue: "bg-paper text-brandDark"
 };
 
 const annaNagarDummyResidents = [
@@ -52,15 +52,15 @@ const annaNagarDummyResidents = [
     securityDeposit: 19000,
     pendingAmount: 0,
     lastPaymentDate: today,
-    paymentHistory: ["RCPT-DUMMY-002"],
+    paymentHistory: ["RCPT-SEED-002"],
     status: "Active"
   }
 ];
 
-const dummyPaymentHistory = [
+const seedPaymentHistory = [
   {
-    id: "RCPT-DUMMY-002",
-    receiptNo: "RCPT-DUMMY-002",
+    id: "RCPT-SEED-002",
+    receiptNo: "RCPT-SEED-002",
     residentId: "RES002",
     residentName: "Priya Sharma",
     branchId: "anna-nagar",
@@ -118,7 +118,7 @@ const uniqueResidents = (residents) => {
   });
 };
 
-const allBranchPayments = (payments, branchId) => [...dummyPaymentHistory, ...payments].filter((payment) => payment.branchId === branchId);
+const allBranchPayments = (payments, branchId) => [...seedPaymentHistory, ...payments].filter((payment) => payment.branchId === branchId);
 
 const residentLedgerRow = (resident, payments) => {
   const due = calculateRentDue(resident, payments);
@@ -142,22 +142,22 @@ const printReceipt = (payment) => {
       <head>
         <title>Fee Receipt ${payment.receiptNo}</title>
         <style>
-          body { font-family: Arial, sans-serif; color: #1E1E24; padding: 32px; }
-          .top { display: flex; justify-content: space-between; gap: 24px; border-bottom: 2px solid #D4AF37; padding-bottom: 18px; }
-          .logo { color: #D4AF37; font-size: 24px; font-weight: 900; letter-spacing: .18em; }
+          body { font-family: Arial, sans-serif; color: #1F2937; padding: 32px; }
+          .top { display: flex; justify-content: space-between; gap: 24px; border-bottom: 2px solid #DD5E67; padding-bottom: 18px; }
+          .logo { width: 72px; height: 72px; object-fit: cover; border-radius: 16px; }
           h1 { margin: 8px 0 0; font-size: 28px; }
           table { width: 100%; border-collapse: collapse; margin-top: 24px; }
           td { border: 1px solid #E5E5E5; padding: 12px; font-size: 14px; }
-          .label { width: 35%; background: #F8F8F8; font-weight: 700; }
+          .label { width: 35%; background: #FFF4F6; font-weight: 700; }
           .actions { margin-top: 28px; display: flex; gap: 12px; }
-          button { background: #D4AF37; border: 0; color: white; padding: 12px 18px; border-radius: 10px; font-weight: 700; }
+          button { background: #DD5E67; border: 0; color: white; padding: 12px 18px; border-radius: 10px; font-weight: 700; }
           @media print { .actions { display: none; } }
         </style>
       </head>
       <body>
         <div class="top">
           <div>
-            <div class="logo">PGSTAY</div>
+            <img class="logo" src="/logo.jpeg" alt="PG Stay logo" />
             <h1>Fee Receipt</h1>
             <p>${payment.branchName}</p>
           </div>
@@ -199,7 +199,7 @@ const ResidentDetailsModal = ({ row, onClose }) => (
           <h2 className="text-xl font-bold text-ink">{row.fullName}</h2>
           <p className="text-sm text-slate-500">{row.id} · Room {row.roomNumber} · {row.bedName}</p>
         </div>
-        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close"><X className="h-4 w-4" /></button>
+        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close"><X className="h-4 w-4" /></button>
       </div>
       <div className="mt-5 grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
         {[
@@ -225,7 +225,7 @@ const HistoryModal = ({ resident, payments, onClose }) => {
             <h2 className="text-xl font-bold text-ink">Payment History</h2>
             <p className="text-sm text-slate-500">{resident.fullName} · {resident.id}</p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close"><X className="h-4 w-4" /></button>
         </div>
         <table className="mt-5 w-full min-w-[900px] text-left text-sm">
           <thead className="border-b border-line bg-slate-50 text-slate-500">
@@ -329,7 +329,7 @@ const CollectPaymentModal = ({ row, collectorName, onClose, onSaved }) => {
             <h2 className="text-xl font-bold text-ink">Collect Payment</h2>
             <p className="text-sm text-slate-500">{row.fullName} · {row.id}</p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close"><X className="h-4 w-4" /></button>
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -436,7 +436,7 @@ const WardenPaymentsPage = () => {
           <h1 className="text-2xl font-bold text-ink">Payments</h1>
           <p className="text-sm text-slate-500">Collect monthly rent for residents in your assigned branch.</p>
         </div>
-        <div className="rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm font-semibold text-gold">Assigned Branch: {assignedBranch.name}</div>
+        <div className="rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm font-semibold text-brand">Assigned Branch: {assignedBranch.name}</div>
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -448,7 +448,7 @@ const WardenPaymentsPage = () => {
       </div>
 
       {notice && (
-        <Card className="mt-5 border-gold/30 bg-gold/5">
+        <Card className="mt-5 border-brand/30 bg-brand/5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-semibold text-ink">{notice}</p>
             {lastReceipt && (
@@ -504,10 +504,10 @@ const WardenPaymentsPage = () => {
                 <td className="px-4 py-3"><StatusBadge status={row.paymentStatus} /></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setViewRow(row)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="View payment row"><Eye className="h-4 w-4" /></button>
-                    <button type="button" onClick={() => setCollectRow(row)} disabled={row.paymentStatus === "Paid"} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-40" aria-label="Collect payment"><ReceiptText className="h-4 w-4" /></button>
-                    <button type="button" onClick={() => { const payment = branchPayments.find((item) => item.residentId === row.id); if (payment) printReceipt(payment); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Print receipt"><Printer className="h-4 w-4" /></button>
-                    <button type="button" onClick={() => setHistoryRow(row)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Payment history"><History className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => setViewRow(row)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View payment row"><Eye className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => setCollectRow(row)} disabled={row.paymentStatus === "Paid"} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark disabled:cursor-not-allowed disabled:opacity-40" aria-label="Collect payment"><ReceiptText className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => { const payment = branchPayments.find((item) => item.residentId === row.id); if (payment) printReceipt(payment); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Print receipt"><Printer className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => setHistoryRow(row)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Payment history"><History className="h-4 w-4" /></button>
                   </div>
                 </td>
               </tr>

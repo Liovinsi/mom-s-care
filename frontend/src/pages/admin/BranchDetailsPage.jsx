@@ -84,13 +84,13 @@ const BranchDetailsPage = () => {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link to="/pgbooking/admin/branches" className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-gold">
+          <Link to="/pgbooking/admin/branches" className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-brand">
             <ArrowLeft className="h-4 w-4" /> Branches
           </Link>
           <h1 className="text-2xl font-bold text-ink">{branch.name}</h1>
           <p className="text-sm text-slate-500">{branch.area}, {branch.city}</p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-bold ${branch.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{branch.status}</span>
+        <span className={`rounded-full px-3 py-1 text-xs font-bold ${branch.status === "Active" ? "bg-brand/10 text-brandDark" : "bg-slate-100 text-slate-600"}`}>{branch.status}</span>
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
@@ -107,9 +107,9 @@ const BranchDetailsPage = () => {
           <h2 className="text-lg font-bold text-ink">Google Map</h2>
           <div className="mt-4 grid min-h-64 place-items-center rounded-2xl border border-line bg-paper text-center">
             <div>
-              <MapPin className="mx-auto h-8 w-8 text-gold" />
+              <MapPin className="mx-auto h-8 w-8 text-brand" />
               <p className="mt-3 text-sm font-semibold text-ink">{branch.latitude}, {branch.longitude}</p>
-              <a href={branch.mapLink} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm font-semibold text-gold">Open Google Map</a>
+              <a href={branch.mapLink} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm font-semibold text-brand">Open Google Map</a>
             </div>
           </div>
         </Card>
@@ -154,7 +154,7 @@ const BranchDetailsPage = () => {
           <h2 className="text-lg font-bold text-ink">Amenities</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {branch.amenities.map((amenity) => (
-              <span key={amenity} className="rounded-full bg-gold/10 px-3 py-1 text-xs font-bold text-gold">{amenity}</span>
+              <span key={amenity} className="rounded-full bg-brand/10 px-3 py-1 text-xs font-bold text-brand">{amenity}</span>
             ))}
           </div>
         </Card>

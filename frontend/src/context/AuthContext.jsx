@@ -1,7 +1,23 @@
 import { createContext, useContext, useMemo, useState } from "react";
-import { authenticate } from "../services/authService";
+import { authenticate, authenticateSocial } from "../services/authService";
 
 const AuthContext = createContext(null);
+
+const roleAliases = {
+  SUPER_ADMIN: "Admin",
+  ADMIN: "Admin",
+  WARDEN: "Warden",
+  USER: "User",
+  GUEST: "User"
+};
+
+const normalizePayload = (payload) => ({
+  ...payload,
+  user: {
+    ...payload.user,
+    role: roleAliases[payload.user?.role] || payload.user?.role
+  }
+});
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem("pg_token"));
@@ -11,10 +27,15 @@ export const AuthProvider = ({ children }) => {
   });
 
   const persist = (payload) => {
-    localStorage.setItem("pg_token", payload.token);
-    localStorage.setItem("pg_user", JSON.stringify(payload.user));
-    setToken(payload.token);
-    setUser(payload.user);
+    const normalized = normalizePayload(payload);
+    localStorage.setItem("pg_token", normalized.token);
+    localStorage.setItem("pg_user", JSON.stringify(normalized.user));
+    localStorage.setItem("pg_login_status", "true");
+    localStorage.setItem("pg_role", normalized.user.role);
+    localStorage.setItem("pg_name", normalized.user.name || "");
+    localStorage.setItem("pg_email", normalized.user.email || "");
+    setToken(normalized.token);
+    setUser(normalized.user);
   };
 
   const login = async (loginId, password) => {
@@ -23,15 +44,25 @@ export const AuthProvider = ({ children }) => {
     return payload.user;
   };
 
+  const socialLogin = async (provider) => {
+    const payload = await authenticateSocial(provider);
+    persist(payload);
+    return payload.user;
+  };
+
   const logout = () => {
     localStorage.removeItem("pg_token");
     localStorage.removeItem("pg_user");
+    localStorage.removeItem("pg_login_status");
+    localStorage.removeItem("pg_role");
+    localStorage.removeItem("pg_name");
+    localStorage.removeItem("pg_email");
     setToken(null);
     setUser(null);
   };
 
   const value = useMemo(
-    () => ({ token, user, isAuthenticated: Boolean(token), login, logout }),
+    () => ({ token, user, isAuthenticated: Boolean(token), login, socialLogin, logout }),
     [token, user]
   );
 

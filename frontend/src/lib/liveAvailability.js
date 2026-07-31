@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { BED_STATUSES, loadBeds, saveBeds } from "../data/adminBeds";
 import { loadRooms, saveRooms } from "../data/adminRooms";
-import api from "../services/api";
 import { getSocket } from "../services/socket";
 
 export const AVAILABILITY_EVENT = "pg:availability-updated";
@@ -94,17 +93,7 @@ export const updateBedStatus = async (bed, status) => {
   const uiStatus = toUiStatus(status);
   if (!isAllowedAvailabilityStatus(uiStatus)) throw new Error("Invalid availability status.");
 
-  const snapshot = updateStoredBedStatus(bed.id, uiStatus);
-
-  if (/^[a-f\d]{24}$/i.test(String(bed.id))) {
-    try {
-      await api.patch(`/beds/${bed.id}`, { status: toApiStatus(uiStatus) });
-    } catch (error) {
-      if (!snapshot) throw error;
-    }
-  }
-
-  return snapshot;
+  return updateStoredBedStatus(bed.id, uiStatus);
 };
 
 export const useLiveAvailability = () => {

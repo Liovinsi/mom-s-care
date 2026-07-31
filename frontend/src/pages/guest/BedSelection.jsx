@@ -17,13 +17,13 @@ const PremiumBedIllustration = ({ muted = false }) => (
   >
     <defs>
       <linearGradient id="bedWood" x1="13" x2="61" y1="32" y2="58" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#9C6638" />
-        <stop offset="0.55" stopColor="#71411F" />
-        <stop offset="1" stopColor="#452513" />
+        <stop stopColor="#DD5E67" />
+        <stop offset="0.55" stopColor="#D12233" />
+        <stop offset="1" stopColor="#1F2937" />
       </linearGradient>
       <linearGradient id="bedSide" x1="18" x2="62" y1="45" y2="63" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#7D4B27" />
-        <stop offset="1" stopColor="#351C0E" />
+        <stop stopColor="#D12233" />
+        <stop offset="1" stopColor="#1F2937" />
       </linearGradient>
       <linearGradient id="mattress" x1="18" x2="58" y1="25" y2="44" gradientUnits="userSpaceOnUse">
         <stop stopColor="#FFFFFF" />
@@ -31,25 +31,25 @@ const PremiumBedIllustration = ({ muted = false }) => (
         <stop offset="1" stopColor="#D7E0E7" />
       </linearGradient>
       <linearGradient id="blanket" x1="27" x2="61" y1="34" y2="53" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#E9D7AF" />
-        <stop offset="0.55" stopColor="#C8A467" />
-        <stop offset="1" stopColor="#8F6833" />
+        <stop stopColor="#FFF4F6" />
+        <stop offset="0.55" stopColor="#F2D6DA" />
+        <stop offset="1" stopColor="#D12233" />
       </linearGradient>
       <linearGradient id="pillow" x1="20" x2="43" y1="26" y2="36" gradientUnits="userSpaceOnUse">
         <stop stopColor="#FFFFFF" />
         <stop offset="1" stopColor="#E7EDF1" />
       </linearGradient>
       <filter id="bedShadow" x="4" y="10" width="64" height="58" colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse">
-        <feDropShadow dx="0" dy="7" floodColor="#1E1E24" floodOpacity="0.2" stdDeviation="4" />
+        <feDropShadow dx="0" dy="7" floodColor="#1F2937" floodOpacity="0.2" stdDeviation="4" />
       </filter>
     </defs>
-    <ellipse cx="38" cy="59" fill="#1E1E24" opacity="0.13" rx="27" ry="7" />
+    <ellipse cx="38" cy="59" fill="#1F2937" opacity="0.13" rx="27" ry="7" />
     <g filter="url(#bedShadow)">
       <path d="M14 31 28 23l33 19-14 8-33-19Z" fill="url(#bedWood)" />
       <path d="M14 31v16l33 19V50L14 31Z" fill="url(#bedSide)" />
-      <path d="M47 50v16l14-8V42L47 50Z" fill="#4A2714" />
-      <path d="M16 28 28 21v22l-12-7V28Z" fill="#6B3B1D" />
-      <path d="M19 29 28 24v13l-9-5v-3Z" fill="#8A5630" />
+      <path d="M47 50v16l14-8V42L47 50Z" fill="#D12233" />
+      <path d="M16 28 28 21v22l-12-7V28Z" fill="#D12233" />
+      <path d="M19 29 28 24v13l-9-5v-3Z" fill="#DD5E67" />
       <path d="M20 33 34 25l25 14-14 8-25-14Z" fill="url(#mattress)" />
       <path d="M20 33v5l25 14v-5L20 33Z" fill="#DCE5EA" />
       <path d="M45 47v5l14-8v-5l-14 8Z" fill="#C8D4DB" />
@@ -58,12 +58,12 @@ const PremiumBedIllustration = ({ muted = false }) => (
       <path d="M24 32.6c2.8 1.5 5.7 3.2 8.5 4.8" stroke="#DDE6EB" strokeLinecap="round" strokeWidth="1.2" />
       <path d="M34 27.9c2.6 1.5 5.2 3 7.8 4.4" stroke="#DDE6EB" strokeLinecap="round" strokeWidth="1.2" />
       <path d="M34 40 47 32.5 60 40l-13 7.5L34 40Z" fill="url(#blanket)" />
-      <path d="M34 40v9l13 7.5v-9L34 40Z" fill="#B58C4A" />
-      <path d="M47 47.5v9L60 49v-9l-13 7.5Z" fill="#8D662F" />
-      <path d="M37 41.7 50 34.2" stroke="#F6E8C7" strokeLinecap="round" strokeOpacity="0.65" strokeWidth="1.5" />
-      <path d="M17 47v8" stroke="#351C0E" strokeLinecap="round" strokeWidth="3" />
-      <path d="M32 56v7" stroke="#351C0E" strokeLinecap="round" strokeWidth="3" />
-      <path d="M56 51v8" stroke="#351C0E" strokeLinecap="round" strokeWidth="3" />
+      <path d="M34 40v9l13 7.5v-9L34 40Z" fill="#DD5E67" />
+      <path d="M47 47.5v9L60 49v-9l-13 7.5Z" fill="#D12233" />
+      <path d="M37 41.7 50 34.2" stroke="#FFF4F6" strokeLinecap="round" strokeOpacity="0.65" strokeWidth="1.5" />
+      <path d="M17 47v8" stroke="#1F2937" strokeLinecap="round" strokeWidth="3" />
+      <path d="M32 56v7" stroke="#1F2937" strokeLinecap="round" strokeWidth="3" />
+      <path d="M56 51v8" stroke="#1F2937" strokeLinecap="round" strokeWidth="3" />
       <path d="M22 34 45 47" stroke="#FFFFFF" strokeLinecap="round" strokeOpacity="0.42" strokeWidth="1.5" />
     </g>
   </svg>
@@ -93,7 +93,7 @@ const BedSelection = () => {
     <main className="bg-paper/70">
       <section className="border-b border-line bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Bed Selection</p>
+          <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Bed Selection</p>
           <h1 className="mt-4 text-4xl font-semibold leading-tight text-ink sm:text-5xl">Room {room.number}</h1>
           <p className="mt-4 text-lg text-secondary">{branch.name} · {room.sharingType} · {room.roomType}</p>
         </div>
@@ -107,7 +107,7 @@ const BedSelection = () => {
               <p className="mt-1 text-sm text-secondary">Only available beds can be selected.</p>
             </div>
             <div className="flex flex-wrap gap-3 text-xs font-semibold text-secondary">
-              <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-gold" /> Available</span>
+              <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-brand" /> Available</span>
               <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-line" /> Booked</span>
             </div>
           </div>
@@ -122,7 +122,7 @@ const BedSelection = () => {
                   type="button"
                   disabled={!available}
                   onClick={() => setSelectedBed(bed)}
-                  className={`min-h-32 rounded-[18px] border p-5 text-left transition duration-200 ${active ? "border-gold bg-gold/10 shadow-[0_18px_42px_rgba(185,150,91,0.28)] ring-2 ring-gold/30" : "border-line bg-white"} ${available ? "cursor-pointer hover:-translate-y-1 hover:scale-[1.03] hover:border-gold hover:shadow-luxury" : "cursor-not-allowed bg-paper"}`}
+                  className={`min-h-32 rounded-[18px] border p-5 text-left transition duration-200 ${active ? "border-brand bg-brand/10 shadow-[0_18px_42px_rgba(221,94,103,0.28)] ring-2 ring-brand/30" : "border-line bg-white"} ${available ? "cursor-pointer hover:-translate-y-1 hover:scale-[1.03] hover:border-brandDark hover:shadow-luxury" : "cursor-not-allowed bg-paper"}`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <span className="relative grid h-[72px] w-[72px] place-items-center">
@@ -130,7 +130,7 @@ const BedSelection = () => {
                       {!available && <span className="absolute inset-0 rounded-xl bg-slate-300/35" />}
                     </span>
                     {active ? (
-                      <span className="grid h-7 w-7 place-items-center rounded-full bg-gold text-white shadow-[0_8px_18px_rgba(185,150,91,0.35)]">
+                      <span className="grid h-7 w-7 place-items-center rounded-full bg-brand text-white shadow-[0_8px_18px_rgba(221,94,103,0.35)]">
                         <Check className="h-4 w-4" />
                       </span>
                     ) : !available ? (
@@ -140,7 +140,7 @@ const BedSelection = () => {
                     )}
                   </div>
                   <p className="mt-5 text-xl font-semibold text-ink">{bed.label}</p>
-                  <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest ${active ? "bg-gold/10 text-gold" : available ? "bg-success/10 text-success" : "bg-danger/10 text-danger"}`}>
+                  <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest ${active ? "bg-brand/10 text-brand" : available ? "bg-success/10 text-success" : "bg-danger/10 text-danger"}`}>
                     {active ? "Selected" : bed.status}
                   </span>
                 </button>
@@ -150,7 +150,7 @@ const BedSelection = () => {
         </Card>
 
         <Card className="h-fit hover:translate-y-0">
-          <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Booking Summary</p>
+          <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Booking Summary</p>
           <h2 className="mt-3 text-2xl font-semibold text-ink">Your Selection</h2>
 
           <div className="mt-6 grid gap-4 text-sm">

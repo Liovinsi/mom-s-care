@@ -1,10 +1,10 @@
 export const colors = {
-  paper: "#F1F4F2",
-  ink: "#1B2B2A",
-  indigo: "#2C4A52",
-  marigold: "#E3A73B",
-  moss: "#4C8C6B",
-  clay: "#C15B3E"
+  paper: "#FFF4F6",
+  ink: "#1F2937",
+  indigo: "#3B2A2E",
+  rose: "#DD5E67",
+  moss: "#DD5E67",
+  clay: "#D12233"
 };
 
 export const fonts = {
@@ -16,30 +16,30 @@ export const fonts = {
 export const bedStatusStyles = {
   available: {
     label: "Available",
-    background: "bg-emerald-50",
-    border: "border-emerald-300",
-    text: "text-emerald-800",
-    color: colors.moss
+    background: "bg-brand/10",
+    border: "border-brand/30",
+    text: "text-brandDark",
+    color: colors.rose
   },
   held: {
     label: "Held",
-    background: "bg-amber-50",
-    border: "border-amber-300",
-    text: "text-amber-800",
-    color: colors.marigold
+    background: "bg-brand/10",
+    border: "border-brand/30",
+    text: "text-brandDark",
+    color: colors.rose
   },
   booked: {
     label: "Booked",
-    background: "bg-sky-50",
-    border: "border-sky-300",
-    text: "text-sky-800",
-    color: colors.indigo
+    background: "bg-brand/10",
+    border: "border-brand/30",
+    text: "text-brandDark",
+    color: colors.rose
   },
   occupied: {
     label: "Occupied",
-    background: "bg-orange-50",
-    border: "border-orange-300",
-    text: "text-orange-800",
+    background: "bg-paper",
+    border: "border-brand/30",
+    text: "text-brandDark",
     color: colors.clay
   },
   maintenance: {
@@ -54,26 +54,26 @@ export const bedStatusStyles = {
 export const bookingStatusStyles = {
   pending: {
     label: "Pending",
-    background: "bg-amber-50",
-    text: "text-amber-800",
-    color: colors.marigold
+    background: "bg-brand/10",
+    text: "text-brandDark",
+    color: colors.rose
   },
   approved: {
     label: "Approved",
-    background: "bg-emerald-50",
-    text: "text-emerald-800",
-    color: colors.moss
+    background: "bg-brand/10",
+    text: "text-brandDark",
+    color: colors.rose
   },
   rejected: {
     label: "Rejected",
-    background: "bg-red-50",
-    text: "text-red-800",
+    background: "bg-paper",
+    text: "text-brandDark",
     color: colors.clay
   },
   checked_in: {
     label: "Checked in",
-    background: "bg-sky-50",
-    text: "text-sky-800",
-    color: colors.indigo
+    background: "bg-brand/10",
+    text: "text-brandDark",
+    color: colors.rose
   }
 };

@@ -13,7 +13,7 @@ import { WARDEN_GENDERS, WARDEN_ROLE, WARDEN_STATUSES, loadWardens, saveWardens 
 const rowsPerPage = 10;
 const maxImageSize = 5 * 1024 * 1024;
 const imageTypes = ["image/jpeg", "image/png", "image/webp"];
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15 disabled:bg-paper disabled:text-slate-500";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25 disabled:bg-paper disabled:text-slate-500";
 const defaultPhoto = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=82";
 
 const emptyWarden = {
@@ -46,9 +46,9 @@ const emptyWarden = {
 };
 
 const statusStyles = {
-  Active: "bg-emerald-50 text-emerald-700",
+  Active: "bg-brand/10 text-brandDark",
   Inactive: "bg-slate-100 text-slate-600",
-  "On Leave": "bg-orange-50 text-orange-700"
+  "On Leave": "bg-paper text-brandDark"
 };
 
 const StatusBadge = ({ status }) => (
@@ -107,7 +107,7 @@ const WardenPhotoUpload = ({ value, onChange, error, onError }) => {
     <div>
       <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
         <BranchImage src={value} alt="Warden preview" className="h-32 w-full rounded-xl object-cover" fallbackClassName="h-32 w-full rounded-xl" />
-        <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line bg-paper px-4 text-center text-sm font-semibold text-ink transition hover:border-gold hover:text-gold">
+        <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line bg-paper px-4 text-center text-sm font-semibold text-ink transition hover:border-brandDark hover:text-brandDark">
           <ImagePlus className="mb-2 h-5 w-5" />
           Upload Photo
           <span className="mt-1 text-xs font-medium text-slate-500">JPG, PNG, WEBP up to 5 MB</span>
@@ -210,7 +210,7 @@ const WardenDrawer = ({ warden, wardens, branches, onClose, onSave }) => {
             <h2 className="text-xl font-bold text-ink">{editingId ? "Edit Warden" : "Add Warden"}</h2>
             <p className="text-sm text-slate-500">Manage warden details, branch access, and login credentials.</p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -352,7 +352,7 @@ const WardenViewModal = ({ warden, metrics, residents, onClose }) => {
               <div className="mt-2"><StatusBadge status={warden.status} /></div>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -394,7 +394,7 @@ const WardenViewModal = ({ warden, metrics, residents, onClose }) => {
             <h3 className="text-lg font-bold text-ink">Branch Access Rules</h3>
             <div className="mt-4 grid gap-2 text-sm text-slate-600">
               {["Approve Check-In", "Approve Check-Out", "Allocate Beds", "Manage Residents", "Update Bed Status", "Collect Rent", "View Complaints"].map((item) => (
-                <p key={item}><span className="font-semibold text-gold">Can:</span> {item}</p>
+                <p key={item}><span className="font-semibold text-brand">Can:</span> {item}</p>
               ))}
               <p><span className="font-semibold text-danger">Cannot:</span> Add or delete branches, rooms, or beds</p>
               <p><span className="font-semibold text-danger">Cannot:</span> View other branch data</p>
@@ -427,7 +427,7 @@ const ResetPasswordDialog = ({ warden, onClose, onReset }) => {
         <h2 className="text-xl font-bold text-ink">Reset Password</h2>
         <p className="mt-2 text-sm text-slate-600">Generate a temporary password and force password change on first login.</p>
         <p className="mt-4 rounded-xl bg-paper p-3 text-sm font-semibold text-ink">{wardenName(warden)} · {warden.employeeId}</p>
-        {temporaryPassword && <p className="mt-3 rounded-xl border border-gold/30 bg-gold/10 p-3 text-sm font-bold text-ink">Temporary Password: {temporaryPassword}</p>}
+        {temporaryPassword && <p className="mt-3 rounded-xl border border-brand/30 bg-brand/10 p-3 text-sm font-bold text-ink">Temporary Password: {temporaryPassword}</p>}
         <div className="mt-5 flex justify-end gap-3">
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="button" onClick={generatePassword}>Generate Password</Button>
@@ -592,19 +592,19 @@ const WardensPage = () => {
                 <td className="px-4 py-3"><StatusBadge status={warden.status} /></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setViewWarden(warden)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="View warden">
+                    <button type="button" onClick={() => setViewWarden(warden)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View warden">
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => { setDrawerWarden(warden); setShowDrawer(true); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Edit warden">
+                    <button type="button" onClick={() => { setDrawerWarden(warden); setShowDrawer(true); }} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Edit warden">
                       <Pencil className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setResetWarden(warden)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Reset password">
+                    <button type="button" onClick={() => setResetWarden(warden)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Reset password">
                       <KeyRound className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => toggleWarden(warden)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label={warden.status === "Active" ? "Disable warden" : "Enable warden"}>
+                    <button type="button" onClick={() => toggleWarden(warden)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label={warden.status === "Active" ? "Disable warden" : "Enable warden"}>
                       <UserX className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setDeleteWarden(warden)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-red-50" aria-label="Delete warden">
+                    <button type="button" onClick={() => setDeleteWarden(warden)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-paper" aria-label="Delete warden">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>

@@ -18,7 +18,7 @@ const FeaturedBranches = () => {
       <section className="border-b border-line bg-white">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Featured PG Branches</p>
+            <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Featured PG Branches</p>
             <h1 className="mt-5 text-4xl font-semibold leading-tight text-ink sm:text-5xl">Premium Chennai PG Residences</h1>
             <p className="mt-5 text-lg leading-8 text-secondary">
               Explore high-demand branches with clear pricing, occupancy, amenities, and direct access to the booking flow.
@@ -38,7 +38,7 @@ const FeaturedBranches = () => {
                     <MapPin className="h-4 w-4 text-[#E5E7EB]" /> {branch.name}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-[#E5E7EB] opacity-95">{getBranchLocation(branch)}</p>
-                  <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#D4AF37] px-3 py-1.5 text-sm font-semibold text-[#111827]">
+                  <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#DD5E67] px-3 py-1.5 text-sm font-semibold text-[#111827]">
                     <Star className="h-4 w-4 fill-[#111827]" /> {branch.rating}
                   </span>
                 </div>
@@ -47,11 +47,11 @@ const FeaturedBranches = () => {
               <div className="p-5">
                 <h2 className="text-2xl font-semibold text-ink">{branch.name}</h2>
                 <p className="mt-3 flex items-start gap-2 text-sm leading-6 text-secondary">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                   <span>{branch.addressLines.map((line) => <span key={line} className="block">{line}</span>)}</span>
                 </p>
 
-                <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-gold">
+                <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-brand">
                   <span aria-hidden="true">★★★★★</span>
                   <span>{branch.rating}</span>
                 </div>
@@ -77,7 +77,7 @@ const FeaturedBranches = () => {
                 <div className="mt-5 flex flex-wrap gap-2">
                   {branch.facilities.map((amenity) => (
                     <span key={amenity} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-semibold text-secondary">
-                      <Check className="h-3.5 w-3.5 text-gold" /> {amenity}
+                      <Check className="h-3.5 w-3.5 text-brand" /> {amenity}
                     </span>
                   ))}
                 </div>

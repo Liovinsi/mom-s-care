@@ -1,12 +1,13 @@
 const styles = {
-  AVAILABLE: "bg-emerald-50 text-emerald-700",
-  HELD: "bg-amber-50 text-amber-700",
-  BOOKED: "bg-red-50 text-red-700",
+  AVAILABLE: "bg-brand/10 text-brandDark",
+  HELD: "bg-brand/10 text-brandDark",
+  BOOKED: "bg-paper text-brandDark",
   MAINTENANCE: "bg-slate-100 text-slate-700",
-  APPROVED: "bg-emerald-50 text-emerald-700",
-  PENDING_APPROVAL: "bg-amber-50 text-amber-700",
-  PENDING_PAYMENT: "bg-blue-50 text-blue-700",
-  REJECTED: "bg-red-50 text-red-700"
+  BLOCKED: "bg-brand/10 text-brandDark",
+  APPROVED: "bg-brand/10 text-brandDark",
+  PENDING_APPROVAL: "bg-brand/10 text-brandDark",
+  PENDING_PAYMENT: "bg-brand/10 text-brandDark",
+  REJECTED: "bg-paper text-brandDark"
 };
 
 const Badge = ({ value }) => (

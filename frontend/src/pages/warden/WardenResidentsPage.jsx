@@ -15,27 +15,27 @@ import { saveAvailabilitySnapshot, useLiveAvailability } from "../../lib/liveAva
 const today = "2026-07-18";
 const rowsPerPage = 8;
 const sharingTypes = ["1 Sharing", "2 Sharing", "3 Sharing", "4 Sharing"];
-const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15";
+const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
 
 const wardenBranchByUser = {
-  "dummy-warden": "Anna Nagar"
+  "dev-warden-wd001": "Anna Nagar"
 };
 
 const statusStyles = {
-  "Pending Check-In": "bg-amber-50 text-amber-700",
-  Active: "bg-emerald-50 text-emerald-700",
-  Vacating: "bg-orange-50 text-orange-700",
+  "Pending Check-In": "bg-brand/10 text-brandDark",
+  Active: "bg-brand/10 text-brandDark",
+  Vacating: "bg-paper text-brandDark",
   "Checked Out": "bg-slate-100 text-slate-600"
 };
 
 const bookingStatusStyles = {
-  Pending: "bg-amber-50 text-amber-700",
-  Approved: "bg-emerald-50 text-emerald-700",
+  Pending: "bg-brand/10 text-brandDark",
+  Approved: "bg-brand/10 text-brandDark",
   "Assigned to Warden": "bg-purple-50 text-purple-700",
-  "Checked-In": "bg-blue-50 text-blue-700",
-  "Checked In": "bg-blue-50 text-blue-700",
+  "Checked-In": "bg-brand/10 text-brandDark",
+  "Checked In": "bg-brand/10 text-brandDark",
   Completed: "bg-slate-100 text-slate-600",
-  Rejected: "bg-red-50 text-red-700",
+  Rejected: "bg-paper text-brandDark",
   Cancelled: "bg-slate-100 text-slate-600"
 };
 
@@ -73,7 +73,7 @@ const DocumentPreview = ({ label, src }) => (
     <BranchImage src={src} alt={label} className="h-40 w-full rounded-2xl border border-line object-cover" fallbackClassName="h-40 w-full rounded-2xl" />
     <div className="mt-2 flex items-center justify-between gap-2">
       <p className="text-xs font-bold uppercase text-slate-500">{label}</p>
-      <a href={src} download className="text-xs font-bold text-gold hover:underline">Download</a>
+      <a href={src} download className="text-xs font-bold text-brand hover:underline">Download</a>
     </div>
   </div>
 );
@@ -121,7 +121,7 @@ const ResidentViewModal = ({ resident, booking, onClose }) => (
             <div className="mt-2"><StatusBadge status={resident.status} /></div>
           </div>
         </div>
-        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+        <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -155,7 +155,7 @@ const ResidentViewModal = ({ resident, booking, onClose }) => (
         <Card>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="text-lg font-bold text-ink">Documents</h3>
-            <a href={resident.aadhaarFront} download className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-gold hover:text-gold">
+            <a href={resident.aadhaarFront} download className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-brandDark hover:text-brandDark">
               <Download className="h-4 w-4" /> Download Documents
             </a>
           </div>
@@ -213,7 +213,7 @@ const ResidentEditModal = ({ resident, onClose, onSave }) => {
             <h2 className="text-xl font-bold text-ink">Edit Resident</h2>
             <p className="text-sm text-slate-500">{resident.fullName} · {resident.id}</p>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-gold hover:text-gold" aria-label="Close">
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink hover:border-brandDark hover:text-brandDark" aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -417,7 +417,7 @@ const WardenResidentsPage = () => {
           <h1 className="text-2xl font-bold text-ink">Residents</h1>
           <p className="text-sm text-slate-500">Manage residents staying in your assigned branch.</p>
         </div>
-        <div className="rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm font-semibold text-gold">
+        <div className="rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm font-semibold text-brand">
           Assigned Branch: {assignedBranch.name}
         </div>
       </div>
@@ -432,9 +432,9 @@ const WardenResidentsPage = () => {
       </div>
 
       {notice && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm font-semibold text-ink">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm font-semibold text-ink">
           <span>{notice}</span>
-          <button type="button" onClick={() => setNotice("")} className="grid h-8 w-8 place-items-center rounded-lg border border-gold/30 text-gold" aria-label="Dismiss notice">
+          <button type="button" onClick={() => setNotice("")} className="grid h-8 w-8 place-items-center rounded-lg border border-brand/30 text-brand" aria-label="Dismiss notice">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -493,16 +493,16 @@ const WardenResidentsPage = () => {
                   <td className="px-4 py-3"><StatusBadge status={resident.status} /></td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <button type="button" onClick={() => setViewResident(resident)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="View resident" title="View">
+                      <button type="button" onClick={() => setViewResident(resident)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View resident" title="View">
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button type="button" onClick={() => setEditResident(resident)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-gold hover:text-gold" aria-label="Edit resident" title="Edit">
+                      <button type="button" onClick={() => setEditResident(resident)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Edit resident" title="Edit">
                         <Pencil className="h-4 w-4" />
                       </button>
-                      <button type="button" onClick={() => checkInResident(resident)} disabled={!canCheckIn} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-emerald-700 hover:border-emerald-500 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Check-in resident" title="Check-In">
+                      <button type="button" onClick={() => checkInResident(resident)} disabled={!canCheckIn} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-brandDark hover:border-brandDark hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40" aria-label="Check-in resident" title="Check-In">
                         <Check className="h-4 w-4" />
                       </button>
-                      <button type="button" onClick={() => setCheckOutResident(resident)} disabled={!canCheckOut} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Check-out resident" title="Check-Out">
+                      <button type="button" onClick={() => setCheckOutResident(resident)} disabled={!canCheckOut} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40" aria-label="Check-out resident" title="Check-Out">
                         <LogOut className="h-4 w-4" />
                       </button>
                     </div>

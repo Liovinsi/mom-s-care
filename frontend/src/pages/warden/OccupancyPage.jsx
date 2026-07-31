@@ -8,12 +8,12 @@ import { BED_STATUSES } from "../../data/adminBeds";
 import { loadWardens } from "../../data/adminWardens";
 import { updateBedStatus, useLiveAvailability } from "../../lib/liveAvailability";
 
-const fieldClass = "min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15";
+const fieldClass = "min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
 
 const statusStyles = {
-  Available: "bg-emerald-50 text-emerald-700",
-  Occupied: "bg-red-50 text-red-700",
-  Reserved: "bg-orange-50 text-orange-700",
+  Available: "bg-brand/10 text-brandDark",
+  Occupied: "bg-paper text-brandDark",
+  Reserved: "bg-paper text-brandDark",
   Maintenance: "bg-slate-100 text-slate-600"
 };
 
@@ -89,7 +89,7 @@ const OccupancyPage = () => {
           <h1 className="text-2xl font-bold text-ink">Occupancy</h1>
           <p className="text-sm text-slate-500">Update bed availability status for your assigned branch only.</p>
         </div>
-        <div className="rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm font-semibold text-gold">
+        <div className="rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm font-semibold text-brand">
           Assigned Branch: {assignedBranch.name}
         </div>
       </div>
@@ -102,7 +102,7 @@ const OccupancyPage = () => {
         <StatCard label="Maintenance Beds" value={stats.maintenanceBeds} />
       </div>
 
-      {notice && <div className="mt-5 rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm font-semibold text-ink">{notice}</div>}
+      {notice && <div className="mt-5 rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm font-semibold text-ink">{notice}</div>}
 
       <Card className="mt-5 overflow-x-auto p-0">
         <table className="w-full min-w-[900px] text-left text-sm">
@@ -162,7 +162,7 @@ const OccupancyPage = () => {
                   <td className="px-4 py-3 font-semibold">{room.reservedBeds}</td>
                   <td className="px-4 py-3 font-semibold">{room.maintenanceBeds}</td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${room.overallAvailability === "Available" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{room.overallAvailability}</span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${room.overallAvailability === "Available" ? "bg-brand/10 text-brandDark" : "bg-slate-100 text-slate-600"}`}>{room.overallAvailability}</span>
                   </td>
                   <td className="px-4 py-3">
                     <select className={fieldClass} value={draftRoomStatus} onChange={(event) => setDraftRoomStatuses((current) => ({ ...current, [room.id]: event.target.value }))}>

@@ -6,7 +6,7 @@ body {
   margin: 0;
   min-width: 320px;
   background: #ffffff;
-  color: #1e1e24;
+  color: #1f2937;
   font-family: "Inter", "Optima", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   text-rendering: geometricPrecision;
 }
@@ -18,6 +18,23 @@ html.dark body {
 
 html {
   scroll-behavior: smooth;
+}
+
+button {
+  cursor: pointer;
+  transition: transform 250ms ease, box-shadow 250ms ease, background-color 250ms ease, border-color 250ms ease, color 250ms ease;
+}
+
+button:not(:disabled):hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+button:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 .dark .bg-white,
@@ -47,7 +64,7 @@ html {
 
 .dark .border-line,
 .dark .border-slate-200 {
-  border-color: rgba(212, 175, 55, 0.22);
+  border-color: rgba(221, 94, 103, 0.24);
 }
 
 .dark .shadow-soft {
@@ -63,7 +80,7 @@ html {
 .dark textarea {
   background-color: #1e1e24;
   color: #f8f8f8;
-  border-color: rgba(212, 175, 55, 0.22);
+  border-color: rgba(221, 94, 103, 0.24);
 }
 
 .dark input::placeholder,
@@ -88,6 +105,6 @@ html {
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #d4af37;
+  background: #DD5E67;
   border-radius: 999px;
 }

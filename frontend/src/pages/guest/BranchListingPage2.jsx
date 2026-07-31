@@ -44,8 +44,8 @@ const branches = [
     amenities: ["WiFi", "Food", "Laundry", "Security"]
   },
   {
-    id: "marigold-hsr",
-    name: "Marigold HSR House",
+    id: "rose-hsr",
+    name: "Rosewood HSR House",
     location: "HSR Layout, Bengaluru",
     rating: "4.8",
     beds: 8,
@@ -139,9 +139,7 @@ const LuxuryNavbar = () => (
   <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur-xl">
     <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
       <Link to="/" className="flex items-center gap-3 text-lg font-semibold text-ink">
-        <span className="grid h-10 w-10 place-items-center rounded-xl border border-gold/30 bg-gold/10">
-          <Building2 className="h-5 w-5 text-gold" />
-        </span>
+        <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-brand/20 bg-white shadow-soft"><img src="/logo.jpeg" alt="PG Stay logo" className="h-full w-full object-cover" /></span>
         <span>
           PGStay
           <span className="block text-[10px] font-bold uppercase tracking-[0.28em] text-muted">Luxe Living</span>
@@ -149,7 +147,7 @@ const LuxuryNavbar = () => (
       </Link>
       <nav className="hidden items-center gap-7 md:flex">
         {["Home", "Branches", "Amenities", "FAQ"].map((item) => (
-          <a key={item} href={item === "Branches" ? "#branches" : "/"} className="text-sm font-semibold text-secondary transition hover:text-gold">
+          <a key={item} href={item === "Branches" ? "#branches" : "/"} className="text-sm font-semibold text-secondary transition hover:text-brandDark">
             {item}
           </a>
         ))}
@@ -162,9 +160,9 @@ const LuxuryNavbar = () => (
 );
 
 const FilterCheckbox = ({ label }) => (
-  <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line px-3 py-2.5 text-sm font-semibold text-secondary transition hover:border-gold hover:text-ink">
+  <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line px-3 py-2.5 text-sm font-semibold text-secondary transition hover:border-brandDark hover:text-ink">
     <span>{label}</span>
-    <input type="checkbox" className="h-4 w-4 accent-gold" />
+    <input type="checkbox" className="h-4 w-4 accent-[#DD5E67]" />
   </label>
 );
 
@@ -172,10 +170,10 @@ const FilterSidebar = () => (
   <aside className="rounded-[18px] border border-line bg-white p-5 shadow-soft lg:sticky lg:top-24 lg:self-start">
     <div className="flex items-center justify-between border-b border-line pb-4">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.28em] text-gold">Filters</p>
+        <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Filters</p>
         <h2 className="mt-1 text-xl font-semibold text-ink">Refine Stays</h2>
       </div>
-      <SlidersHorizontal className="h-5 w-5 text-gold" />
+      <SlidersHorizontal className="h-5 w-5 text-brand" />
     </div>
 
     <div className="mt-5 space-y-6">
@@ -193,9 +191,9 @@ const FilterSidebar = () => (
       <div>
         <div className="mb-3 flex items-center justify-between text-sm font-semibold text-ink">
           <span>Price Range</span>
-          <span className="text-gold">₹8k - ₹24k</span>
+          <span className="text-brand">₹8k - ₹24k</span>
         </div>
-        <input type="range" min="8000" max="30000" defaultValue="22000" className="w-full accent-gold" />
+        <input type="range" min="8000" max="30000" defaultValue="22000" className="w-full accent-[#DD5E67]" />
       </div>
 
       <Input label="Available Beds" type="number" min="1" placeholder="Minimum beds" />
@@ -212,7 +210,7 @@ const AmenityPill = ({ name }) => {
   const Icon = amenityIcons[name] || Sparkles;
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-semibold text-secondary">
-      <Icon className="h-3.5 w-3.5 text-gold" />
+      <Icon className="h-3.5 w-3.5 text-brand" />
       {name}
     </span>
   );
@@ -222,10 +220,10 @@ const BranchCard = ({ branch, view }) => (
   <Card className={`group overflow-hidden p-0 ${view === "list" ? "md:grid md:grid-cols-[280px_1fr]" : ""}`}>
     <div className="relative h-64 overflow-hidden md:h-full">
       <img src={branch.image} alt={branch.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-      <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-bold uppercase tracking-widest text-gold shadow-soft">
+      <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-bold uppercase tracking-widest text-brand shadow-soft">
         {branch.gender}
       </span>
-      <button className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/95 text-ink shadow-soft transition hover:text-gold" aria-label={`Save ${branch.name}`}>
+      <button className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/95 text-ink shadow-soft transition hover:text-brandDark" aria-label={`Save ${branch.name}`}>
         <Heart className="h-5 w-5" />
       </button>
     </div>
@@ -234,11 +232,11 @@ const BranchCard = ({ branch, view }) => (
         <div>
           <h3 className="text-xl font-semibold text-ink">{branch.name}</h3>
           <p className="mt-2 flex items-center gap-2 text-sm text-secondary">
-            <MapPin className="h-4 w-4 text-gold" /> {branch.location}
+            <MapPin className="h-4 w-4 text-brand" /> {branch.location}
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-3 py-1 text-sm font-semibold text-gold">
-          <Star className="h-4 w-4 fill-gold" /> {branch.rating}
+        <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-3 py-1 text-sm font-semibold text-brand">
+          <Star className="h-4 w-4 fill-brand" /> {branch.rating}
         </span>
       </div>
 
@@ -297,9 +295,9 @@ const SkeletonLoader = () => (
 
 const EmptyState = () => (
   <div className="rounded-[18px] border border-line bg-white p-10 text-center shadow-soft">
-    <div className="mx-auto grid h-28 w-28 place-items-center rounded-full bg-gold/10">
+    <div className="mx-auto grid h-28 w-28 place-items-center rounded-full bg-brand/10">
       <div className="relative h-16 w-16">
-        <Home className="absolute left-3 top-5 h-10 w-10 text-gold" />
+        <Home className="absolute left-3 top-5 h-10 w-10 text-brand" />
         <Search className="absolute right-0 top-0 h-7 w-7 text-ink" />
       </div>
     </div>
@@ -324,7 +322,7 @@ const BranchListingPage2 = () => {
         <section className="border-b border-line bg-white">
           <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-xs font-bold uppercase tracking-[0.32em] text-gold">Branch Listing</p>
+              <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Branch Listing</p>
               <h1 className="mt-5 text-4xl font-semibold leading-tight text-ink sm:text-5xl">Find Your Perfect PG</h1>
               <p className="mt-5 text-lg leading-8 text-secondary">
                 Browse premium PG branches with hotel-inspired amenities, transparent rent, and real availability cues.
@@ -333,11 +331,11 @@ const BranchListingPage2 = () => {
             <div className="mx-auto mt-9 max-w-4xl rounded-[18px] border border-line bg-white p-3 shadow-luxury">
               <div className="grid gap-3 md:grid-cols-[1fr_auto]">
                 <label className="relative block">
-                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gold" />
+                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brand" />
                   <input
                     type="search"
                     placeholder="Search by city, branch, landmark, or amenity"
-                    className="min-h-12 w-full rounded-xl border border-line bg-white py-3 pl-12 pr-4 text-sm text-ink outline-none transition placeholder:text-muted focus:border-gold focus:ring-4 focus:ring-gold/15"
+                    className="min-h-12 w-full rounded-xl border border-line bg-white py-3 pl-12 pr-4 text-sm text-ink outline-none transition placeholder:text-muted focus:border-brand focus:ring-4 focus:ring-brand/25"
                   />
                 </label>
                 <Button className="min-h-12 px-8">Search</Button>
@@ -354,29 +352,29 @@ const BranchListingPage2 = () => {
               <div className="mb-6 rounded-[18px] border border-line bg-white p-4 shadow-soft">
                 <div className="grid gap-3 lg:grid-cols-[1fr_220px_auto] lg:items-center">
                   <label className="relative block">
-                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gold" />
+                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand" />
                     <input
                       type="search"
                       placeholder="Search listed branches"
-                      className="min-h-12 w-full rounded-xl border border-line bg-white py-3 pl-11 pr-4 text-sm text-ink outline-none transition placeholder:text-muted focus:border-gold focus:ring-4 focus:ring-gold/15"
+                      className="min-h-12 w-full rounded-xl border border-line bg-white py-3 pl-11 pr-4 text-sm text-ink outline-none transition placeholder:text-muted focus:border-brand focus:ring-4 focus:ring-brand/25"
                     />
                   </label>
                   <label className="relative block">
-                    <select className="min-h-12 w-full appearance-none rounded-xl border border-line bg-white px-4 pr-10 text-sm font-semibold text-secondary outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/15">
+                    <select className="min-h-12 w-full appearance-none rounded-xl border border-line bg-white px-4 pr-10 text-sm font-semibold text-secondary outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25">
                       {sortOptions.map((option) => <option key={option}>{option}</option>)}
                     </select>
-                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gold" />
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand" />
                   </label>
                   <div className="grid grid-cols-2 gap-2 rounded-xl border border-line p-1">
                     <button
-                      className={`grid h-10 place-items-center rounded-lg transition ${view === "grid" ? "bg-gold text-white" : "text-secondary hover:text-gold"}`}
+                      className={`grid h-10 place-items-center rounded-lg transition ${view === "grid" ? "bg-brand text-white" : "text-secondary hover:text-brandDark"}`}
                       onClick={() => setView("grid")}
                       aria-label="Grid view"
                     >
                       <Grid2X2 className="h-4 w-4" />
                     </button>
                     <button
-                      className={`grid h-10 place-items-center rounded-lg transition ${view === "list" ? "bg-gold text-white" : "text-secondary hover:text-gold"}`}
+                      className={`grid h-10 place-items-center rounded-lg transition ${view === "list" ? "bg-brand text-white" : "text-secondary hover:text-brandDark"}`}
                       onClick={() => setView("list")}
                       aria-label="List view"
                     >
@@ -393,10 +391,10 @@ const BranchListingPage2 = () => {
                 </div>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-secondary shadow-soft transition hover:border-gold hover:text-gold"
+                  className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-secondary shadow-soft transition hover:border-brandDark hover:text-brandDark"
                   onClick={() => setLoading((value) => !value)}
                 >
-                  <Loader2 className={`h-4 w-4 ${loading ? "animate-spin text-gold" : ""}`} />
+                  <Loader2 className={`h-4 w-4 ${loading ? "animate-spin text-brand" : ""}`} />
                   Loading State
                 </button>
               </div>
