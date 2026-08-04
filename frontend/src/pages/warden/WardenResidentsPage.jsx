@@ -6,11 +6,13 @@ import Card from "../../components/ui/Card";
 import StatCard from "../../components/ui/StatCard";
 import { useAuth } from "../../context/AuthContext";
 import { loadBeds, saveBeds } from "../../data/adminBeds";
-import { loadBookings, saveBookings } from "../../data/adminBookings";
+import { loadBookings } from "../../data/adminBookings";
 import { RESIDENT_STATUSES, loadResidents, saveResidents } from "../../data/adminResidents";
 import { loadRooms } from "../../data/adminRooms";
 import { loadWardens } from "../../data/adminWardens";
-import { saveAvailabilitySnapshot, useLiveAvailability } from "../../lib/liveAvailability";
+import { recordWardenActivity } from "../../data/wardenActivities";
+import { createStatusUpdateRequest, loadStatusUpdateRequests } from "../../data/statusUpdateRequests";
+import { useLiveAvailability } from "../../lib/liveAvailability";
 
 const today = "2026-07-18";
 const rowsPerPage = 8;
@@ -347,16 +349,6 @@ const WardenResidentsPage = () => {
     saveResidents(nextResidents);
   };
 
-  const persistBeds = (nextBeds) => {
-    setBeds(nextBeds);
-    saveAvailabilitySnapshot(nextBeds, rooms);
-  };
-
-  const persistBookings = (nextBookings) => {
-    setBookings(nextBookings);
-    saveBookings(nextBookings);
-  };
-
   const guardBranchAccess = (resident) => isAssignedBranchRecord(resident, assignedBranch);
 
   const saveResident = (resident) => {
@@ -378,36 +370,47 @@ const WardenResidentsPage = () => {
       return;
     }
 
-    persistResidents(residents.map((item) => (
-      item.id === resident.id ? { ...item, status: "Active", moveInDate: today } : item
-    )));
-    persistBeds(beds.map((item) => (
-      item.id === resident.bedId
-        ? { ...item, status: "Occupied", currentResident: resident.fullName, bookingId: resident.bookingId, checkInDate: today, checkOutDate: resident.expectedVacateDate }
-        : item
-    )));
-    persistBookings(bookings.map((item) => (
-      item.id === resident.bookingId ? { ...item, bookingStatus: "Checked-In" } : item
-    )));
-    setNotice(`${resident.fullName} checked in successfully.`);
+    if (loadStatusUpdateRequests().some((request) => request.bedId === bed.id && request.status === "Pending Approval")) {
+      setNotice("A pending approval request already exists for this bed.");
+      return;
+    }
+    const request = createStatusUpdateRequest({ type: "Resident Check-In", branchId: assignedBranch.id, branchName: assignedBranch.name, roomId: bed.roomId, roomNumber: resident.roomNumber, bedId: bed.id, bedName: resident.bedName, currentStatus: bed.status, requestedStatus: "Occupied", wardenId: user?.id, wardenName: user?.name || "Warden", residentId: resident.id, bookingId: resident.bookingId });
+    recordWardenActivity({
+      branchId: assignedBranch.id,
+      branchName: assignedBranch.name,
+      wardenId: user?.id,
+      wardenName: user?.name || "Warden",
+      action: "Resident Check-In Requested",
+      residentName: resident.fullName,
+      roomNumber: resident.roomNumber,
+      bedName: resident.bedName
+    });
+    setNotice(`${request.id} submitted. Check-in will complete after Admin approval.`);
   };
 
   const confirmCheckOut = (resident) => {
     if (!guardBranchAccess(resident)) return;
 
-    persistResidents(residents.map((item) => (
-      item.id === resident.id ? { ...item, status: "Checked Out", checkedOutDate: today } : item
-    )));
-    persistBeds(beds.map((item) => (
-      item.id === resident.bedId
-        ? { ...item, status: "Available", currentResident: "", bookingId: "", checkInDate: "", checkOutDate: "" }
-        : item
-    )));
-    persistBookings(bookings.map((item) => (
-      item.id === resident.bookingId ? { ...item, bookingStatus: "Completed" } : item
-    )));
+    const bed = bedFor(resident);
+    if (!bed) return;
+    if (loadStatusUpdateRequests().some((request) => request.bedId === bed.id && request.status === "Pending Approval")) {
+      setNotice("A pending approval request already exists for this bed.");
+      setCheckOutResident(null);
+      return;
+    }
+    const request = createStatusUpdateRequest({ type: "Resident Check-Out", branchId: assignedBranch.id, branchName: assignedBranch.name, roomId: bed.roomId, roomNumber: resident.roomNumber, bedId: bed.id, bedName: resident.bedName, currentStatus: bed.status, requestedStatus: "Available", wardenId: user?.id, wardenName: user?.name || "Warden", residentId: resident.id, bookingId: resident.bookingId });
+    recordWardenActivity({
+      branchId: assignedBranch.id,
+      branchName: assignedBranch.name,
+      wardenId: user?.id,
+      wardenName: user?.name || "Warden",
+      action: "Resident Check-Out Requested",
+      residentName: resident.fullName,
+      roomNumber: resident.roomNumber,
+      bedName: resident.bedName
+    });
     setCheckOutResident(null);
-    setNotice(`${resident.fullName} checked out successfully.`);
+    setNotice(`${request.id} submitted. Check-out will complete after Admin approval.`);
   };
 
   return (

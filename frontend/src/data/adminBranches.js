@@ -15,14 +15,7 @@ export const AMENITY_STORAGE_KEY = "pg_admin_amenities";
 
 export const AREAS = [
   "Anna Nagar",
-  "Virugambakkam",
-  "Tambaram",
-  "Velachery",
-  "Porur",
-  "Guindy",
-  "T Nagar",
-  "Sholinganallur",
-  "Medavakkam"
+  "Virugambakkam"
 ];
 
 export const GALLERY_LABELS = ["Building Front", "Reception", "Room", "Washroom", "Dining Area", "Terrace"];
@@ -76,7 +69,7 @@ export const branchImageSets = {
   }
 };
 
-export const defaultBranches = [
+const legacyDefaultBranches = [
   {
     id: "anna-nagar",
     name: "PGStay Anna Nagar",
@@ -329,6 +322,8 @@ export const defaultBranches = [
   }
 ];
 
+export const defaultBranches = legacyDefaultBranches.filter((branch) => ["anna-nagar", "virugambakkam"].includes(branch.id));
+
 export const BRANCH_STORAGE_KEY = "pg_admin_branches";
 
 const normalizeAmenityLabel = (amenity) => (amenity === "Food" ? "Healthy Food" : amenity);
@@ -359,7 +354,21 @@ const normalizeBranchImages = (branch) => ({
 
 export const loadBranches = () => {
   const stored = localStorage.getItem(BRANCH_STORAGE_KEY);
-  return (stored ? JSON.parse(stored) : defaultBranches).map((branch) => normalizeBranchImages(normalizeBranchAmenities(branch)));
+  return (stored ? JSON.parse(stored) : defaultBranches)
+    .map((branch) => normalizeBranchImages(normalizeBranchAmenities({
+      ...branch,
+      ...(branch.id === "anna-nagar" || branch.id === "virugambakkam" ? {
+        rooms: 4,
+        beds: 16,
+        occupiedBeds: 4,
+        availableBeds: 12,
+        reservedBeds: 0,
+        maintenanceBeds: 0,
+        occupancy: 25,
+        residents: branch.id === "anna-nagar" ? 1 : 0,
+        wardens: branch.id === "anna-nagar" ? ["Priya Raman"] : ["Meena Joseph"]
+      } : {})
+    })));
 };
 
 export const saveBranches = (branches) => {

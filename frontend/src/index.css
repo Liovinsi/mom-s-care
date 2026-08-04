@@ -37,6 +37,18 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.bed-outline-box::before {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  right: 7px;
+  height: 10px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  content: "";
+  pointer-events: none;
+}
+
 .dark .bg-white,
 .dark .bg-white\/95,
 .dark .bg-white\/92 {
@@ -96,6 +108,17 @@ button:disabled {
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes loginModeSwitch {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

@@ -5,7 +5,7 @@ import BranchImage from "../../components/admin/BranchImage";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import StatCard from "../../components/ui/StatCard";
-import { AREAS, loadAmenities, loadBranches, saveAmenities, saveBranches } from "../../data/adminBranches";
+import { loadAmenities, loadBranches, saveAmenities, saveBranches } from "../../data/adminBranches";
 
 const rowsPerPage = 10;
 
@@ -304,10 +304,7 @@ const BranchModal = ({ branch, branches, amenities, onAmenitiesChange, onClose, 
             <input className={fieldClass} value={form.code} onChange={(e) => update("code", e.target.value)} />
           </Field>
           <Field label="Area" required error={errors.area}>
-            <select className={fieldClass} value={form.area} onChange={(e) => update("area", e.target.value)}>
-              <option value="">Select area</option>
-              {AREAS.map((area) => <option key={area} value={area}>{area}</option>)}
-            </select>
+            <input className={fieldClass} value={form.area} onChange={(e) => update("area", e.target.value)} placeholder="e.g. Anna Nagar" />
           </Field>
           <Field label="City" required error={errors.city}>
             <input className={fieldClass} value={form.city} onChange={(e) => update("city", e.target.value)} />
@@ -500,7 +497,7 @@ const BranchesPage = () => {
           {[
             ["Status", "status", ["All", "Active", "Inactive"]],
             ["Gender", "gender", ["All", "Boys", "Girls", "Unisex"]],
-            ["Area", "area", ["All", ...AREAS]]
+            ["Area", "area", ["All", ...new Set(branches.map((branch) => branch.area).filter(Boolean))]]
           ].map(([label, field, options]) => (
             <select key={field} aria-label={label} className={fieldClass} value={filters[field]} onChange={(e) => updateFilter(field, e.target.value)}>
               {options.map((option) => <option key={option} value={option}>{option}</option>)}

@@ -44,4 +44,19 @@ const emitBookingBlocked = (booking) => {
   });
 };
 
-module.exports = { attachSocket, emitBedAvailability, emitPaymentUpdate, emitBookingBlocked };
+const emitStatusUpdateRequest = (request) => {
+  if (!io || !request) return;
+  io.emit("status-update-request:updated", {
+    id: request._id,
+    branch: request.branch,
+    room: request.room,
+    bed: request.bed,
+    currentStatus: request.currentStatus,
+    requestedStatus: request.requestedStatus,
+    status: request.status,
+    requestedByName: request.requestedByName,
+    createdAt: request.createdAt
+  });
+};
+
+module.exports = { attachSocket, emitBedAvailability, emitPaymentUpdate, emitBookingBlocked, emitStatusUpdateRequest };

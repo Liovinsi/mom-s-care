@@ -9,6 +9,7 @@ export const NOT_AVAILABLE_STATUS = "Not Available";
 
 const apiStatusToUi = {
   AVAILABLE: "Available",
+  BLOCKED: "Blocked",
   OCCUPIED: "Occupied",
   RESERVED: "Reserved",
   MAINTENANCE: "Maintenance",
@@ -18,6 +19,7 @@ const apiStatusToUi = {
 
 const uiStatusToApi = {
   Available: "AVAILABLE",
+  Blocked: "BLOCKED",
   Occupied: "OCCUPIED",
   Reserved: "RESERVED",
   Maintenance: "MAINTENANCE"
@@ -30,7 +32,6 @@ export const toUiStatus = (status) => apiStatusToUi[status] || status;
 export const toApiStatus = (status) => uiStatusToApi[status] || status;
 
 export const publicBranchIdFromAdminBranchId = (branchId) => {
-  if (branchId === "t-nagar") return "t-nagar-pg";
   return `${branchId}-pg`;
 };
 
@@ -41,7 +42,6 @@ export const publicBedIdFromAdminBed = (bed) =>
 
 export const publicRoomIdFromAdminRoomId = (roomId) => {
   if (!roomId) return "";
-  if (roomId.startsWith("tnagar-")) return roomId.replace("tnagar-", "tnagar-");
   return roomId;
 };
 
@@ -53,6 +53,7 @@ export const summarizeRoomAvailability = (room, beds) => {
   const availableBeds = roomBeds.filter((bed) => bed.status === "Available").length;
   const occupiedBeds = roomBeds.filter((bed) => bed.status === "Occupied").length;
   const reservedBeds = roomBeds.filter((bed) => bed.status === "Reserved").length;
+  const blockedBeds = roomBeds.filter((bed) => bed.status === "Blocked").length;
   const maintenanceBeds = roomBeds.filter((bed) => bed.status === "Maintenance").length;
   const overallAvailability = availableBeds > 0 ? AVAILABLE_STATUS : NOT_AVAILABLE_STATUS;
 
@@ -63,6 +64,7 @@ export const summarizeRoomAvailability = (room, beds) => {
     availableBeds,
     occupiedBeds,
     reservedBeds,
+    blockedBeds,
     maintenanceBeds,
     status: overallAvailability,
     overallAvailability

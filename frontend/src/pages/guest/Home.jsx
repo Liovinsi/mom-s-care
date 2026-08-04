@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   CalendarDays,
   Camera,
   Check,
-  ChevronDown,
   Droplets,
   HeartHandshake,
   LockKeyhole,
@@ -20,10 +19,11 @@ import {
 } from "lucide-react";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
-import Input from "../../components/ui/Input";
+import InlineStayCalendar from "../../components/booking/InlineStayCalendar";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { useAuth } from "../../context/AuthContext";
 import { amenities, faqs, featuredPgs, popularBranches, testimonials } from "../../data/landing";
+import { adminBranchIdFromPublicBranchId, useLiveAvailability } from "../../lib/liveAvailability";
 
 const AmenityIcon = ({ index }) => {
   const icons = [Utensils, Wifi, Camera, LockKeyhole, WashingMachine, Sparkles, Zap, Droplets];
@@ -33,10 +33,45 @@ const AmenityIcon = ({ index }) => {
 
 const Home = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
+  const [searchBranch, setSearchBranch] = useState("virugambakkam-pg");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [activeDateField, setActiveDateField] = useState("start");
+  const [guests, setGuests] = useState(1);
+  const [guestSelectorOpen, setGuestSelectorOpen] = useState(false);
   const { user } = useAuth();
+  const { rooms: liveRooms } = useLiveAvailability();
+  const navigate = useNavigate();
+  const branchRooms = liveRooms.filter((room) => room.branchId === adminBranchIdFromPublicBranchId(searchBranch));
+  const maxGuests = Math.max(1, ...branchRooms.map((room) => Number(room.availableBeds) || 0));
+
+  const searchRooms = (event) => {
+    event.preventDefault();
+    if (!checkIn) return;
+    const query = new URLSearchParams({ branch: searchBranch, checkIn, guests: String(guests) });
+    if (checkOut) query.set("checkOut", checkOut);
+    navigate(`/rooms?${query.toString()}`);
+  };
 
   return (
   <main className="overflow-hidden">
+    {guestSelectorOpen && (
+      <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-0 sm:items-center sm:p-4" onClick={() => setGuestSelectorOpen(false)}>
+        <div role="dialog" aria-modal="true" aria-label="Select guests" className="w-full rounded-t-[24px] bg-white p-6 shadow-luxury sm:max-w-md sm:rounded-[24px]" onClick={(event) => event.stopPropagation()}>
+          <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-line sm:hidden" />
+          <h2 className="text-xl font-semibold text-ink">Guests</h2>
+          <div className="mt-6 flex items-center justify-between border-y border-line py-5">
+            <div><p className="font-semibold text-ink">Adults</p><p className="mt-1 text-sm text-muted">Maximum {maxGuests} guests</p></div>
+            <div className="flex items-center gap-4">
+              <button type="button" disabled={guests === 1} onClick={() => setGuests((value) => Math.max(1, value - 1))} className="grid h-10 w-10 place-items-center rounded-full border border-line text-xl font-semibold text-ink disabled:opacity-40">−</button>
+              <span className="w-5 text-center font-semibold text-ink">{guests}</span>
+              <button type="button" disabled={guests === maxGuests} onClick={() => setGuests((value) => Math.min(maxGuests, value + 1))} className="grid h-10 w-10 place-items-center rounded-full border border-brand text-xl font-semibold text-brand disabled:opacity-40">+</button>
+            </div>
+          </div>
+          <Button type="button" className="mt-6 w-full" onClick={() => setGuestSelectorOpen(false)}>Apply</Button>
+        </div>
+      </div>
+    )}
     <section id="home" className="relative bg-white">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-14 pt-10 sm:px-6 lg:grid-cols-[1fr_0.95fr] lg:px-8 lg:pb-20 lg:pt-16">
         <div className="max-w-3xl">
@@ -60,14 +95,13 @@ const Home = () => {
             </Link>
             <a href="#featured">
               <Button variant="secondary" className="w-full sm:w-auto">
-                View Featured PGs
+                View Branches
               </Button>
             </a>
           </div>
-          <div className="mt-10 grid max-w-xl grid-cols-3 divide-x divide-line rounded-[18px] border border-line bg-white shadow-soft">
+          <div className="mt-10 grid max-w-md grid-cols-2 divide-x divide-line rounded-[18px] border border-line bg-white shadow-soft">
             {[
-              ["48+", "Curated PGs"],
-              ["12", "Prime branches"],
+              ["2", "Prime branches"],
               ["4.8", "Guest rating"]
             ].map(([value, label]) => (
               <div key={label} className="px-4 py-5 text-center">
@@ -87,7 +121,7 @@ const Home = () => {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand">Signature Branch</p>
-                <h2 className="mt-2 text-xl font-semibold text-ink">Aurelia Indiranagar</h2>
+                <h2 className="mt-2 text-xl font-semibold text-ink">Virugambakkam</h2>
                 <p className="mt-1 text-sm text-secondary">Chef meals, ensuite rooms, resident lounge</p>
               </div>
               <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-3 py-1 text-sm font-semibold text-brand">
@@ -101,24 +135,19 @@ const Home = () => {
 
     <section className="relative z-10 mx-auto -mt-6 max-w-6xl px-4 sm:px-6 lg:px-8">
       <Card className="p-4 hover:translate-y-0 lg:p-6">
-        <div className="grid gap-4 md:grid-cols-[1.2fr_1fr_1fr_auto] md:items-end">
-          <Input label="Location" placeholder="Search city or branch" />
-          <Input label="Move-in" type="text" placeholder="15 Jul 2026" />
-          <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-ink">Preference</span>
-            <span className="flex min-h-12 items-center justify-between rounded-xl border border-line bg-white px-4 text-sm text-muted">
-              Single / Twin Sharing <ChevronDown className="h-4 w-4 text-brand" />
-            </span>
-          </label>
-          <Button className="min-h-12">
-            <Search className="h-4 w-4" /> Search
-          </Button>
-        </div>
+        <form onSubmit={searchRooms}>
+          <div className="grid gap-4 md:grid-cols-[1.2fr_1fr_auto] md:items-end">
+            <label className="block"><span className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted">Branch</span><select value={searchBranch} onChange={(event) => { setSearchBranch(event.target.value); setGuests(1); }} className="min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink"><option value="virugambakkam-pg">Virugambakkam</option><option value="anna-nagar-pg">Anna Nagar</option></select></label>
+            <label className="block"><span className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted">Guests</span><button type="button" onClick={() => setGuestSelectorOpen(true)} className="flex min-h-12 w-full items-center rounded-xl border border-line bg-white px-4 text-left text-sm font-semibold text-ink"><span aria-hidden="true" className="mr-2">{guests === 1 ? "👤" : "👥"}</span> {guests} {guests === 1 ? "Guest" : "Guests"}</button></label>
+            <Button type="submit" className="min-h-12"><Search className="h-4 w-4" /> Search</Button>
+          </div>
+          <div className="mt-4 border-t border-line pt-4"><InlineStayCalendar startDate={checkIn} endDate={checkOut} activeField={activeDateField} onActiveFieldChange={setActiveDateField} onStartDateChange={setCheckIn} onEndDateChange={setCheckOut} /></div>
+        </form>
       </Card>
     </section>
 
     <section id="featured" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-      <SectionHeader eyebrow="Featured PG" title="Handpicked luxury residences" description="Premium spaces with elevated amenities, transparent pricing, and branch-level details ready for future booking flows." />
+      <SectionHeader eyebrow="Branches" title="Our Chennai residences" description="Choose Virugambakkam or Anna Nagar, compare available rooms, and book your preferred bed." />
       <div className="mt-12 grid gap-6 lg:grid-cols-3">
         {featuredPgs.map((pg) => (
           <Card key={pg.id} className="overflow-hidden p-0">
@@ -147,7 +176,7 @@ const Home = () => {
 
     <section className="bg-paper py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader align="left" eyebrow="Popular Branches" title="Prime neighborhoods with premium occupancy" description="Explore high-demand city branches presented with clear location, property count, and availability cues." />
+        <SectionHeader align="left" eyebrow="Our Branches" title="Two prime Chennai neighborhoods" description="Mom’s Care PG House is available only at Virugambakkam and Anna Nagar." />
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {popularBranches.map((branch) => (
             <Link key={`${branch.city}-${branch.area}`} to={`/featured-branches?location=${encodeURIComponent(branch.area)}`}>
@@ -256,14 +285,14 @@ const Home = () => {
     <footer className="border-t border-[rgba(221,94,103,0.20)] bg-[#1F2937]">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr] lg:px-8">
         <div className="transition duration-300 ease-in-out hover:-translate-y-0.5">
-          <p className="text-2xl font-bold text-[#FFFFFF]">PGStay</p>
-          <p className="mt-3 max-w-md leading-7 text-[#B8BCC8]">PGStay is a smart PG Booking & Management Platform that helps students and working professionals find verified PG accommodations with real-time room availability, secure booking, and premium amenities across Chennai.</p>
+          <p className="text-2xl font-bold text-[#FFFFFF]">Mom’s Care PG House</p>
+          <p className="mt-3 max-w-md leading-7 text-[#B8BCC8]">Mom’s Care PG House helps students and working professionals find comfortable accommodation with real-time room availability, secure booking, and premium amenities in Virugambakkam and Anna Nagar.</p>
         </div>
         <div className="transition duration-300 ease-in-out hover:-translate-y-0.5">
           <p className="font-bold text-[#FFFFFF]">Quick Links</p>
           <div className="mt-4 grid gap-3 text-sm text-[#B8BCC8]">
             <Link to="/" className="text-[#DD5E67] transition duration-300 ease-in-out hover:text-[#D12233] hover:underline">Home</Link>
-            <Link to="/featured-branches" className="text-[#DD5E67] transition duration-300 ease-in-out hover:text-[#D12233] hover:underline">Featured PGs</Link>
+            <Link to="/featured-branches" className="text-[#DD5E67] transition duration-300 ease-in-out hover:text-[#D12233] hover:underline">Branches</Link>
             <Link to="/#amenities" className="text-[#DD5E67] transition duration-300 ease-in-out hover:text-[#D12233] hover:underline">Amenities</Link>
             <Link to="/#faq" className="text-[#DD5E67] transition duration-300 ease-in-out hover:text-[#D12233] hover:underline">FAQ</Link>
             <Link to="/login" className="text-[#DD5E67] transition duration-300 ease-in-out hover:text-[#D12233] hover:underline">Login</Link>
@@ -287,7 +316,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-      <div className="border-t border-[rgba(255,255,255,0.06)] bg-[#17171C] px-4 py-5 text-center text-sm text-[#AEB4C2]">© 2026 PGStay. All Rights Reserved.<br />Built for Smart PG Booking & Management.</div>
+      <div className="border-t border-[rgba(255,255,255,0.06)] bg-[#17171C] px-4 py-5 text-center text-sm text-[#AEB4C2]">© 2026 Mom’s Care PG House. All Rights Reserved.<br />Built for Smart PG Booking & Management.</div>
     </footer>
   </main>
   );

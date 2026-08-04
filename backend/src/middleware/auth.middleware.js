@@ -10,7 +10,13 @@ const authenticate = catchAsync(async (req, _res, next) => {
 
   if (!token) throw new ApiError(401, "Authentication token is required.");
 
-  const payload = jwt.verify(token, env.jwtSecret);
+  let payload;
+  try {
+    payload = jwt.verify(token, env.jwtSecret);
+  } catch (error) {
+    if (error.name === "TokenExpiredError") throw new ApiError(401, "Authentication token has expired.");
+    throw new ApiError(401, "Invalid authentication token.");
+  }
   const user = await User.findById(payload.sub);
 
   if (!user || !user.isActive) throw new ApiError(401, "Invalid or inactive user.");

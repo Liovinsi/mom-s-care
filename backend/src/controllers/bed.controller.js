@@ -4,9 +4,10 @@ const ApiError = require("../utils/apiError");
 const catchAsync = require("../utils/catchAsync");
 const { emitBedAvailability } = require("../services/socket.service");
 
-const allowedStatuses = ["AVAILABLE", "OCCUPIED", "RESERVED", "MAINTENANCE"];
+const allowedStatuses = ["AVAILABLE", "BLOCKED", "OCCUPIED", "RESERVED", "MAINTENANCE"];
 const statusAliases = {
   Available: "AVAILABLE",
+  Blocked: "BLOCKED",
   Occupied: "OCCUPIED",
   Reserved: "RESERVED",
   Maintenance: "MAINTENANCE",
@@ -41,14 +42,7 @@ const update = catchAsync(async (req, res) => {
 
   const isWarden = req.user.role === "WARDEN";
   if (isWarden) {
-    if (!req.user.branch || existingBed.branch.toString() !== req.user.branch.toString()) {
-      throw new ApiError(403, "Wardens can update availability only for their assigned branch.");
-    }
-
-    const requestedFields = Object.keys(req.body);
-    if (requestedFields.length !== 1 || !requestedFields.includes("status")) {
-      throw new ApiError(403, "Wardens can update availability status only.");
-    }
+    throw new ApiError(403, "Wardens cannot modify live availability. Submit an Admin approval request instead.");
   }
 
   const payload = { ...req.body };

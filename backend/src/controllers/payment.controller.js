@@ -41,7 +41,14 @@ const list = catchAsync(async (req, res) => {
 });
 
 const create = catchAsync(async (req, res) => {
-  const requestedBranch = req.body.branch || req.body.branchId;
+  let requestedBranch = req.body.branch || req.body.branchId;
+  let guest = req.body.guest;
+  if (req.user.role === "GUEST") {
+    const booking = await Booking.findOne({ _id: req.body.booking, guest: req.user._id });
+    if (!booking) throw new ApiError(403, "You can only pay for your own booking.");
+    requestedBranch = booking.branch;
+    guest = req.user._id;
+  }
   if (req.user.role === "WARDEN" && req.user.branch && requestedBranch && requestedBranch !== req.user.branch.toString()) {
     throw new ApiError(403, "Wardens can collect payments only for their assigned branch.");
   }
@@ -51,7 +58,7 @@ const create = catchAsync(async (req, res) => {
 
   const payment = await Payment.create({
     ...(req.body.booking ? { booking: req.body.booking } : {}),
-    ...(req.body.guest ? { guest: req.body.guest } : {}),
+    ...(guest ? { guest } : {}),
     branch,
     amount: Number(req.body.amount || 0),
     type: typeMap[req.body.paymentType] || req.body.type || "RENT",
@@ -59,8 +66,7 @@ const create = catchAsync(async (req, res) => {
     method: methodMap[req.body.paymentMethod] || req.body.method || "CASH",
     reference: req.body.reference || req.body.transactionId || req.body.referenceNumber,
     receiptNumber: req.body.receiptNo || req.body.receiptNumber,
-    collectedBy: req.user._id,
-    collectedByName: req.user.name,
+    ...(req.user.role !== "GUEST" ? { collectedBy: req.user._id, collectedByName: req.user.name } : {}),
     month: req.body.month,
     rent: Number(req.body.rent || 0),
     deposit: Number(req.body.deposit || 0),
@@ -75,7 +81,7 @@ const create = catchAsync(async (req, res) => {
 const markPaid = catchAsync(async (req, res) => {
   const payment = await Payment.findById(req.params.id);
   if (!payment) throw new ApiError(404, "Payment not found.");
-  if (req.user.role === "GUEST" && payment.guest.toString() !== req.user._id.toString()) {
+  if (req.user.role === "GUEST" && (!payment.guest || payment.guest.toString() !== req.user._id.toString())) {
     throw new ApiError(403, "You cannot update another guest payment.");
   }
   if (req.user.role === "WARDEN" && req.user.branch && payment.branch.toString() !== req.user.branch.toString()) {

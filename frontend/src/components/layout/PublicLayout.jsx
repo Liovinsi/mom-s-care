@@ -16,7 +16,7 @@ const PublicLayout = () => {
   const profileMenuRef = useRef(null);
   const sectionLinks = [
     ["Home", "home"],
-    ["Featured", "featured"],
+    ["Branches", "featured"],
     ["Amenities", "amenities"],
     ["FAQ", "faq"]
   ];
@@ -82,7 +82,7 @@ const PublicLayout = () => {
               <img src="/logo.jpeg" alt="PG Stay logo" className="h-full w-full object-cover" />
             </span>
             <span>
-              PGStay
+              Mom’s Care PG House
               <span className="block text-[10px] font-bold uppercase tracking-[0.28em] text-muted">Luxe Living</span>
             </span>
           </Link>

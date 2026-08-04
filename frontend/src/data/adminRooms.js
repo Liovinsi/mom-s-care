@@ -24,7 +24,7 @@ const roomImages = (roomPhoto, signature) => [
   { label: "Balcony", image: `https://source.unsplash.com/featured/900x650/?apartment%20balcony&sig=${signature}` }
 ];
 
-export const defaultRooms = [
+const legacyDefaultRooms = [
   {
     id: "anna-101",
     branchId: "anna-nagar",
@@ -217,13 +217,46 @@ export const defaultRooms = [
   }
 ];
 
+const canonicalRoom = (id, branchId, branchName, roomNumber, floor, roomType, monthlyRent, signature) => ({
+  id,
+  branchId,
+  branchName,
+  roomNumber,
+  floor,
+  sharingType: "4 Sharing",
+  roomType,
+  monthlyRent,
+  securityDeposit: monthlyRent * 2,
+  size: "320",
+  description: `Well-maintained four-sharing ${roomType} room with individual storage and study space.`,
+  status: "Available",
+  amenities: ["Attached Bathroom", "Study Table", "Wardrobe", "Fan", "Geyser", "Window", "Mirror", ...(roomType === "AC" ? ["Air Conditioner"] : [])],
+  images: roomImages("photo-1595526114035-0d45ed16cfbf", signature),
+  beds: 4,
+  availableBeds: 3,
+  occupiedBeds: 1
+});
+
+export const defaultRooms = [
+  canonicalRoom("anna-101", "anna-nagar", "Anna Nagar", "101", "1st Floor", "AC", 16000, 101),
+  canonicalRoom("anna-102", "anna-nagar", "Anna Nagar", "102", "1st Floor", "Non AC", 14000, 102),
+  canonicalRoom("anna-201", "anna-nagar", "Anna Nagar", "201", "2nd Floor", "AC", 16500, 201),
+  canonicalRoom("anna-202", "anna-nagar", "Anna Nagar", "202", "2nd Floor", "Non AC", 14500, 202),
+  canonicalRoom("viru-301", "virugambakkam", "Virugambakkam", "301", "3rd Floor", "AC", 15500, 301),
+  canonicalRoom("viru-302", "virugambakkam", "Virugambakkam", "302", "3rd Floor", "Non AC", 13500, 302),
+  canonicalRoom("viru-303", "virugambakkam", "Virugambakkam", "303", "3rd Floor", "AC", 16000, 303),
+  canonicalRoom("viru-304", "virugambakkam", "Virugambakkam", "304", "3rd Floor", "Non AC", 14000, 304)
+];
+
 export const loadRooms = () => {
   const stored = localStorage.getItem(ROOM_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : defaultRooms;
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  return (stored ? JSON.parse(stored) : defaultRooms).filter((room) => allowed.has(room.branchId));
 };
 
 export const saveRooms = (rooms) => {
-  localStorage.setItem(ROOM_STORAGE_KEY, JSON.stringify(rooms));
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  localStorage.setItem(ROOM_STORAGE_KEY, JSON.stringify(rooms.filter((room) => allowed.has(room.branchId))));
 };
 
 export const loadRoomAmenities = () => {

@@ -18,8 +18,8 @@ const FeaturedBranches = () => {
       <section className="border-b border-line bg-white">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Featured PG Branches</p>
-            <h1 className="mt-5 text-4xl font-semibold leading-tight text-ink sm:text-5xl">Premium Chennai PG Residences</h1>
+            <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Branches</p>
+            <h1 className="mt-5 text-4xl font-semibold leading-tight text-ink sm:text-5xl">Mom’s Care PG House</h1>
             <p className="mt-5 text-lg leading-8 text-secondary">
               Explore high-demand branches with clear pricing, occupancy, amenities, and direct access to the booking flow.
             </p>

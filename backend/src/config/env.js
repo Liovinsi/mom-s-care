@@ -17,6 +17,7 @@ module.exports = {
   mongoUri: process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/pg_booking_platform",
   jwtSecret: process.env.JWT_SECRET || "dev_only_secret_change_me",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  bedBlockHours: Math.max(1, Number(process.env.BED_BLOCK_HOURS) || 24),
   superAdmin: {
     name: process.env.SUPER_ADMIN_NAME || "Super Admin",
     email: process.env.SUPER_ADMIN_EMAIL || "admin@pg.local",

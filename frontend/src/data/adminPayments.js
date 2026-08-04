@@ -9,7 +9,7 @@ export const PAYMENT_NOTIFICATION_KEY = "pg_payment_notifications";
 
 const proofImage = "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=82";
 
-export const defaultPayments = [
+const legacyDefaultPayments = [
   {
     id: "RCPT0001",
     receiptNo: "RCPT0001",
@@ -243,14 +243,19 @@ export const defaultPayments = [
   }
 ];
 
+export const defaultPayments = legacyDefaultPayments.filter((payment) => ["anna-nagar", "virugambakkam"].includes(payment.branchId));
+
 export const loadPayments = () => {
   const stored = localStorage.getItem(PAYMENT_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : defaultPayments;
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  return (stored ? JSON.parse(stored) : defaultPayments).filter((payment) => allowed.has(payment.branchId));
 };
 
 export const savePayments = (payments) => {
-  localStorage.setItem(PAYMENT_STORAGE_KEY, JSON.stringify(payments));
-  window.dispatchEvent(new CustomEvent("pg:payments-updated", { detail: { payments } }));
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  const scopedPayments = payments.filter((payment) => allowed.has(payment.branchId));
+  localStorage.setItem(PAYMENT_STORAGE_KEY, JSON.stringify(scopedPayments));
+  window.dispatchEvent(new CustomEvent("pg:payments-updated", { detail: { payments: scopedPayments } }));
 };
 
 export const createPaymentReceiptNo = (payments) => {
@@ -270,7 +275,8 @@ export const saveRentDueConfig = (config) => {
 
 export const loadPaymentNotifications = () => {
   const stored = localStorage.getItem(PAYMENT_NOTIFICATION_KEY);
-  return stored ? JSON.parse(stored) : [];
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  return (stored ? JSON.parse(stored) : []).filter((notification) => !notification.branchId || allowed.has(notification.branchId));
 };
 
 export const savePaymentNotifications = (notifications) => {

@@ -1,16 +1,13 @@
 const express = require("express");
-const controller = require("../controllers/booking.controller");
+const controller = require("../controllers/statusUpdateRequest.controller");
 const { authenticate, authorize } = require("../middleware/auth.middleware");
+const { mongoId } = require("../validators/common.validators");
 const { validate } = require("../middleware/error.middleware");
-const { bookingRules, mongoId } = require("../validators/common.validators");
 
 const router = express.Router();
-
 router.use(authenticate);
-router.get("/", controller.list);
-router.post("/", authorize("GUEST"), bookingRules, validate, controller.create);
-router.patch("/:id/cancel", authorize("GUEST"), mongoId(), validate, controller.cancel);
-router.post("/direct", authorize("SUPER_ADMIN"), controller.createDirect);
+router.get("/", authorize("SUPER_ADMIN", "WARDEN"), controller.list);
+router.post("/", authorize("WARDEN"), controller.create);
 router.patch("/:id/approve", authorize("SUPER_ADMIN"), mongoId(), validate, controller.approve);
 router.patch("/:id/reject", authorize("SUPER_ADMIN"), mongoId(), validate, controller.reject);
 

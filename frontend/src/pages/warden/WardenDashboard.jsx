@@ -1,5 +1,5 @@
 import { BedDouble, CalendarCheck, CheckCircle2, CreditCard, DoorOpen, IndianRupee, LogOut, MessageSquareWarning, UserCheck, Users } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Card from "../../components/ui/Card";
 import StatCard from "../../components/ui/StatCard";
@@ -55,11 +55,31 @@ const ActivityList = ({ title, items, emptyText }) => (
 const WardenDashboard = () => {
   const { user } = useAuth();
   const wardens = useMemo(loadWardens, []);
-  const residents = useMemo(loadResidents, []);
+  const [residents, setResidents] = useState(loadResidents);
   const { beds } = useLiveAvailability();
-  const bookings = useMemo(loadBookings, []);
+  const [bookings, setBookings] = useState(loadBookings);
   const { payments } = useLivePayments();
-  const complaints = useMemo(loadComplaints, []);
+  const [complaints, setComplaints] = useState(loadComplaints);
+
+  useEffect(() => {
+    const refreshResidents = () => setResidents(loadResidents());
+    const refreshBookings = () => setBookings(loadBookings());
+    const refreshComplaints = () => setComplaints(loadComplaints());
+    window.addEventListener("pg:residents-updated", refreshResidents);
+    window.addEventListener("pg:bookings-updated", refreshBookings);
+    window.addEventListener("pg:complaints-updated", refreshComplaints);
+    window.addEventListener("storage", refreshResidents);
+    window.addEventListener("storage", refreshBookings);
+    window.addEventListener("storage", refreshComplaints);
+    return () => {
+      window.removeEventListener("pg:residents-updated", refreshResidents);
+      window.removeEventListener("pg:bookings-updated", refreshBookings);
+      window.removeEventListener("pg:complaints-updated", refreshComplaints);
+      window.removeEventListener("storage", refreshResidents);
+      window.removeEventListener("storage", refreshBookings);
+      window.removeEventListener("storage", refreshComplaints);
+    };
+  }, []);
 
   const assignedWarden = wardens.find((warden) => warden.email === user?.email || `${warden.firstName} ${warden.lastName}` === user?.name);
   const assignedBranch = wardenBranchByUser[user?.id] || assignedWarden?.branchName || "Anna Nagar";

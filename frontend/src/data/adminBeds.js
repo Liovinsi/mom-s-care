@@ -1,11 +1,11 @@
 export const BED_STORAGE_KEY = "pg_admin_beds";
 
-export const BED_STATUSES = ["Available", "Occupied", "Reserved", "Maintenance"];
-export const BED_TYPES = ["Single Cot"];
+export const BED_STATUSES = ["Available", "Blocked", "Occupied", "Reserved", "Maintenance"];
+export const BED_TYPES = ["Single Cot", "Bunk Cot"];
 
 export const luxuryBedImage = "https://images.unsplash.com/photo-1615873968403-89e068629265?auto=format&fit=crop&w=900&q=82";
 
-export const defaultBeds = [
+const legacyDefaultBeds = [
   {
     id: "anna-101-bed-a",
     branchId: "anna-nagar",
@@ -314,12 +314,61 @@ export const defaultBeds = [
   }
 ];
 
+const canonicalRoomBeds = (branchId, branchName, roomId, roomNumber) => ["L1", "L2", "U1", "U2"].map((bedName, index) => ({
+  id: `${roomId}-bed-${bedName.toLowerCase()}`,
+  branchId,
+  branchName,
+  roomId,
+  roomNumber,
+  sharingType: "4 Sharing",
+  bedName,
+  bedCode: `${branchId === "anna-nagar" ? "AN" : "VR"}${roomNumber}${bedName}`,
+  bedType: "Bunk Cot",
+  bedImage: luxuryBedImage,
+  position: bedName.startsWith("L") ? "Lower" : "Upper",
+  positionLabel: bedName,
+  status: index === 0 ? "Occupied" : "Available",
+  currentResident: index === 0 ? (branchId === "anna-nagar" && roomNumber === "101" ? "Rahul Kumar" : "") : "",
+  bookingId: "",
+  checkInDate: index === 0 ? "2026-06-01" : "",
+  checkOutDate: index === 0 ? "2027-05-31" : "",
+  description: `${bedName} bunk with individual storage and charging point.`
+}));
+
+export const defaultBeds = [
+  ...canonicalRoomBeds("anna-nagar", "Anna Nagar", "anna-101", "101"),
+  ...canonicalRoomBeds("anna-nagar", "Anna Nagar", "anna-102", "102"),
+  ...canonicalRoomBeds("anna-nagar", "Anna Nagar", "anna-201", "201"),
+  ...canonicalRoomBeds("anna-nagar", "Anna Nagar", "anna-202", "202"),
+  ...canonicalRoomBeds("virugambakkam", "Virugambakkam", "viru-301", "301"),
+  ...canonicalRoomBeds("virugambakkam", "Virugambakkam", "viru-302", "302"),
+  ...canonicalRoomBeds("virugambakkam", "Virugambakkam", "viru-303", "303"),
+  ...canonicalRoomBeds("virugambakkam", "Virugambakkam", "viru-304", "304")
+];
+
 export const loadBeds = () => {
   const stored = localStorage.getItem(BED_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : defaultBeds;
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  const beds = (stored ? JSON.parse(stored) : defaultBeds).filter((bed) => allowed.has(bed.branchId)).map((bed) => (
+    bed.status === "Blocked" && bed.blockedUntil && Date.parse(bed.blockedUntil) <= Date.now()
+      ? { ...bed, status: "Available", bookingId: "", blockedUntil: "", checkInDate: "", checkOutDate: "" }
+      : bed
+  ));
+  return beds.map((bed) => {
+    const bunkCot = bed.sharingType === "4 Sharing";
+    if (!bunkCot) return { ...bed, bedType: bed.bedType || "Single Cot", position: bed.position || "Single" };
+    if (bed.positionLabel) return { ...bed, bedType: "Bunk Cot" };
+    const letter = String(bed.bedName || "").match(/([A-Z])$/i)?.[1]?.toUpperCase();
+    const index = Math.max(0, (letter?.charCodeAt(0) || 65) - 65);
+    const position = index < 2 ? "Upper" : "Lower";
+    const positionNumber = index < 2 ? index + 1 : index - 1;
+    return { ...bed, bedType: "Bunk Cot", position, positionLabel: `${position === "Upper" ? "U" : "L"}${positionNumber}` };
+  });
 };
 
 export const saveBeds = (beds) => {
-  localStorage.setItem(BED_STORAGE_KEY, JSON.stringify(beds));
-  window.dispatchEvent(new CustomEvent("pg:beds-updated", { detail: { beds } }));
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  const scopedBeds = beds.filter((bed) => allowed.has(bed.branchId));
+  localStorage.setItem(BED_STORAGE_KEY, JSON.stringify(scopedBeds));
+  window.dispatchEvent(new CustomEvent("pg:beds-updated", { detail: { beds: scopedBeds } }));
 };

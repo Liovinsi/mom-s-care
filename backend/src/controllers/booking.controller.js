@@ -5,6 +5,7 @@ const Payment = require("../models/Payment");
 const Resident = require("../models/Resident");
 const Room = require("../models/Room");
 const User = require("../models/User");
+const env = require("../config/env");
 const ApiError = require("../utils/apiError");
 const catchAsync = require("../utils/catchAsync");
 const { emitBedAvailability, emitBookingBlocked, emitPaymentUpdate } = require("../services/socket.service");
@@ -37,8 +38,8 @@ const create = catchAsync(async (req, res) => {
     const roomDoc = await Room.findById(room).session(session);
     if (!roomDoc) throw new ApiError(404, "Room not found.");
 
-    selectedBed.status = "RESERVED";
-    selectedBed.holdExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    selectedBed.status = "BLOCKED";
+    selectedBed.holdExpiresAt = new Date(Date.now() + env.bedBlockHours * 60 * 60 * 1000);
     await selectedBed.save({ session });
 
     booking = await Booking.create(
@@ -53,7 +54,9 @@ const create = catchAsync(async (req, res) => {
           moveInDate,
           notes,
           tokenAmount: roomDoc.tokenAmount,
-          status: "BLOCKED"
+          status: "PENDING_APPROVAL",
+          blockedAt: new Date(),
+          holdExpiresAt: selectedBed.holdExpiresAt
         }
       ],
       { session }
@@ -140,7 +143,7 @@ const approve = catchAsync(async (req, res) => {
   if (!amountReceived || amountReceived <= 0) throw new ApiError(422, "Amount received is required for manual confirmation.");
 
   const bed = await Bed.findById(booking.bed);
-  if (!bed || !["RESERVED", "AVAILABLE"].includes(bed.status)) throw new ApiError(409, "Bed cannot be approved.");
+  if (!bed || !["BLOCKED", "RESERVED", "AVAILABLE"].includes(bed.status)) throw new ApiError(409, "Bed cannot be approved.");
 
   booking.status = "APPROVED";
   booking.approvedBy = req.user._id;
@@ -199,4 +202,23 @@ const reject = catchAsync(async (req, res) => {
   res.json({ success: true, data: booking });
 });
 
-module.exports = { list, create, createDirect, approve, reject };
+const cancel = catchAsync(async (req, res) => {
+  const booking = await Booking.findOne({ _id: req.params.id, guest: req.user._id });
+  if (!booking) throw new ApiError(404, "Booking not found.");
+  if (!["BLOCKED", "PENDING_PAYMENT", "PENDING_APPROVAL"].includes(booking.status)) {
+    throw new ApiError(409, "This booking can no longer be cancelled.");
+  }
+
+  booking.status = "CANCELLED";
+  const bed = await Bed.findById(booking.bed);
+  if (bed && bed.status === "RESERVED") {
+    bed.status = "AVAILABLE";
+    bed.holdExpiresAt = undefined;
+    await bed.save();
+    emitBedAvailability(bed);
+  }
+  await booking.save();
+  res.json({ success: true, data: booking });
+});
+
+module.exports = { list, create, createDirect, approve, reject, cancel };

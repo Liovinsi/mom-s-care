@@ -6,15 +6,16 @@ import StatCard from "../../components/ui/StatCard";
 import { AREAS } from "../../data/adminBranches";
 import { BOOKING_ACTION_STATUSES, PAYMENT_STATUSES, REJECTION_REASONS, defaultWardens, loadBookings, saveBookings } from "../../data/adminBookings";
 import { loadBeds, saveBeds } from "../../data/adminBeds";
-import { PAYMENT_METHODS, createPaymentReceiptNo, loadPayments, savePayments } from "../../data/adminPayments";
 import { loadRooms } from "../../data/adminRooms";
+import { loadResidents, saveResidents } from "../../data/adminResidents";
 import { saveAvailabilitySnapshot } from "../../lib/liveAvailability";
 
 const rowsPerPage = 10;
 const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
-const activeBookingStatuses = ["Pending", "Approved", "Assigned to Warden", "Checked In"];
+const activeBookingStatuses = ["Pending Approval", "Pending", "Approved", "Assigned to Warden", "Checked In"];
 
 const statusStyles = {
+  "Pending Approval": "bg-orange-100 text-orange-700",
   Pending: "bg-brand/10 text-brandDark",
   Approved: "bg-brand/10 text-brandDark",
   "Assigned to Warden": "bg-brand/10 text-brand",
@@ -43,7 +44,8 @@ const formatDate = (value) => {
 const isWithinDateRange = (dateValue, range) => {
   if (range === "Custom") return true;
   const date = new Date(`${dateValue}T00:00:00`);
-  const today = new Date("2026-07-18T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   if (range === "Today") return date.toDateString() === today.toDateString();
   if (range === "This Week") {
     const weekStart = new Date(today);
@@ -90,7 +92,19 @@ const updateBedForBooking = (beds, booking, nextBookingStatus) =>
         currentResident: booking.customerName,
         bookingId: booking.id,
         checkInDate: booking.moveInDate,
-        checkOutDate: ""
+        checkOutDate: "",
+        blockedUntil: ""
+      };
+    }
+    if (nextBookingStatus === "Pending Approval") {
+      return {
+        ...bed,
+        status: "Blocked",
+        currentResident: "",
+        bookingId: booking.id,
+        blockedUntil: booking.blockedUntil || bed.blockedUntil,
+        checkInDate: booking.moveInDate,
+        checkOutDate: booking.checkOutDate || ""
       };
     }
     if (["Pending", "Approved", "Assigned to Warden"].includes(nextBookingStatus)) {
@@ -100,7 +114,8 @@ const updateBedForBooking = (beds, booking, nextBookingStatus) =>
         currentResident: "",
         bookingId: booking.id,
         checkInDate: booking.moveInDate,
-        checkOutDate: ""
+        checkOutDate: "",
+        blockedUntil: ""
       };
     }
     if (["Rejected", "Cancelled"].includes(nextBookingStatus)) {
@@ -110,7 +125,8 @@ const updateBedForBooking = (beds, booking, nextBookingStatus) =>
         currentResident: "",
         bookingId: "",
         checkInDate: "",
-        checkOutDate: ""
+        checkOutDate: "",
+        blockedUntil: ""
       };
     }
     return bed;
@@ -225,7 +241,7 @@ const DirectBookingDialog = ({ bookings, beds, rooms, onClose, onCreate }) => {
       paymentDate: "",
       paymentScreenshot: "",
       paymentStatus: "Pending",
-      bookingStatus: "Pending",
+      bookingStatus: "Pending Approval",
       assignedWardenId: "",
       assignedWardenName: "",
       rejectionReason: "",
@@ -334,70 +350,15 @@ const DirectBookingDialog = ({ bookings, beds, rooms, onClose, onCreate }) => {
 };
 
 const ApprovalDialog = ({ booking, onClose, onApprove }) => {
-  const [payment, setPayment] = useState({
-    amount: String(booking.tokenAmount || ""),
-    paymentMethod: "Cash",
-    referenceNumber: "",
-    paymentDate: todayValue(),
-    remarks: ""
-  });
-  const [error, setError] = useState("");
-
-  const update = (field, value) => {
-    setPayment((current) => ({ ...current, [field]: value }));
-    setError("");
-  };
-
-  const submit = () => {
-    const amount = Number(payment.amount || 0);
-    if (!amount || amount <= 0) {
-      setError("Enter the amount received before approving.");
-      return;
-    }
-    if (!payment.paymentMethod) {
-      setError("Select the payment method.");
-      return;
-    }
-    onApprove(booking, { ...payment, amount });
-  };
-
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-ink/40 px-4">
       <Card className="w-full max-w-lg">
         <h2 className="text-xl font-bold text-ink">Approve this booking?</h2>
-        <p className="mt-2 text-sm text-slate-600">Record the amount received manually before final confirmation.</p>
+        <p className="mt-2 text-sm text-slate-600">Confirm the guest details and convert this temporary hold into an approved booking.</p>
         <p className="mt-4 rounded-xl bg-paper p-3 text-sm font-semibold text-ink">{booking.id} · {booking.customerName} · {booking.bedName}</p>
-
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-ink">Amount Received *</span>
-            <input className={fieldClass} type="number" min="1" value={payment.amount} onChange={(event) => update("amount", event.target.value)} />
-          </label>
-          <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-ink">Payment Method *</span>
-            <select className={fieldClass} value={payment.paymentMethod} onChange={(event) => update("paymentMethod", event.target.value)}>
-              {PAYMENT_METHODS.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
-          </label>
-          <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-ink">Payment Date</span>
-            <input className={fieldClass} type="date" value={payment.paymentDate} onChange={(event) => update("paymentDate", event.target.value)} />
-          </label>
-          <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-ink">Reference Number</span>
-            <input className={fieldClass} value={payment.referenceNumber} onChange={(event) => update("referenceNumber", event.target.value)} />
-          </label>
-          <label className="block sm:col-span-2">
-            <span className="mb-2 block text-sm font-semibold text-ink">Remarks</span>
-            <textarea className={`${fieldClass} min-h-20 py-3`} value={payment.remarks} onChange={(event) => update("remarks", event.target.value)} />
-          </label>
-        </div>
-
-        {error && <p className="mt-3 rounded-xl bg-paper p-3 text-sm font-semibold text-danger">{error}</p>}
-
         <div className="mt-5 flex justify-end gap-3">
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button type="button" onClick={submit}>Approve & Record Payment</Button>
+          <Button type="button" onClick={() => onApprove(booking)}>Confirm Booking</Button>
         </div>
       </Card>
     </div>
@@ -406,11 +367,12 @@ const ApprovalDialog = ({ booking, onClose, onApprove }) => {
 
 const RejectDialog = ({ booking, onClose, onReject }) => {
   const [reason, setReason] = useState(REJECTION_REASONS[0]);
+  const releasingBlock = booking.bookingStatus === "Pending Approval";
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-ink/40 px-4">
       <Card className="w-full max-w-md">
-        <h2 className="text-xl font-bold text-ink">Reject Booking</h2>
-        <p className="mt-2 text-sm text-slate-600">Choose a reason before rejecting this booking.</p>
+        <h2 className="text-xl font-bold text-ink">{releasingBlock ? "Cancel Blocked Booking" : "Reject Booking"}</h2>
+        <p className="mt-2 text-sm text-slate-600">{releasingBlock ? "Cancelling this request will release the bed for new bookings immediately." : "Choose a reason before rejecting this booking."}</p>
         <label className="mt-4 block">
           <span className="mb-2 block text-sm font-semibold text-ink">Reason</span>
           <select className={fieldClass} value={reason} onChange={(event) => setReason(event.target.value)}>
@@ -419,7 +381,7 @@ const RejectDialog = ({ booking, onClose, onReject }) => {
         </label>
         <div className="mt-5 flex justify-end gap-3">
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button type="button" variant="danger" onClick={() => onReject(booking, reason)}>Reject Booking</Button>
+          <Button type="button" variant="danger" onClick={() => onReject(booking, reason)}>{releasingBlock ? "Cancel & Release Bed" : "Reject Booking"}</Button>
         </div>
       </Card>
     </div>
@@ -570,6 +532,7 @@ const BookingsPage = () => {
   const [assignBooking, setAssignBooking] = useState(null);
   const [createBookingOpen, setCreateBookingOpen] = useState(false);
   const [workflowError, setWorkflowError] = useState("");
+  const [actionToast, setActionToast] = useState("");
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", branch: "All Branches", status: "All", paymentStatus: "All", dateRange: "This Month" });
 
@@ -578,6 +541,16 @@ const BookingsPage = () => {
     setBeds(syncedBeds);
     saveAvailabilitySnapshot(syncedBeds, rooms);
   }, [bookings, rooms]);
+
+  useEffect(() => {
+    const refreshBookings = () => setBookings(loadBookings());
+    window.addEventListener("pg:bookings-updated", refreshBookings);
+    window.addEventListener("storage", refreshBookings);
+    return () => {
+      window.removeEventListener("pg:bookings-updated", refreshBookings);
+      window.removeEventListener("storage", refreshBookings);
+    };
+  }, []);
 
   const persistBookings = (nextBookings) => {
     setBookings(nextBookings);
@@ -592,14 +565,14 @@ const BookingsPage = () => {
 
   const stats = useMemo(() => ({
     totalBookings: bookings.length,
-    pendingApproval: bookings.filter((booking) => booking.bookingStatus === "Pending").length,
+    pendingApproval: bookings.filter((booking) => ["Pending Approval", "Pending"].includes(booking.bookingStatus)).length,
     approved: bookings.filter((booking) => ["Approved", "Assigned to Warden"].includes(booking.bookingStatus)).length,
     rejected: bookings.filter((booking) => booking.bookingStatus === "Rejected").length,
     checkedIn: bookings.filter((booking) => booking.bookingStatus === "Checked In").length,
     cancelled: bookings.filter((booking) => booking.bookingStatus === "Cancelled").length
   }), [bookings]);
   const blockedBedNotifications = useMemo(
-    () => bookings.filter((booking) => booking.bookingStatus === "Pending").slice(0, 3),
+    () => bookings.filter((booking) => ["Pending Approval", "Pending"].includes(booking.bookingStatus)).slice(0, 3),
     [bookings]
   );
 
@@ -635,70 +608,33 @@ const BookingsPage = () => {
     return nextBooking;
   };
 
-  const confirmApprove = (booking, payment) => {
+  const confirmApprove = (booking) => {
     if (!canApproveBooking(bookings, booking)) {
       setWorkflowError(`Bed ${booking.bedName} in Room ${booking.roomNumber} already has an active booking.`);
       setApproveBooking(null);
       return;
     }
 
-    const payments = loadPayments();
-    const receiptNo = createPaymentReceiptNo(payments);
-    savePayments([
-      {
-        id: receiptNo,
-        receiptNo,
-        residentId: "",
-        residentName: booking.customerName,
-        bookingId: booking.id,
-        branchId: booking.branchId,
-        branchName: booking.branchName,
-        roomId: booking.roomId,
-        roomNumber: booking.roomNumber,
-        bedId: booking.bedId,
-        bedName: booking.bedName,
-        paymentType: "Booking Token",
-        amount: payment.amount,
-        paymentMethod: payment.paymentMethod,
-        transactionId: payment.referenceNumber,
-        referenceNumber: payment.referenceNumber,
-        paymentDate: payment.paymentDate || todayValue(),
-        paymentStatus: "Paid",
-        remarks: payment.remarks || "Manual payment recorded during booking confirmation.",
-        paymentProof: "",
-        proofName: "",
-        proofType: "",
-        createdBy: "Admin",
-        collectedBy: "Admin",
-        month: (payment.paymentDate || todayValue()).slice(0, 7),
-        monthlyRent: 0,
-        paidAmount: payment.amount,
-        lateFees: 0,
-        originalPaymentId: "",
-        refundReason: "",
-        refundMethod: ""
-      },
-      ...payments
-    ]);
-
     applyStatusChange(booking, "Approved", {
       rejectionReason: "",
-      tokenAmount: payment.amount,
-      transactionId: payment.referenceNumber,
-      paymentMethod: payment.paymentMethod,
-      paymentDate: payment.paymentDate || todayValue(),
-      paymentStatus: "Paid"
+      blockedUntil: ""
     });
+    saveResidents(loadResidents().map((resident) => resident.bookingId === booking.id ? { ...resident, status: "Active" } : resident));
+    setActionToast("Booking Approved Successfully.");
+    window.setTimeout(() => setActionToast(""), 3000);
     setApproveBooking(null);
   };
 
   const confirmReject = (booking, reason) => {
-    applyStatusChange(booking, "Rejected", { rejectionReason: reason, assignedWardenId: "", assignedWardenName: "" });
+    applyStatusChange(booking, "Rejected", { rejectionReason: reason, assignedWardenId: "", assignedWardenName: "", blockedUntil: "" });
+    saveResidents(loadResidents().filter((resident) => resident.bookingId !== booking.id));
     setRejectBooking(null);
   };
 
   const confirmAssign = (booking, warden) => {
-    applyStatusChange(booking, "Assigned to Warden", { assignedWardenId: warden.id, assignedWardenName: warden.name });
+    const nextBooking = { ...booking, assignedWardenId: warden.id, assignedWardenName: warden.name };
+    persistBookings(bookings.map((item) => item.id === booking.id ? nextBooking : item));
+    saveResidents(loadResidents().map((resident) => resident.bookingId === booking.id ? { ...resident, assignedWarden: warden.name } : resident));
     setAssignBooking(null);
   };
 
@@ -710,7 +646,7 @@ const BookingsPage = () => {
 
     const nextBookings = [booking, ...bookings];
     persistBookings(nextBookings);
-    persistBeds(updateBedForBooking(beds, booking, "Pending"));
+    persistBeds(updateBedForBooking(beds, booking, "Pending Approval"));
     setCreateBookingOpen(false);
     setFilters((current) => ({ ...current, search: booking.id, status: "All", paymentStatus: "All", dateRange: "Custom" }));
     setPage(1);
@@ -735,6 +671,8 @@ const BookingsPage = () => {
           <button type="button" onClick={() => setWorkflowError("")} aria-label="Dismiss workflow error"><X className="h-4 w-4" /></button>
         </div>
       )}
+
+      {actionToast && <div role="status" className="fixed right-5 top-20 z-[80] rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white shadow-luxury">{actionToast}</div>}
 
       {blockedBedNotifications.length > 0 && (
         <Card className="mt-5 hover:translate-y-0">
@@ -799,7 +737,7 @@ const BookingsPage = () => {
           </thead>
           <tbody>
             {visibleBookings.map((booking) => (
-              <tr key={booking.id} className="border-b border-line last:border-0">
+              <tr key={booking.id} className={`border-b border-line last:border-0 ${booking.bookingStatus === "Pending Approval" ? "bg-orange-50/80" : ""}`}>
                 <td className="px-4 py-3 font-bold text-ink">{booking.id}</td>
                 <td className="px-4 py-3">
                   <p className="font-semibold text-ink">{booking.customerName}</p>
@@ -815,16 +753,16 @@ const BookingsPage = () => {
                 <td className="px-4 py-3"><Badge value={booking.bookingStatus} styles={statusStyles} /></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setViewBooking(booking)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View booking">
+                    <button type="button" title="View Details" onClick={() => setViewBooking(booking)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="View booking details">
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setApproveBooking(booking)} disabled={!["Pending", "Rejected", "Cancelled"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark disabled:cursor-not-allowed disabled:opacity-40" aria-label="Approve booking">
+                    <button type="button" title="Approve" onClick={() => setApproveBooking(booking)} disabled={!["Pending Approval", "Pending", "Rejected", "Cancelled"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark disabled:cursor-not-allowed disabled:opacity-40" aria-label="Approve booking">
                       <ShieldCheck className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setRejectBooking(booking)} disabled={["Rejected", "Cancelled", "Checked In"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40" aria-label="Reject booking">
+                    <button type="button" title="Reject" onClick={() => setRejectBooking(booking)} disabled={["Rejected", "Cancelled", "Checked In"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-danger hover:border-danger hover:bg-paper disabled:cursor-not-allowed disabled:opacity-40" aria-label="Reject booking">
                       <XCircle className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => setAssignBooking(booking)} disabled={!["Approved", "Assigned to Warden"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark disabled:cursor-not-allowed disabled:opacity-40" aria-label="Assign warden">
+                    <button type="button" title="Assign Warden" onClick={() => setAssignBooking(booking)} disabled={!["Pending Approval", "Approved", "Assigned to Warden"].includes(booking.bookingStatus)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark disabled:cursor-not-allowed disabled:opacity-40" aria-label="Assign warden">
                       <UserCheck className="h-4 w-4" />
                     </button>
                     <button type="button" onClick={() => printReceipt(booking)} className="grid h-9 w-9 place-items-center rounded-xl border border-line text-slate-600 hover:border-brandDark hover:text-brandDark" aria-label="Print booking">
@@ -852,7 +790,7 @@ const BookingsPage = () => {
 
       <div className="mt-5 rounded-2xl border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-slate-500">
-          {[["Pending", "Pending"], ["Approve", "Approved"], ["Assign to Warden", "Assigned to Warden"], ["Warden Receives Notification", "Assigned to Warden"], ["Resident Check-in", "Checked In"]].map(([label, status], index) => (
+          {[["Pending Approval", "Pending Approval"], ["Approve", "Approved"], ["Assign to Warden", "Assigned to Warden"], ["Warden Receives Notification", "Assigned to Warden"], ["Resident Check-in", "Checked In"]].map(([label, status], index) => (
             <div key={`${label}-${index}`} className="flex items-center gap-3">
               <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusStyles[status]}`}>{label}</span>
               {index < 4 && <FileText className="h-4 w-4 text-brand" />}

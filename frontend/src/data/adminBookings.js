@@ -1,6 +1,6 @@
 export const BOOKING_STORAGE_KEY = "pg_admin_bookings";
 
-export const BOOKING_STATUSES = ["Pending", "Approved", "Rejected", "Cancelled", "Checked In"];
+export const BOOKING_STATUSES = ["Pending Approval", "Approved", "Rejected", "Cancelled", "Checked In"];
 export const BOOKING_ACTION_STATUSES = [...BOOKING_STATUSES, "Assigned to Warden"];
 export const PAYMENT_STATUSES = ["Pending", "Paid", "Refunded"];
 export const REJECTION_REASONS = ["Duplicate Booking", "Invalid Documents", "Payment Not Verified", "Other"];
@@ -10,18 +10,10 @@ const paymentImage = "https://images.unsplash.com/photo-1554224155-6726b3ff858f?
 
 export const defaultWardens = [
   { id: "warden-anna-1", name: "Priya Raman", branchId: "anna-nagar", branchName: "Anna Nagar" },
-  { id: "warden-anna-2", name: "S. Kavitha", branchId: "anna-nagar", branchName: "Anna Nagar" },
-  { id: "warden-viru-1", name: "Meena Joseph", branchId: "virugambakkam", branchName: "Virugambakkam" },
-  { id: "warden-tamb-1", name: "Ramesh Babu", branchId: "tambaram", branchName: "Tambaram" },
-  { id: "warden-vela-1", name: "Lakshmi Narayanan", branchId: "velachery", branchName: "Velachery" },
-  { id: "warden-porur-1", name: "Anitha R", branchId: "porur", branchName: "Porur" },
-  { id: "warden-guindy-1", name: "Mohan Das", branchId: "guindy", branchName: "Guindy" },
-  { id: "warden-tnagar-1", name: "Janani S", branchId: "t-nagar", branchName: "T Nagar" },
-  { id: "warden-shol-1", name: "Farhan Ali", branchId: "sholinganallur", branchName: "Sholinganallur" },
-  { id: "warden-meda-1", name: "Revathi K", branchId: "medavakkam", branchName: "Medavakkam" }
+  { id: "warden-viru-1", name: "Meena Joseph", branchId: "virugambakkam", branchName: "Virugambakkam" }
 ];
 
-export const defaultBookings = [
+const legacyDefaultBookings = [
   {
     id: "BK0001",
     customerName: "Rahul Kumar",
@@ -234,11 +226,22 @@ export const defaultBookings = [
   }
 ];
 
+export const defaultBookings = legacyDefaultBookings.filter((booking) => ["anna-nagar", "virugambakkam"].includes(booking.branchId));
+
 export const loadBookings = () => {
   const stored = localStorage.getItem(BOOKING_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : defaultBookings;
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  return (stored ? JSON.parse(stored) : defaultBookings)
+    .filter((booking) => allowed.has(booking.branchId))
+    .map((booking) => booking.bookingStatus === "Pending" ? { ...booking, bookingStatus: "Pending Approval" } : booking)
+    .map((booking) => booking.bookingStatus === "Pending Approval" && booking.blockedUntil && Date.parse(booking.blockedUntil) <= Date.now()
+      ? { ...booking, bookingStatus: "Cancelled", rejectionReason: "Temporary hold expired." }
+      : booking);
 };
 
 export const saveBookings = (bookings) => {
-  localStorage.setItem(BOOKING_STORAGE_KEY, JSON.stringify(bookings));
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  const scopedBookings = bookings.filter((booking) => allowed.has(booking.branchId));
+  localStorage.setItem(BOOKING_STORAGE_KEY, JSON.stringify(scopedBookings));
+  window.dispatchEvent(new CustomEvent("pg:bookings-updated", { detail: { bookings: scopedBookings } }));
 };

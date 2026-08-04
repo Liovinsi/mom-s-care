@@ -49,7 +49,7 @@ export const exploreBranches = [
   }
 ];
 
-export const featuredPgBranches = [
+const legacyFeaturedPgBranches = [
   {
     id: "tambaram-pg",
     name: "Tambaram PG",
@@ -192,7 +192,8 @@ export const featuredPgBranches = [
   }
 ];
 
-export const bookingBranches = [...exploreBranches, ...featuredPgBranches];
+export const featuredPgBranches = exploreBranches;
+export const bookingBranches = exploreBranches;
 
 const createBranchRooms = (branchId, prefix, baseRent) => [
   {
@@ -261,7 +262,7 @@ const createBranchRooms = (branchId, prefix, baseRent) => [
   }
 ];
 
-export const bookingRooms = [
+const bookingRoomData = [
   {
     id: "anna-101",
     branchId: "anna-nagar-pg",
@@ -397,6 +398,53 @@ export const bookingRooms = [
   ...createBranchRooms("sholinganallur-pg", "sholinganallur", 13800),
   ...createBranchRooms("guindy-pg", "guindy", 14200),
   ...createBranchRooms("medavakkam-pg", "medavakkam", 12800)
+];
+
+const legacyBookingRooms = bookingRoomData.map((room) => {
+  const bunkCot = room.sharingType === "4 Sharing";
+  return {
+    ...room,
+    bedType: bunkCot ? "Bunk Cot" : "Single Cot",
+    bedList: room.bedList.map((bed, index) => {
+      if (!bunkCot) return { ...bed, bedType: "Single Cot", position: "Single" };
+      const position = index < 2 ? "Upper" : "Lower";
+      const positionNumber = index < 2 ? index + 1 : index - 1;
+      return { ...bed, bedType: "Bunk Cot", position, positionLabel: `${position === "Upper" ? "U" : "L"}${positionNumber}` };
+    })
+  };
+});
+
+const publicRoom = (id, branchId, number, roomType, monthlyRent) => ({
+  id,
+  branchId,
+  number,
+  sharingType: "4 Sharing",
+  roomType,
+  beds: 4,
+  status: "Available",
+  monthlyRent,
+  securityDeposit: monthlyRent * 2,
+  bookingAmount: 5000,
+  bedType: "Bunk Cot",
+  bedList: ["L1", "L2", "U1", "U2"].map((label, index) => ({
+    id: `${id}-${label.toLowerCase()}`,
+    label,
+    status: index === 0 ? "Booked" : "Available",
+    bedType: "Bunk Cot",
+    position: label.startsWith("L") ? "Lower" : "Upper",
+    positionLabel: label
+  }))
+});
+
+export const bookingRooms = [
+  publicRoom("anna-101", "anna-nagar-pg", "101", "AC", 16000),
+  publicRoom("anna-102", "anna-nagar-pg", "102", "Non AC", 14000),
+  publicRoom("anna-201", "anna-nagar-pg", "201", "AC", 16500),
+  publicRoom("anna-202", "anna-nagar-pg", "202", "Non AC", 14500),
+  publicRoom("viru-301", "virugambakkam-pg", "301", "AC", 15500),
+  publicRoom("viru-302", "virugambakkam-pg", "302", "Non AC", 13500),
+  publicRoom("viru-303", "virugambakkam-pg", "303", "AC", 16000),
+  publicRoom("viru-304", "virugambakkam-pg", "304", "Non AC", 14000)
 ];
 
 export const formatCurrency = (amount) => `₹${amount.toLocaleString("en-IN")}`;

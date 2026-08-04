@@ -1,23 +1,18 @@
 export const COMPLAINT_STORAGE_KEY = "pg_complaints";
 
 export const COMPLAINT_CATEGORIES = [
-  "Maintenance",
   "Electrical",
   "Plumbing",
-  "Room Cleaning",
-  "Water Supply",
+  "Cleaning",
+  "Furniture",
   "WiFi",
-  "Air Conditioner",
-  "Fan",
-  "Food",
-  "Laundry",
+  "Water",
   "Security",
-  "Housekeeping",
   "Other"
 ];
 
-export const COMPLAINT_PRIORITIES = ["Low", "Medium", "High", "Emergency"];
-export const COMPLAINT_STATUSES = ["New", "Assigned", "In Progress", "Waiting for Resident", "Resolved", "Closed", "Escalated"];
+export const COMPLAINT_PRIORITIES = ["Low", "Medium", "High", "Urgent"];
+export const COMPLAINT_STATUSES = ["Open", "In Progress", "Resolved", "Closed"];
 
 const issueImage = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=82`;
 
@@ -149,11 +144,22 @@ export const defaultComplaints = [
 
 export const loadComplaints = () => {
   const stored = localStorage.getItem(COMPLAINT_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : defaultComplaints;
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  return (stored ? JSON.parse(stored) : defaultComplaints)
+    .filter((complaint) => allowed.has(complaint.branchId))
+    .map((complaint) => ({
+      ...complaint,
+      category: complaint.category === "Room Cleaning" ? "Cleaning" : complaint.category === "Water Supply" ? "Water" : complaint.category,
+      priority: complaint.priority === "Emergency" ? "Urgent" : complaint.priority,
+      status: ["New", "Assigned"].includes(complaint.status) ? "Open" : complaint.status === "Escalated" ? "In Progress" : complaint.status
+    }));
 };
 
 export const saveComplaints = (complaints) => {
-  localStorage.setItem(COMPLAINT_STORAGE_KEY, JSON.stringify(complaints));
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  const scoped = complaints.filter((complaint) => allowed.has(complaint.branchId));
+  localStorage.setItem(COMPLAINT_STORAGE_KEY, JSON.stringify(scoped));
+  window.dispatchEvent(new CustomEvent("pg:complaints-updated", { detail: scoped }));
 };
 
 export const createComplaintId = (complaints) => {

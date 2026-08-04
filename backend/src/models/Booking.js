@@ -13,9 +13,11 @@ const bookingSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["BLOCKED", "PENDING_PAYMENT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "CANCELLED"],
-      default: "BLOCKED"
+      default: "PENDING_APPROVAL"
     },
     tokenAmount: { type: Number, required: true },
+    blockedAt: { type: Date },
+    holdExpiresAt: { type: Date },
     notes: { type: String },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     approvedAt: { type: Date },

@@ -3,7 +3,7 @@ const styles = {
   HELD: "bg-brand/10 text-brandDark",
   BOOKED: "bg-paper text-brandDark",
   MAINTENANCE: "bg-slate-100 text-slate-700",
-  BLOCKED: "bg-brand/10 text-brandDark",
+  BLOCKED: "bg-orange-100 text-orange-700",
   APPROVED: "bg-brand/10 text-brandDark",
   PENDING_APPROVAL: "bg-brand/10 text-brandDark",
   PENDING_PAYMENT: "bg-brand/10 text-brandDark",

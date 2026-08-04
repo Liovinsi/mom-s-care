@@ -5,25 +5,37 @@ import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import { loadBookings } from "../../data/adminBookings";
-import { formatCurrency } from "../../data/bookingFlow";
+import { useAuth } from "../../context/AuthContext";
 
 const bookingToStatusCard = (booking) => ({
   _id: booking.id,
   branch: { name: booking.branchName },
   room: { name: `Room ${booking.roomNumber}` },
   bed: { label: booking.bedName },
-  tokenAmount: booking.tokenAmount,
-  status: booking.bookingStatus === "Pending" ? "BLOCKED" : booking.bookingStatus?.toUpperCase()
+  message: booking.bookingStatus === "Pending Approval"
+    ? "Your booking is under verification. Our team will contact you soon."
+    : booking.bookingStatus === "Rejected"
+      ? `Your booking was rejected.${booking.rejectionReason ? ` Reason: ${booking.rejectionReason}` : ""}`
+      : "",
+  status: booking.bookingStatus?.toUpperCase().replaceAll(" ", "_")
 });
 
 const BookingStatus = () => {
   const { state } = useLocation();
+  const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const confirmedBooking = state?.booking;
 
   useEffect(() => {
-    setBookings(loadBookings().map(bookingToStatusCard));
-  }, []);
+    const refreshBookings = () => setBookings(loadBookings().filter((booking) => booking.userId === user?.id || booking.userEmail === user?.email).map(bookingToStatusCard));
+    refreshBookings();
+    window.addEventListener("pg:bookings-updated", refreshBookings);
+    window.addEventListener("storage", refreshBookings);
+    return () => {
+      window.removeEventListener("pg:bookings-updated", refreshBookings);
+      window.removeEventListener("storage", refreshBookings);
+    };
+  }, [user?.email, user?.id]);
 
   if (confirmedBooking) {
     const summaryRows = [
@@ -32,8 +44,10 @@ const BookingStatus = () => {
       ["Sharing Type", confirmedBooking.sharingType],
       ["AC / Non AC", confirmedBooking.roomType],
       ["Selected Bed", confirmedBooking.selectedBed],
+      ["Guests", confirmedBooking.guests],
+      ["Check-in", confirmedBooking.checkIn],
+      ["Check-out", confirmedBooking.checkOut || (confirmedBooking.checkIn ? "Monthly stay" : "")],
       ["Monthly Rent", confirmedBooking.monthlyRent ? formatCurrency(confirmedBooking.monthlyRent) : ""],
-      ["Amount To Confirm In Person", confirmedBooking.tokenAmount ? formatCurrency(confirmedBooking.tokenAmount) : ""],
       ["Guest", confirmedBooking.guestName],
       ["Mobile", confirmedBooking.mobileNumber]
     ].filter(([, value]) => value);
@@ -45,7 +59,7 @@ const BookingStatus = () => {
             <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Bed Blocked</p>
             <h1 className="mt-4 text-4xl font-semibold leading-tight text-ink sm:text-5xl">Your Bed Is Blocked</h1>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-secondary">
-              The selected bed has been blocked. Admin staff will contact you for in-person confirmation and payment.
+              The selected bed has been blocked. Admin staff will contact you to verify the details and confirm the booking.
             </p>
           </div>
         </section>
@@ -56,7 +70,7 @@ const BookingStatus = () => {
               <CheckCircle2 className="h-9 w-9" />
             </span>
             <h2 className="mt-6 text-3xl font-semibold text-ink">Bed Blocked Successfully</h2>
-            <p className="mt-3 text-secondary">Final booking and payment will be confirmed manually.</p>
+            <p className="mt-3 text-secondary">Your booking is under verification. Our team will contact you soon.</p>
 
             <div className="mt-8 grid gap-4 text-left text-sm sm:grid-cols-2">
               {summaryRows.map(([label, value]) => (
@@ -101,7 +115,8 @@ const BookingStatus = () => {
           <Card key={booking._id} className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-semibold text-ink">{booking.branch?.name || "Branch"} · {booking.room?.name || "Room"}</p>
-              <p className="text-sm text-secondary">Bed {booking.bed?.label || ""} · Manual amount {formatCurrency(booking.tokenAmount || 0)}</p>
+              <p className="text-sm text-secondary">Bed {booking.bed?.label || ""}</p>
+              {booking.message && <p className="mt-2 text-sm font-semibold text-orange-700">{booking.message}</p>}
             </div>
             <Badge value={booking.status} />
           </Card>

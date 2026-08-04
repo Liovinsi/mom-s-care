@@ -23,6 +23,8 @@ const emptyBed = {
   bedName: "",
   bedCode: "",
   bedType: "Single Cot",
+  position: "Single",
+  positionLabel: "",
   bedImage: luxuryBedImage,
   status: "Available",
   currentResident: "",
@@ -42,6 +44,7 @@ const Field = ({ label, required, error, children }) => (
 
 const statusStyles = {
   Available: "bg-brand/10 text-brandDark",
+  Blocked: "bg-orange-100 text-orange-700",
   Occupied: "bg-paper text-brandDark",
   Reserved: "bg-paper text-brandDark",
   Maintenance: "bg-slate-100 text-slate-600"
@@ -52,6 +55,12 @@ const StatusBadge = ({ status }) => (
 );
 
 const createId = (bed) => `${bed.branchId}-${bed.roomNumber}-${bed.bedName}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+const getBunkPositionLabel = (bed) => {
+  const token = bed.bedName.match(/(\d+|[A-Z])$/i)?.[1] || "1";
+  const number = /^\d+$/.test(token) ? Number(token) : token.toUpperCase().charCodeAt(0) - 64;
+  return `${bed.position === "Upper" ? "U" : "L"}${Math.max(1, number)}`;
+};
 
 const readImageFile = (file) =>
   new Promise((resolve, reject) => {
@@ -75,6 +84,7 @@ const validateBed = (bed, beds, editingId) => {
   if (!bed.roomId) errors.roomId = "Room is required";
   if (!bed.bedName.trim()) errors.bedName = "Bed name is required";
   if (!bed.bedCode.trim()) errors.bedCode = "Bed code is required";
+  if (bed.bedType === "Bunk Cot" && !["Upper", "Lower"].includes(bed.position)) errors.position = "Bunk position is required";
   if (bed.bedCode && beds.some((item) => item.bedCode.trim().toLowerCase() === bed.bedCode.trim().toLowerCase() && item.id !== editingId)) {
     errors.bedCode = "Duplicate bed code is not allowed";
   }
@@ -154,6 +164,7 @@ const BedDrawer = ({ bed, beds, rooms, branches, onClose, onSave }) => {
     onSave({
       ...normalized,
       id: editingId || createId(normalized),
+      positionLabel: normalized.bedType === "Bunk Cot" ? getBunkPositionLabel(normalized) : "",
       bedImage: normalized.bedImage || luxuryBedImage
     });
   };
@@ -191,10 +202,18 @@ const BedDrawer = ({ bed, beds, rooms, branches, onClose, onSave }) => {
             <input className={fieldClass} placeholder="BED101A" value={form.bedCode} onChange={(event) => update("bedCode", event.target.value.toUpperCase())} disabled={Boolean(editingId)} />
           </Field>
           <Field label="Bed Type">
-            <select className={fieldClass} value={form.bedType} onChange={(event) => update("bedType", event.target.value)} disabled={Boolean(editingId)}>
+            <select className={fieldClass} value={form.bedType} onChange={(event) => setForm((current) => ({ ...current, bedType: event.target.value, position: event.target.value === "Bunk Cot" ? "Upper" : "Single" }))} disabled={Boolean(editingId)}>
               {BED_TYPES.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
           </Field>
+          {form.bedType === "Bunk Cot" && (
+            <Field label="Bunk Position" required error={errors.position}>
+              <select className={fieldClass} value={form.position} onChange={(event) => update("position", event.target.value)}>
+                <option value="Upper">Upper</option>
+                <option value="Lower">Lower</option>
+              </select>
+            </Field>
+          )}
           <Field label="Status">
             <select className={fieldClass} value={form.status} onChange={(event) => update("status", event.target.value)}>
               {BED_STATUSES.map((item) => <option key={item} value={item}>{item}</option>)}
@@ -246,7 +265,8 @@ const BedViewModal = ({ bed, onClose }) => (
                 ["Branch", bed.branchName],
                 ["Room", `Room ${bed.roomNumber}`],
                 ["Sharing Type", bed.sharingType],
-                ["Bed Type", bed.bedType]
+                ["Bed Type", bed.bedType],
+                ...(bed.bedType === "Bunk Cot" ? [["Bunk Position", `${bed.position} ${bed.positionLabel || ""}`.trim()]] : [])
               ].map(([label, value]) => (
                 <p key={label}><span className="font-semibold text-ink">{label}:</span> {value}</p>
               ))}
@@ -298,6 +318,7 @@ const BedsPage = () => {
     availableBeds: beds.filter((bed) => bed.status === "Available").length,
     occupiedBeds: beds.filter((bed) => bed.status === "Occupied").length,
     reservedBeds: beds.filter((bed) => bed.status === "Reserved").length,
+    blockedBeds: beds.filter((bed) => bed.status === "Blocked").length,
     maintenanceBeds: beds.filter((bed) => bed.status === "Maintenance").length
   }), [beds]);
 
@@ -361,10 +382,11 @@ const BedsPage = () => {
         </div>
       </div>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <StatCard label="Total Beds" value={stats.totalBeds} />
         <StatCard label="Available Beds" value={stats.availableBeds} />
         <StatCard label="Occupied Beds" value={stats.occupiedBeds} />
+        <StatCard label="Blocked Beds" value={stats.blockedBeds} />
         <StatCard label="Reserved Beds" value={stats.reservedBeds} />
         <StatCard label="Maintenance Beds" value={stats.maintenanceBeds} />
       </div>

@@ -1,12 +1,12 @@
 export const RESIDENT_STORAGE_KEY = "pg_admin_residents";
 
-export const RESIDENT_STATUSES = ["Pending Check-In", "Active", "Vacating", "Checked Out"];
+export const RESIDENT_STATUSES = ["Pending Approval", "Pending Check-In", "Active", "Vacating", "Checked Out"];
 export const RESIDENT_GENDERS = ["Male", "Female"];
 
 const photo = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=600&q=82`;
 const documentImage = "https://images.unsplash.com/photo-1586953208448-b95a79798f07?auto=format&fit=crop&w=900&q=82";
 
-export const defaultResidents = [
+const legacyDefaultResidents = [
   {
     id: "RES0001",
     fullName: "Rahul Kumar",
@@ -204,12 +204,17 @@ export const defaultResidents = [
   }
 ];
 
+export const defaultResidents = legacyDefaultResidents.filter((resident) => ["anna-nagar", "virugambakkam"].includes(resident.branchId)).slice(0, 4);
+
 export const loadResidents = () => {
   const stored = localStorage.getItem(RESIDENT_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : defaultResidents;
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  return (stored ? JSON.parse(stored) : defaultResidents).filter((resident) => allowed.has(resident.branchId));
 };
 
 export const saveResidents = (residents) => {
-  localStorage.setItem(RESIDENT_STORAGE_KEY, JSON.stringify(residents));
-  window.dispatchEvent(new CustomEvent("pg:residents-updated", { detail: { residents } }));
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  const scopedResidents = residents.filter((resident) => allowed.has(resident.branchId));
+  localStorage.setItem(RESIDENT_STORAGE_KEY, JSON.stringify(scopedResidents));
+  window.dispatchEvent(new CustomEvent("pg:residents-updated", { detail: { residents: scopedResidents } }));
 };

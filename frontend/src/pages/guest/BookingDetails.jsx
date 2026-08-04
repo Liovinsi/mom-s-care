@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { FileText, ShieldCheck } from "lucide-react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { CheckCircle2, FileText, LockKeyhole } from "lucide-react";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
@@ -8,52 +8,36 @@ import { bookingBranches, bookingRooms, formatCurrency } from "../../data/bookin
 import { loadBeds } from "../../data/adminBeds";
 import { loadBookings, saveBookings } from "../../data/adminBookings";
 import { loadRooms } from "../../data/adminRooms";
+import { loadResidents, saveResidents } from "../../data/adminResidents";
 import { publicBedIdFromAdminBed, saveAvailabilitySnapshot } from "../../lib/liveAvailability";
+import { useAuth } from "../../context/AuthContext";
 
 const initialForm = {
   fullName: "",
   mobileNumber: "",
   dateOfBirth: "",
   gender: "",
-  residentType: "",
-  guardianName: "",
-  guardianRelationship: "",
-  guardianMobile: "",
-  alternateMobile: "",
   currentAddress: "",
-  city: "",
-  state: "",
-  pincode: "",
+  occupation: "",
   collegeName: "",
-  collegeAddress: "",
+  courseDepartment: "",
   companyName: "",
-  officeAddress: "",
+  designation: "",
+  businessName: "",
   aadhaarNumber: "",
-  aadhaarFile: null,
-  emergencyName: "",
-  emergencyRelationship: "",
-  emergencyMobile: ""
+  aadhaarFile: null
 };
 
 const selectClassName = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
 const textAreaClassName = "min-h-28 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted focus:border-brand focus:ring-4 focus:ring-brand/25";
-const tokenAmount = 5000;
+const blockDurationHours = () => Math.max(1, Number(localStorage.getItem("pg_bed_block_hours")) || 24);
 const mobilePattern = /^[6-9]\d{9}$/;
 const numericFields = {
   mobileNumber: 10,
-  guardianMobile: 10,
-  alternateMobile: 10,
-  emergencyMobile: 10,
-  aadhaarNumber: 12,
-  pincode: 6
+  aadhaarNumber: 12
 };
 
 const todayValue = () => new Date().toISOString().slice(0, 10);
-
-const createBookingId = (bookings) => {
-  const maxId = bookings.reduce((value, booking) => Math.max(value, Number(String(booking.id).replace(/\D/g, "") || 0)), 0);
-  return `BK${String(maxId + 1).padStart(4, "0")}`;
-};
 
 const FieldGroup = ({ title, children }) => (
   <Card className="hover:translate-y-0">
@@ -80,18 +64,24 @@ const TextAreaField = ({ label, value, onChange, required = false }) => (
 );
 
 const BookingDetails = () => {
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { state } = useLocation();
   const [searchParams] = useSearchParams();
   const [form, setForm] = useState(initialForm);
   const [fileError, setFileError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [submissionError, setSubmissionError] = useState("");
+  const [success, setSuccess] = useState(null);
 
   const roomId = state?.roomId || searchParams.get("roomId");
   const bedId = state?.bedId || searchParams.get("bedId");
   const room = bookingRooms.find((item) => item.id === roomId) || bookingRooms[0];
   const branch = bookingBranches.find((item) => item.id === room.branchId) || bookingBranches[0];
   const selectedBed = room.bedList.find((bed) => bed.id === bedId) || state?.selectedBed || null;
-
+  const selectedBeds = state?.selectedBeds?.length ? state.selectedBeds : selectedBed ? [selectedBed] : [];
+  const guests = Math.max(1, Number(state?.guests || searchParams.get("guests")) || selectedBeds.length || 1);
+  const checkIn = state?.checkIn || searchParams.get("checkIn") || todayValue();
+  const checkOut = state?.checkOut || searchParams.get("checkOut") || "";
   const updateField = (field) => (event) => {
     const limit = numericFields[field];
     const value = limit ? event.target.value.replace(/\D/g, "").slice(0, limit) : event.target.value;
@@ -129,124 +119,178 @@ const BookingDetails = () => {
       "fullName",
       "mobileNumber",
       "dateOfBirth",
-      "residentType",
-      "guardianName",
-      "guardianMobile",
+      "gender",
       "currentAddress",
-      "city",
-      "state",
-      "pincode",
+      "occupation",
       "aadhaarNumber",
-      "emergencyName",
-      "emergencyRelationship",
-      "emergencyMobile"
+      "aadhaarFile"
     ];
 
-    if (form.residentType === "Student") requiredFields.push("collegeName", "collegeAddress");
-    if (form.residentType === "Working Professional") requiredFields.push("companyName", "officeAddress");
+    if (form.occupation === "Student") requiredFields.push("collegeName");
+    if (form.occupation === "Working Professional") requiredFields.push("companyName");
 
-    const requiredComplete = requiredFields.every((field) => String(form[field]).trim());
+    const requiredComplete = requiredFields.every((field) => field === "aadhaarFile" ? Boolean(form[field]) : String(form[field]).trim());
     const aadhaarValid = /^\d{12}$/.test(form.aadhaarNumber);
     const mobileNumberValid = mobilePattern.test(form.mobileNumber);
-    const guardianMobileValid = mobilePattern.test(form.guardianMobile);
-    const alternateMobileValid = !form.alternateMobile || mobilePattern.test(form.alternateMobile);
-    const emergencyMobileValid = mobilePattern.test(form.emergencyMobile);
     const fileValid = Boolean(form.aadhaarFile) && !fileError;
+    const errors = {};
+    const labels = {
+      fullName: "Full Name",
+      mobileNumber: "Mobile Number",
+      dateOfBirth: "Date of Birth",
+      gender: "Gender",
+      currentAddress: "Current Address",
+      occupation: "Occupation",
+      collegeName: "College Name",
+      companyName: "Company Name",
+      aadhaarNumber: "Aadhaar Number",
+      aadhaarFile: "Aadhaar Upload"
+    };
+    requiredFields.forEach((field) => {
+      const empty = field === "aadhaarFile" ? !form[field] : !String(form[field]).trim();
+      if (empty) errors[field] = `${labels[field]} is required.`;
+    });
+    if (form.mobileNumber && !mobileNumberValid) errors.mobileNumber = "Enter a valid 10-digit mobile number.";
+    if (form.aadhaarNumber && !aadhaarValid) errors.aadhaarNumber = "Enter a valid 12-digit Aadhaar number.";
+    if (fileError) errors.aadhaarFile = fileError;
+    if (selectedBeds.length !== guests) errors.selectedBeds = "Please select the required number of beds.";
 
     return {
+      errors,
       aadhaarValid,
       mobileNumberValid,
-      guardianMobileValid,
-      alternateMobileValid,
-      emergencyMobileValid,
       fileValid,
-      formValid: requiredComplete && aadhaarValid && mobileNumberValid && guardianMobileValid && alternateMobileValid && emergencyMobileValid && fileValid && Boolean(selectedBed)
+      formValid: requiredComplete && aadhaarValid && mobileNumberValid && fileValid && selectedBeds.length === guests
     };
-  }, [fileError, form, selectedBed]);
+  }, [fileError, form, guests, selectedBeds.length]);
 
   const blockBed = () => {
+    setSubmitted(true);
+    setSubmissionError("");
     if (!validation.formValid) return;
 
     const storedBookings = loadBookings();
-    const bookingId = createBookingId(storedBookings);
     const adminBeds = loadBeds();
-    const adminBed = adminBeds.find((bed) => bed.id === selectedBed.id || publicBedIdFromAdminBed(bed) === selectedBed.id);
-
-    if (adminBed) {
-      const nextBeds = adminBeds.map((bed) => (
-        bed.id === adminBed.id
-          ? {
-              ...bed,
-              status: "Reserved",
-              currentResident: "",
-              bookingId,
-              checkInDate: todayValue(),
-              checkOutDate: ""
-            }
-          : bed
-      ));
-      saveAvailabilitySnapshot(nextBeds, loadRooms());
+    const selectedAdminBeds = selectedBeds.map((selected) => ({
+      selected,
+      adminBed: adminBeds.find((bed) => bed.id === selected.id || publicBedIdFromAdminBed(bed) === selected.id)
+    }));
+    if (selectedAdminBeds.some(({ adminBed }) => !adminBed || adminBed.status !== "Available")) {
+      setSubmissionError("One of the selected beds is no longer available. Please return to rooms and choose another bed.");
+      return;
     }
-
-    const booking = {
+    const blockedUntil = new Date(Date.now() + blockDurationHours() * 60 * 60 * 1000).toISOString();
+    const blockedAt = new Date().toISOString();
+    const highestBookingNumber = storedBookings.reduce((value, booking) => Math.max(value, Number(String(booking.id).replace(/\D/g, "") || 0)), 0);
+    const newBookings = selectedAdminBeds.map(({ selected, adminBed }, index) => {
+      const bookingId = `BK-${String(highestBookingNumber + index + 1).padStart(6, "0")}`;
+      const bookingGuest = { name: form.fullName, phone: form.mobileNumber, email: "" };
+      return {
       id: bookingId,
-      customerName: form.fullName,
+      customerName: bookingGuest.name,
+      userId: user?.id || "",
+      userEmail: user?.email || "",
       gender: form.gender,
       dob: form.dateOfBirth,
-      phone: form.mobileNumber,
-      email: "",
-      emergencyContact: `${form.emergencyName} - ${form.emergencyMobile}`,
-      occupation: form.residentType,
-      organization: form.residentType === "Student" ? form.collegeName : form.companyName,
+      phone: bookingGuest.phone,
+      email: bookingGuest.email,
+      currentAddress: form.currentAddress,
+      occupation: form.occupation,
+      organization: form.occupation === "Student" ? form.collegeName : form.occupation === "Working Professional" ? form.companyName : form.occupation === "Business" ? form.businessName : "",
       aadhaarNumber: `XXXX XXXX ${form.aadhaarNumber.slice(-4)}`,
-      aadhaarFront: "",
+      aadhaarFront: form.aadhaarFile?.name || "",
       aadhaarBack: "",
       branchId: String(branch.id).replace(/-pg$/, ""),
       branchName: branch.name.replace(/\s*PG$/, ""),
       roomId: room.id,
       roomNumber: room.number,
-      bedId: adminBed?.id || selectedBed.id,
-      bedName: selectedBed.label,
+      bedId: adminBed?.id || selected.id,
+      bedName: selected.positionLabel ? `${selected.position} ${selected.positionLabel}` : selected.label || adminBed?.bedName,
       sharingType: room.sharingType,
       roomType: room.roomType,
       bookingDate: todayValue(),
-      moveInDate: todayValue(),
-      expectedStay: "Pending discussion",
-      tokenAmount,
+      moveInDate: checkIn,
+      checkOutDate: checkOut,
+      expectedStay: checkOut ? `${checkIn} to ${checkOut}` : "Monthly stay",
+      blockedUntil,
+      blockedAt,
       transactionId: "",
-      paymentMethod: "Manual",
+      paymentMethod: "",
       paymentDate: "",
       paymentScreenshot: "",
-      paymentStatus: "Pending",
-      bookingStatus: "Pending",
+      paymentStatus: "Not Required",
+      bookingStatus: "Pending Approval",
       assignedWardenId: "",
       assignedWardenName: "",
       rejectionReason: ""
-    };
-
-    saveBookings([booking, ...storedBookings]);
-
-    navigate("/booking-status", {
-      state: {
-        booking: {
-          branch: branch.name,
-          roomNumber: room.number,
-          sharingType: room.sharingType,
-          roomType: room.roomType,
-          selectedBed: selectedBed.label,
-          monthlyRent: room.monthlyRent,
-          securityDeposit: room.securityDeposit,
-          tokenAmount,
-          status: "Blocked",
-          guestName: form.fullName,
-          mobileNumber: form.mobileNumber
-        }
-      }
+      };
     });
+
+    const bookingIdByBedId = new Map(newBookings.map((booking) => [booking.bedId, booking.id]));
+    const selectedAdminBedIds = new Set(selectedAdminBeds.map(({ adminBed }) => adminBed?.id).filter(Boolean));
+    const nextBeds = adminBeds.map((bed) => selectedAdminBedIds.has(bed.id) ? {
+      ...bed,
+      status: "Blocked",
+      currentResident: "",
+      bookingId: bookingIdByBedId.get(bed.id) || "",
+      blockedUntil,
+      checkInDate: checkIn,
+      checkOutDate: checkOut
+    } : bed);
+    saveAvailabilitySnapshot(nextBeds, loadRooms());
+
+    const storedResidents = loadResidents();
+    const highestResidentNumber = storedResidents.reduce((value, resident) => Math.max(value, Number(String(resident.id).replace(/\D/g, "") || 0)), 0);
+    const stagedResidents = newBookings.map((booking, index) => ({
+      id: `RES${String(highestResidentNumber + index + 1).padStart(4, "0")}`,
+      userId: user?.id || "",
+      fullName: form.fullName,
+      gender: form.gender,
+      dob: form.dateOfBirth,
+      phone: form.mobileNumber,
+      email: user?.email || "",
+      currentAddress: form.currentAddress,
+      occupation: form.occupation,
+      organization: booking.organization,
+      aadhaarNumber: booking.aadhaarNumber,
+      aadhaarFront: form.aadhaarFile?.name || "",
+      branchId: booking.branchId,
+      branchName: booking.branchName,
+      roomId: booking.roomId,
+      roomNumber: booking.roomNumber,
+      bedId: booking.bedId,
+      bedName: booking.bedName,
+      sharingType: booking.sharingType,
+      roomType: booking.roomType,
+      moveInDate: booking.moveInDate,
+      monthlyRent: room.monthlyRent,
+      securityDeposit: room.securityDeposit,
+      bookingId: booking.id,
+      bookingDate: booking.bookingDate,
+      assignedWarden: "",
+      status: "Pending Approval"
+    }));
+    saveResidents([...stagedResidents, ...storedResidents.filter((resident) => !newBookings.some((booking) => booking.id === resident.bookingId))]);
+    saveBookings([...newBookings, ...storedBookings]);
+
+    setSuccess({ referenceId: newBookings[0].id, blockedUntil });
   };
 
   return (
     <main className="bg-paper/70">
+      {success && (
+        <div className="fixed inset-0 z-[80] grid place-items-center bg-ink/45 px-4 backdrop-blur-sm">
+          <div role="dialog" aria-modal="true" aria-labelledby="blocked-success-title" className="w-full max-w-md animate-[loginPopup_300ms_ease-out] rounded-[22px] border border-brand/20 bg-white p-7 text-center shadow-luxury sm:p-8">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-orange-100 text-orange-600"><CheckCircle2 className="h-9 w-9" /></span>
+            <h2 id="blocked-success-title" className="mt-5 text-2xl font-semibold text-ink">Bed Blocked Successfully</h2>
+            <p className="mt-3 leading-7 text-secondary">Your bed has been reserved temporarily.</p>
+            <p className="mt-2 leading-7 text-secondary">Our team will contact you shortly to verify your details and confirm your booking.</p>
+            <p className="mt-5 rounded-xl bg-paper px-4 py-3 text-sm font-semibold text-ink">Reference ID: <span className="text-brandDark">{success.referenceId}</span></p>
+            <p className="mt-2 text-xs text-muted">Hold expires in {blockDurationHours()} hours.</p>
+            <Link to="/my-bookings" className="mt-6 block"><Button className="w-full">Go to My Bookings</Button></Link>
+          </div>
+        </div>
+      )}
       <section className="border-b border-line bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Booking Details</p>
@@ -261,38 +305,22 @@ const BookingDetails = () => {
             <Input label="Full Name *" value={form.fullName} onChange={updateField("fullName")} />
             <Input label="Mobile Number *" value={form.mobileNumber} onChange={updateField("mobileNumber")} inputMode="numeric" maxLength="10" />
             <Input label="Date of Birth *" type="date" value={form.dateOfBirth} onChange={updateField("dateOfBirth")} />
-            <SelectField label="Gender" value={form.gender} onChange={updateField("gender")} options={["Male", "Female", "Other"]} />
-            <SelectField label="Resident Type" required value={form.residentType} onChange={updateField("residentType")} options={["Student", "Working Professional"]} />
-            <Input label="Parent / Guardian Name *" value={form.guardianName} onChange={updateField("guardianName")} />
-            <SelectField label="Relationship" value={form.guardianRelationship} onChange={updateField("guardianRelationship")} options={["Father", "Mother", "Husband", "Wife", "Guardian"]} />
-            <Input label="Parent / Guardian Mobile Number *" value={form.guardianMobile} onChange={updateField("guardianMobile")} inputMode="numeric" maxLength="10" />
-            <Input label="Alternate Mobile Number" value={form.alternateMobile} onChange={updateField("alternateMobile")} inputMode="numeric" maxLength="10" />
+            <SelectField label="Gender" required value={form.gender} onChange={updateField("gender")} options={["Male", "Female", "Other"]} />
             {!validation.mobileNumberValid && form.mobileNumber && <p className="text-sm font-semibold text-danger">Mobile number must contain exactly 10 digits and start with 6-9.</p>}
-            {!validation.guardianMobileValid && form.guardianMobile && <p className="text-sm font-semibold text-danger">Parent / Guardian mobile must contain exactly 10 digits and start with 6-9.</p>}
-            {!validation.alternateMobileValid && form.alternateMobile && <p className="text-sm font-semibold text-danger">Alternate mobile must contain exactly 10 digits and start with 6-9.</p>}
           </FieldGroup>
 
           <FieldGroup title="Address Information">
             <TextAreaField label="Current Address" required value={form.currentAddress} onChange={updateField("currentAddress")} />
-            <Input label="City *" value={form.city} onChange={updateField("city")} />
-            <Input label="State *" value={form.state} onChange={updateField("state")} />
-            <Input label="Pincode *" value={form.pincode} onChange={updateField("pincode")} inputMode="numeric" />
           </FieldGroup>
 
           <FieldGroup title="College / Office Details">
-            {form.residentType === "Working Professional" ? (
-              <>
-                <Input label="Company Name *" value={form.companyName} onChange={updateField("companyName")} />
-                <TextAreaField label="Office Address" required value={form.officeAddress} onChange={updateField("officeAddress")} />
-              </>
-            ) : form.residentType === "Student" ? (
-              <>
-                <Input label="College Name *" value={form.collegeName} onChange={updateField("collegeName")} />
-                <TextAreaField label="College Address" required value={form.collegeAddress} onChange={updateField("collegeAddress")} />
-              </>
-            ) : (
-              <p className="text-sm leading-6 text-secondary md:col-span-2">Select resident type to enter college or office details.</p>
-            )}
+            <SelectField label="Occupation" required value={form.occupation} onChange={updateField("occupation")} options={["Student", "Working Professional", "Business", "Other"]} />
+            <div key={form.occupation || "empty"} className="grid gap-5 md:col-span-2 md:grid-cols-2 animate-[loginModeSwitch_300ms_ease-out]">
+              {form.occupation === "Student" && <><Input label="College Name *" value={form.collegeName} onChange={updateField("collegeName")} /><Input label="Course / Department" value={form.courseDepartment} onChange={updateField("courseDepartment")} /></>}
+              {form.occupation === "Working Professional" && <><Input label="Company Name *" value={form.companyName} onChange={updateField("companyName")} /><Input label="Designation" value={form.designation} onChange={updateField("designation")} /></>}
+              {form.occupation === "Business" && <Input label="Business Name" value={form.businessName} onChange={updateField("businessName")} />}
+              {!form.occupation && <p className="text-sm leading-6 text-secondary md:col-span-2">Select an occupation to add the relevant details.</p>}
+            </div>
           </FieldGroup>
 
           <FieldGroup title="Government ID">
@@ -310,12 +338,6 @@ const BookingDetails = () => {
             )}
           </FieldGroup>
 
-          <FieldGroup title="Emergency Contact">
-            <Input label="Emergency Contact Name *" value={form.emergencyName} onChange={updateField("emergencyName")} />
-            <Input label="Relationship *" value={form.emergencyRelationship} onChange={updateField("emergencyRelationship")} />
-            <Input label="Emergency Contact Mobile *" value={form.emergencyMobile} onChange={updateField("emergencyMobile")} inputMode="numeric" maxLength="10" />
-            {!validation.emergencyMobileValid && form.emergencyMobile && <p className="text-sm font-semibold text-danger">Emergency contact mobile must contain exactly 10 digits and start with 6-9.</p>}
-          </FieldGroup>
         </div>
 
         <Card className="h-fit hover:translate-y-0 lg:sticky lg:top-24">
@@ -328,10 +350,13 @@ const BookingDetails = () => {
               ["Room Number", `Room ${room.number}`],
               ["Sharing Type", room.sharingType],
               ["AC / Non AC", room.roomType],
-              ["Selected Bed", selectedBed?.label || "No bed selected"],
+              ["Selected Beds", selectedBeds.map((bed) => bed.positionLabel ? `${bed.position} ${bed.positionLabel}` : bed.label).join(", ") || "No beds selected"],
+              ["Guests", guests],
+              ["Check-in", checkIn],
+              ["Check-out", checkOut || "Monthly stay"],
               ["Monthly Rent", formatCurrency(room.monthlyRent)],
               ["Security Deposit", formatCurrency(room.securityDeposit)],
-              ["Manual Confirmation Amount", formatCurrency(tokenAmount)]
+              ["Hold Duration", `${blockDurationHours()} hours`]
             ].map(([label, value]) => (
               <div key={label} className="flex items-start justify-between gap-4 border-b border-line pb-3 last:border-0 last:pb-0">
                 <span className="font-semibold text-secondary">{label}</span>
@@ -341,11 +366,18 @@ const BookingDetails = () => {
           </div>
 
           <div className="mt-7 grid gap-3">
-            <Link to={`/rooms/${room.id}/beds`}>
-              <Button variant="secondary" className="w-full">Back</Button>
+            <Link to={`/rooms?branch=${encodeURIComponent(branch.id)}&checkIn=${encodeURIComponent(checkIn)}&guests=${guests}`}>
+              <Button variant="secondary" className="w-full">Back to Rooms</Button>
             </Link>
-            <Button className="w-full" disabled={!validation.formValid} onClick={blockBed}>
-              <ShieldCheck className="h-4 w-4" /> Block Bed
+            {submitted && Object.keys(validation.errors).length > 0 && (
+              <div className="rounded-xl border border-brand/20 bg-paper p-3 text-sm text-brandDark" role="alert">
+                <p className="font-semibold">Please complete the required information:</p>
+                <ul className="mt-2 list-inside list-disc space-y-1">{[...new Set(Object.values(validation.errors))].map((message) => <li key={message}>{message}</li>)}</ul>
+              </div>
+            )}
+            {submissionError && <p className="rounded-xl border border-brand/20 bg-paper p-3 text-sm font-semibold text-brandDark" role="alert">{submissionError}</p>}
+            <Button className="w-full" onClick={blockBed}>
+              <LockKeyhole className="h-4 w-4" /> Block Bed
             </Button>
           </div>
         </Card>

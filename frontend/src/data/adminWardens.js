@@ -6,7 +6,7 @@ export const WARDEN_ROLE = "WARDEN";
 
 const photo = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=600&q=82`;
 
-export const defaultWardens = [
+const legacyDefaultWardens = [
   {
     id: "WD001",
     firstName: "Arun",
@@ -171,11 +171,33 @@ export const defaultWardens = [
   }
 ];
 
+const virugambakkamWarden = {
+  ...legacyDefaultWardens[0],
+  id: "WD002",
+  firstName: "Meena",
+  lastName: "Joseph",
+  gender: "Female",
+  phone: "9876543220",
+  email: "meena.joseph@pgstay.com",
+  address: "22 Arcot Road, Virugambakkam",
+  pincode: "600092",
+  employeeId: "WD002",
+  branchId: "virugambakkam",
+  branchName: "Virugambakkam",
+  username: "meena.warden",
+  recentActivities: ["Reviewed Room 301 availability", "Verified resident documents", "Completed daily property inspection"]
+};
+
+export const defaultWardens = [legacyDefaultWardens[2], virugambakkamWarden];
+
 export const loadWardens = () => {
   const stored = localStorage.getItem(WARDEN_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : defaultWardens;
+  const storedWardens = stored ? JSON.parse(stored) : [];
+  return defaultWardens.map((warden) => storedWardens.find((item) => item.branchId === warden.branchId) || warden);
 };
 
 export const saveWardens = (wardens) => {
-  localStorage.setItem(WARDEN_STORAGE_KEY, JSON.stringify(wardens));
+  const allowed = new Set(["anna-nagar", "virugambakkam"]);
+  const onePerBranch = [...allowed].map((branchId) => wardens.find((warden) => warden.branchId === branchId)).filter(Boolean);
+  localStorage.setItem(WARDEN_STORAGE_KEY, JSON.stringify(onePerBranch));
 };

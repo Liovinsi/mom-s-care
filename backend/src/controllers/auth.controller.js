@@ -57,7 +57,7 @@ const login = catchAsync(async (req, res) => {
     throw new ApiError(401, "Warden ID not found.");
   }
 
-  if (!user || !["SUPER_ADMIN", "WARDEN"].includes(user.role)) {
+  if (!user) {
     throw new ApiError(401, "Invalid email or password.");
   }
 
@@ -68,10 +68,6 @@ const login = catchAsync(async (req, res) => {
   const active = user.status ? user.status === "Active" : user.isActive;
   if (!active || !user.isActive) {
     throw new ApiError(403, isWardenLogin ? "Account is inactive." : "Invalid email or password.");
-  }
-
-  if (isEmailLogin && user.role === "WARDEN") {
-    throw new ApiError(401, "Invalid email or password.");
   }
 
   const valid = await user.comparePassword(password);

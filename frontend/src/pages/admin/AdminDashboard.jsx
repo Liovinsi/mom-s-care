@@ -4,17 +4,34 @@ import StatCard from "../../components/ui/StatCard";
 import { loadBranches } from "../../data/adminBranches";
 import { loadBookings } from "../../data/adminBookings";
 import { loadResidents } from "../../data/adminResidents";
+import { loadComplaints } from "../../data/complaints";
+import { loadWardenActivities } from "../../data/wardenActivities";
+import { loadStatusUpdateRequests } from "../../data/statusUpdateRequests";
 import { useLiveAvailability } from "../../lib/liveAvailability";
 import { calculatePaymentAnalytics, formatCurrency, useLivePayments } from "../../lib/livePayments";
 
 const AdminDashboard = () => {
   const [summary, setSummary] = useState({});
   const [bookings, setBookings] = useState(() => loadBookings());
+  const [complaints, setComplaints] = useState(() => loadComplaints());
+  const [wardenActivities, setWardenActivities] = useState(() => loadWardenActivities());
+  const [updateRequests, setUpdateRequests] = useState(() => loadStatusUpdateRequests());
   const { rooms } = useLiveAvailability();
   const { payments, notifications } = useLivePayments();
   const residents = loadResidents();
   const paymentAnalytics = calculatePaymentAnalytics(payments, residents);
-  const blockedBedNotifications = bookings.filter((booking) => booking.bookingStatus === "Pending").slice(0, 5);
+  const pendingBookings = bookings.filter((booking) => booking.bookingStatus === "Pending Approval");
+  const blockedBedNotifications = pendingBookings.slice(0, 5);
+  const wardenComplaintNotifications = complaints.filter((complaint) => complaint.raisedBy === "Warden" && complaint.status === "Open").slice(0, 5);
+  const pendingUpdateRequests = updateRequests.filter((request) => request.status === "Pending Approval");
+  const requestedAgo = (value) => {
+    const minutes = Math.max(0, Math.floor((Date.now() - new Date(value || Date.now()).getTime()) / 60000));
+    if (minutes < 1) return "just now";
+    if (minutes === 1) return "1 minute ago";
+    if (minutes < 60) return `${minutes} minutes ago`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+  };
 
   useEffect(() => {
     const branches = loadBranches();
@@ -36,21 +53,45 @@ const AdminDashboard = () => {
 
     window.addEventListener("focus", refreshBookings);
     window.addEventListener("storage", refreshBookings);
+    window.addEventListener("pg:bookings-updated", refreshBookings);
 
     return () => {
       window.removeEventListener("focus", refreshBookings);
       window.removeEventListener("storage", refreshBookings);
+      window.removeEventListener("pg:bookings-updated", refreshBookings);
+    };
+  }, []);
+
+  useEffect(() => {
+    const refreshComplaints = () => setComplaints(loadComplaints());
+    const refreshActivities = () => setWardenActivities(loadWardenActivities());
+    const refreshUpdateRequests = () => setUpdateRequests(loadStatusUpdateRequests());
+    window.addEventListener("pg:complaints-updated", refreshComplaints);
+    window.addEventListener("pg:warden-activities-updated", refreshActivities);
+    window.addEventListener("storage", refreshComplaints);
+    window.addEventListener("storage", refreshActivities);
+    window.addEventListener("pg:status-update-requests-updated", refreshUpdateRequests);
+    window.addEventListener("storage", refreshUpdateRequests);
+    return () => {
+      window.removeEventListener("pg:complaints-updated", refreshComplaints);
+      window.removeEventListener("pg:warden-activities-updated", refreshActivities);
+      window.removeEventListener("storage", refreshComplaints);
+      window.removeEventListener("storage", refreshActivities);
+      window.removeEventListener("pg:status-update-requests-updated", refreshUpdateRequests);
+      window.removeEventListener("storage", refreshUpdateRequests);
     };
   }, []);
 
   return (
     <div>
       <h1 className="text-2xl font-bold">Dashboard</h1>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <StatCard label="Branches" value={summary.branches ?? 0} />
         <StatCard label="Total beds" value={summary.totalBeds ?? 0} />
         <StatCard label="Occupancy" value={`${summary.occupancyRate ?? 0}%`} helper={`${summary.bookedBeds ?? 0} booked beds`} />
         <StatCard label="Revenue" value={`₹${summary.revenue ?? 0}`} />
+        <StatCard label="Pending Approval" value={pendingBookings.length} />
+        <StatCard label="Pending Update Requests" value={pendingUpdateRequests.length} />
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -58,6 +99,13 @@ const AdminDashboard = () => {
         <StatCard label="Today's Collection" value={formatCurrency(paymentAnalytics.todayCollection)} />
         <StatCard label="Pending Rent" value={formatCurrency(paymentAnalytics.pendingRent)} />
         <StatCard label="Overdue Payments" value={formatCurrency(paymentAnalytics.overduePayments)} />
+      </div>
+
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Open Complaints" value={complaints.filter((item) => item.status === "Open").length} />
+        <StatCard label="In Progress" value={complaints.filter((item) => item.status === "In Progress").length} />
+        <StatCard label="Resolved" value={complaints.filter((item) => item.status === "Resolved").length} />
+        <StatCard label="Closed" value={complaints.filter((item) => item.status === "Closed").length} />
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-3">
@@ -110,17 +158,63 @@ const AdminDashboard = () => {
       </Card>
 
       <Card className="mt-5">
-        <h2 className="text-lg font-bold text-ink">Blocked Bed Notifications</h2>
+        <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-widest text-orange-600">🔔 New Bed Block Request</p><h2 className="mt-1 text-lg font-bold text-ink">Pending Approval Notifications</h2></div><span className="rounded-full bg-orange-500 px-3 py-1 text-xs font-bold text-white">{pendingBookings.length}</span></div>
         <div className="mt-4 grid gap-3">
           {blockedBedNotifications.map((booking) => (
-            <div key={booking.id} className="rounded-xl border border-brand/20 bg-brand/10 p-3 text-sm">
-              <p className="font-semibold text-ink">{booking.customerName} blocked {booking.bedName}</p>
-              <p className="mt-1 text-slate-600">{booking.phone} · {booking.branchName} · Room {booking.roomNumber}</p>
+            <div key={booking.id} className="grid gap-3 rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Resident</span><strong className="text-ink">{booking.customerName}</strong></p>
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Mobile</span><strong className="text-ink">{booking.phone}</strong></p>
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Branch</span><strong className="text-ink">{booking.branchName}</strong></p>
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Room</span><strong className="text-ink">{booking.roomNumber}</strong></p>
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Bed</span><strong className="text-ink">{booking.bedName}</strong></p>
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Requested</span><strong className="text-ink">{requestedAgo(booking.blockedAt)}</strong></p>
+              <p className="sm:col-span-2 lg:col-span-3"><span className="block text-xs font-bold uppercase text-slate-500">Status</span><strong className="text-orange-700">Pending Approval</strong></p>
             </div>
           ))}
           {!blockedBedNotifications.length && <p className="rounded-xl bg-paper p-4 text-sm font-semibold text-slate-500">No blocked bed notifications yet.</p>}
         </div>
       </Card>
+
+      <Card className="mt-5">
+        <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-widest text-orange-600">🔔 New Room/Bed Update Request</p><h2 className="mt-1 text-lg font-bold text-ink">Pending Warden Requests</h2></div><span className="rounded-full bg-orange-500 px-3 py-1 text-xs font-bold text-white">{pendingUpdateRequests.length}</span></div>
+        <div className="mt-4 grid gap-3">
+          {pendingUpdateRequests.slice(0, 5).map((request) => <div key={request.id} className="grid gap-3 rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm sm:grid-cols-2 lg:grid-cols-4"><p><span className="block text-xs font-bold uppercase text-slate-500">Branch</span><strong>{request.branchName}</strong></p><p><span className="block text-xs font-bold uppercase text-slate-500">Room / Bed</span><strong>{request.roomNumber} · {request.bedName}</strong></p><p><span className="block text-xs font-bold uppercase text-slate-500">Current Status</span><strong>{request.currentStatus}</strong></p><p><span className="block text-xs font-bold uppercase text-slate-500">Requested Status</span><strong className="text-orange-700">{request.requestedStatus}</strong></p><p><span className="block text-xs font-bold uppercase text-slate-500">Updated By</span><strong>{request.wardenName}</strong></p><p><span className="block text-xs font-bold uppercase text-slate-500">Time</span><strong>{new Date(request.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</strong></p><p className="sm:col-span-2"><span className="block text-xs font-bold uppercase text-slate-500">Status</span><strong className="text-orange-700">Pending Approval</strong></p></div>)}
+          {!pendingUpdateRequests.length && <p className="rounded-xl bg-paper p-4 text-sm font-semibold text-slate-500">No pending room or bed update requests.</p>}
+        </div>
+      </Card>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-2">
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <div><p className="text-xs font-bold uppercase tracking-widest text-brand">🔔 New Complaint</p><h2 className="mt-1 text-lg font-bold text-ink">Warden Notifications</h2></div>
+            <span className="rounded-full bg-brand px-3 py-1 text-xs font-bold text-white">{wardenComplaintNotifications.length}</span>
+          </div>
+          <div className="mt-4 space-y-3">
+            {wardenComplaintNotifications.map((complaint) => (
+              <div key={complaint.id} className="rounded-xl border border-brand/20 bg-brand/5 p-4 text-sm">
+                <p className="font-bold text-ink">{complaint.title}</p>
+                <p className="mt-2 text-slate-600">{complaint.branchName} · Raised by Warden</p>
+                <p className="mt-1 text-slate-600">{complaint.category} · <strong className="text-brand">{complaint.priority}</strong> · {complaint.status}</p>
+              </div>
+            ))}
+            {!wardenComplaintNotifications.length && <p className="rounded-xl bg-paper p-4 text-sm font-semibold text-slate-500">No new Warden complaints.</p>}
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className="text-lg font-bold text-ink">Warden Activity Log</h2>
+          <div className="mt-4 space-y-3">
+            {wardenActivities.slice(0, 8).map((activity) => (
+              <div key={activity.id} className="rounded-xl bg-paper p-4 text-sm">
+                <div className="flex flex-wrap justify-between gap-2"><strong className="text-ink">{activity.wardenName} ({activity.branchName})</strong><span className="text-slate-500">{new Date(activity.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span></div>
+                <p className="mt-2 font-semibold text-brand">{activity.action}</p>
+                <p className="mt-1 text-slate-600">{activity.residentName ? `${activity.residentName} · ` : ""}{activity.roomNumber ? `Room ${activity.roomNumber}` : ""}{activity.bedName ? ` · ${activity.bedName}` : ""}</p>
+              </div>
+            ))}
+            {!wardenActivities.length && <p className="rounded-xl bg-paper p-4 text-sm font-semibold text-slate-500">Warden check-in, check-out, room, and bed updates will appear here.</p>}
+          </div>
+        </Card>
+      </div>
 
       <Card className="mt-5">
         <h2 className="text-lg font-bold text-ink">Payment Notifications</h2>

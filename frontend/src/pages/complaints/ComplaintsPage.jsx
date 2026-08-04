@@ -17,7 +17,7 @@ import {
   UserCheck,
   X
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import StatCard from "../../components/ui/StatCard";
@@ -51,8 +51,8 @@ const statusStyles = {
   Escalated: "bg-paper text-brandDark"
 };
 
-const ADMIN_CATEGORIES = ["Maintenance", "Electrical", "Plumbing", "Cleaning", "Water", "WiFi", "Food", "Laundry", "Security", "Housekeeping", "AC", "Fan", "Other"];
-const ADMIN_STATUSES = ["Open", "Assigned", "In Progress", "Waiting for Resident", "Resolved", "Closed", "Escalated"];
+const ADMIN_CATEGORIES = COMPLAINT_CATEGORIES;
+const ADMIN_STATUSES = ["Open", "In Progress", "Resolved", "Closed"];
 
 const categoryAliases = {
   Cleaning: "Room Cleaning",
@@ -60,9 +60,7 @@ const categoryAliases = {
   AC: "Air Conditioner"
 };
 
-const statusAliases = {
-  Open: "New"
-};
+const statusAliases = {};
 
 const priorityStyles = {
   Low: "bg-slate-100 text-slate-700",
@@ -113,7 +111,7 @@ const isInDateRange = (value, range) => {
   return true;
 };
 
-const nowStamp = () => "2026-07-18 10:30";
+const nowStamp = () => new Date().toLocaleString("en-IN", { hour12: false });
 
 const Pill = ({ value, type = "status" }) => (
   <span className={`rounded-full px-3 py-1 text-xs font-bold ${type === "priority" ? priorityStyles[value] : statusStyles[value]}`}>
@@ -169,7 +167,7 @@ const ImageUploader = ({ images, onChange, error }) => {
 
   return (
     <div>
-      <span className="mb-2 block text-sm font-semibold text-ink">Upload Images</span>
+      <span className="mb-2 block text-sm font-semibold text-ink">Upload Image (Optional)</span>
       <div className="grid gap-3 sm:grid-cols-[repeat(5,minmax(0,1fr))]">
         {images.map((image, index) => (
           <div key={`${image}-${index}`} className="relative h-24 overflow-hidden rounded-xl border border-line bg-paper">
@@ -195,8 +193,8 @@ const ImageUploader = ({ images, onChange, error }) => {
   );
 };
 
-const RaiseComplaintModal = ({ resident, complaints, userId, onClose, onSave }) => {
-  const [form, setForm] = useState({ category: "Maintenance", priority: "Medium", title: "", description: "", images: [] });
+const RaiseComplaintModal = ({ resident, complaints, userId, raisedBy = "Resident", onClose, onSave }) => {
+  const [form, setForm] = useState({ category: "Electrical", priority: "Medium", title: "", description: "", images: [] });
   const [errors, setErrors] = useState({});
 
   const submit = () => {
@@ -223,17 +221,17 @@ const RaiseComplaintModal = ({ resident, complaints, userId, onClose, onSave }) 
       priority: form.priority,
       title: form.title.trim(),
       description: form.description.trim(),
-      status: "New",
+      status: "Open",
+      raisedBy,
       assignedWarden: resident.assignedWarden || "Unassigned",
       assignedWardenId: "",
       createdDate: today,
       images: form.images,
       comments: [],
       timeline: [
-        { label: "Complaint Created", note: "Resident raised complaint", date: nowStamp() },
-        { label: "Assigned to Warden", note: `Notification sent to ${resident.assignedWarden || "branch warden"}`, date: nowStamp() }
+        { label: "Open", note: `${raisedBy} raised complaint`, date: nowStamp() }
       ],
-      statusHistory: ["New"],
+      statusHistory: ["Open"],
       resolutionNotes: "",
       escalationReason: "",
       escalationDescription: "",
@@ -243,7 +241,7 @@ const RaiseComplaintModal = ({ resident, complaints, userId, onClose, onSave }) 
   };
 
   return (
-    <Modal title="Raise Complaint" onClose={onClose}>
+    <Modal title={raisedBy === "Warden" ? "Create Complaint" : "Raise Complaint"} onClose={onClose}>
       <div className="grid gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Complaint Category" required error={errors.category}>
@@ -319,7 +317,8 @@ const ComplaintDetails = ({ complaint, role, wardens, onClose, onComment, onStat
                 ["Room", complaint.roomNumber],
                 ["Bed", complaint.bedName],
                 ["Category", displayCategory(complaint.category)],
-                ["Priority", complaint.priority]
+                ["Priority", complaint.priority],
+                ["Technician", complaint.assignedTechnician || "Unassigned"]
               ].map(([label, value]) => (
                 <div key={label} className="rounded-xl bg-paper p-3">
                   <p className="text-xs font-semibold uppercase text-slate-500">{label}</p>
@@ -407,6 +406,13 @@ const ComplaintDetails = ({ complaint, role, wardens, onClose, onComment, onStat
           <Card>
             <h3 className="text-lg font-bold text-ink">Status History</h3>
             <div className="mt-3 flex flex-wrap gap-2">{complaint.statusHistory.map((item) => <Pill key={item} value={item} />)}</div>
+            <div className="mt-5 grid grid-cols-4 gap-2" aria-label="Complaint progress">
+              {COMPLAINT_STATUSES.map((status, index) => {
+                const currentIndex = COMPLAINT_STATUSES.indexOf(complaint.status);
+                const reached = index <= currentIndex;
+                return <div key={status} className={`rounded-xl px-2 py-3 text-center text-xs font-bold transition-colors duration-300 ${reached ? "bg-brand text-white" : "bg-paper text-slate-500"}`}>{status}</div>;
+              })}
+            </div>
           </Card>
 
           <Card className="space-y-4">
@@ -501,11 +507,27 @@ const ComplaintDetails = ({ complaint, role, wardens, onClose, onComment, onStat
   );
 };
 
-const AdminActionModal = ({ action, complaint, wardens, onClose, onAssign, onStatus, onDelete }) => {
+const AdminActionModal = ({ action, complaint, wardens, onClose, onAssign, onTechnician, onStatus, onDelete }) => {
   const branchWardens = wardens.filter((warden) => warden.branchName === complaint.branchName);
   const [wardenId, setWardenId] = useState(complaint.assignedWardenId || branchWardens[0]?.id || "");
   const [status, setStatus] = useState(displayStatus(complaint.status));
   const [note, setNote] = useState("");
+
+  if (action === "technician") {
+    return (
+      <Modal title="Assign Technician" onClose={onClose}>
+        <div className="space-y-4">
+          <Field label="Technician Name" required>
+            <input className={fieldClass} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Enter technician or vendor name" />
+          </Field>
+          <div className="flex justify-end gap-3 border-t border-line pt-4">
+            <Button variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button disabled={!note.trim()} onClick={() => onTechnician(complaint.id, note.trim())}><UserCheck className="h-4 w-4" /> Assign Technician</Button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   if (action === "assign" || action === "reassign") {
     return (
@@ -598,7 +620,28 @@ const ComplaintsPage = ({ role }) => {
   const [adminAction, setAdminAction] = useState(null);
 
   const currentResident = residents.find((resident) => resident.id === currentResidentByUser[user?.id]) || residents[0];
-  const wardenBranch = wardenBranchByUser[user?.id] || wardens.find((warden) => warden.email === user?.email)?.branchName || "Anna Nagar";
+  const assignedWarden = wardens.find((warden) => warden.email === user?.email || warden.employeeId === user?.employeeId);
+  const wardenBranch = user?.branchName || wardenBranchByUser[user?.id] || assignedWarden?.branchName || "Anna Nagar";
+  const wardenComplaintSubject = {
+    id: "WARDEN",
+    fullName: user?.name || "Warden",
+    phone: assignedWarden?.phone || "-",
+    branchId: user?.branchId || assignedWarden?.branchId || "anna-nagar",
+    branchName: wardenBranch,
+    roomNumber: "Branch",
+    bedName: "General",
+    assignedWarden: user?.name || (assignedWarden ? `${assignedWarden.firstName} ${assignedWarden.lastName}` : "Warden")
+  };
+
+  useEffect(() => {
+    const refresh = () => setComplaints(loadComplaints());
+    window.addEventListener("pg:complaints-updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("pg:complaints-updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
 
   const scopedComplaints = useMemo(() => {
     if (role === ROLES.USER) return complaints.filter((complaint) => complaint.userId === user?.id);
@@ -650,8 +693,14 @@ const ComplaintsPage = ({ role }) => {
     if (!warden) return;
     persist(complaints.map((complaint) => {
       if (complaint.id !== id) return complaint;
-      return appendTimeline({ ...complaint, status: "Assigned", assignedWarden: `${warden.firstName} ${warden.lastName}`, assignedWardenId: warden.id }, "Assigned", `Assigned to ${warden.firstName} ${warden.lastName}. Warden notification queued.`);
+      return appendTimeline({ ...complaint, assignedWarden: `${warden.firstName} ${warden.lastName}`, assignedWardenId: warden.id }, "Open", `Assigned to ${warden.firstName} ${warden.lastName}. Warden notification queued.`);
     }));
+  };
+
+  const assignTechnician = (id, technician) => {
+    persist(complaints.map((complaint) => complaint.id === id
+      ? appendTimeline({ ...complaint, assignedTechnician: technician, status: "In Progress" }, "In Progress", `Technician ${technician} assigned. Warden notification queued.`)
+      : complaint));
   };
 
   const escalateComplaint = (id, escalation) => {
@@ -659,10 +708,10 @@ const ComplaintsPage = ({ role }) => {
       if (complaint.id !== id) return complaint;
       return appendTimeline({
         ...complaint,
-        status: "Escalated",
+        status: "In Progress",
         escalationReason: escalation.reason.trim(),
         escalationDescription: escalation.description.trim()
-      }, "Escalated", `${escalation.reason.trim()}. Admin notification queued.`);
+      }, "In Progress", `${escalation.reason.trim()}. Admin notification queued.`);
     }));
   };
 
@@ -733,7 +782,7 @@ const ComplaintsPage = ({ role }) => {
             </Button>
           </div>
         )}
-        {role === ROLES.USER && <Button onClick={() => setRaiseOpen(true)}><Plus className="h-4 w-4" /> Raise Complaint</Button>}
+        {(role === ROLES.USER || role === ROLES.WARDEN) && <Button onClick={() => setRaiseOpen(true)}><Plus className="h-4 w-4" /> {role === ROLES.WARDEN ? "Create Complaint" : "Raise Complaint"}</Button>}
       </div>
 
       {role === ROLES.USER ? (
@@ -745,10 +794,10 @@ const ComplaintsPage = ({ role }) => {
         </div>
       ) : role === ROLES.WARDEN ? (
         <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="New Complaints" value={stats.new} />
+          <StatCard label="Open Complaints" value={stats.open} />
           <StatCard label="In Progress" value={stats.inProgress} />
           <StatCard label="Resolved" value={stats.resolved} />
-          <StatCard label="Escalated" value={stats.escalated} />
+          <StatCard label="Closed" value={stats.closed} />
         </div>
       ) : (
         <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
@@ -847,7 +896,7 @@ const ComplaintsPage = ({ role }) => {
         </div>
       </Card>
 
-      {raiseOpen && <RaiseComplaintModal resident={currentResident} complaints={complaints} userId={user?.id || "dev-user"} onClose={() => setRaiseOpen(false)} onSave={createComplaint} />}
+      {raiseOpen && <RaiseComplaintModal resident={role === ROLES.WARDEN ? wardenComplaintSubject : currentResident} complaints={complaints} userId={user?.id || "dev-user"} raisedBy={role === ROLES.WARDEN ? "Warden" : "Resident"} onClose={() => setRaiseOpen(false)} onSave={createComplaint} />}
       {selected && (
         <ComplaintDetails
           complaint={selected}
@@ -871,6 +920,10 @@ const ComplaintsPage = ({ role }) => {
             assignComplaint(id, wardenId);
             setAdminAction(null);
           }}
+          onTechnician={(id, technician) => {
+            assignTechnician(id, technician);
+            setAdminAction(null);
+          }}
           onStatus={(id, status, note, resolutionNotes) => {
             updateStatus(id, status, note, resolutionNotes);
             setAdminAction(null);
@@ -890,17 +943,14 @@ const FilterSelect = ({ label, value, onChange, options, allLabel = "All" }) => 
 
 const QuickWardenActions = ({ complaint, onStatus, onEscalate }) => (
   <>
-    <Button variant="secondary" className="px-3" disabled={complaint.status === "Closed"} onClick={() => onStatus(complaint.id, "Assigned", "Assigned to warden")}>Assign</Button>
     <Button variant="secondary" className="px-3" disabled={complaint.status === "Closed"} onClick={() => onStatus(complaint.id, "In Progress", "Work started")}>Start Work</Button>
     <Button variant="secondary" className="px-3" disabled={complaint.status === "Closed"} onClick={() => onStatus(complaint.id, "Resolved", "Complaint resolved")}>Resolve</Button>
-    <Button variant="danger" className="px-3" disabled={complaint.status === "Closed"} onClick={() => onEscalate(complaint.id, { reason: "Needs admin approval", description: "Escalated from warden quick action." })}>Escalate</Button>
   </>
 );
 
 const QuickAdminActions = ({ complaint, onAction }) => (
   <>
-    <Button variant="secondary" className="px-3" disabled={complaint.status === "Closed"} onClick={() => onAction("assign")}>Assign Warden</Button>
-    <Button variant="secondary" className="px-3" disabled={complaint.status === "Closed"} onClick={() => onAction("reassign")}>Reassign Warden</Button>
+    <Button variant="secondary" className="px-3" disabled={complaint.status === "Closed"} onClick={() => onAction("technician")}>Assign Technician</Button>
     <Button variant="secondary" className="px-3" disabled={complaint.status === "Closed"} onClick={() => onAction("status")}>Change Status</Button>
     <Button variant="secondary" className="px-3" disabled={complaint.status === "Closed"} onClick={() => onAction("close")}>Close Complaint</Button>
     <Button variant="danger" className="px-3" disabled={complaint.status !== "Closed"} onClick={() => onAction("delete")}>Delete</Button>

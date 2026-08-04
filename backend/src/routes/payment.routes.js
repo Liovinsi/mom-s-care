@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.use(authenticate);
 router.get("/", controller.list);
-router.post("/", authorize("SUPER_ADMIN", "WARDEN"), controller.create);
-router.patch("/:id/paid", authorize("SUPER_ADMIN", "WARDEN"), mongoId(), validate, controller.markPaid);
+router.post("/", authorize("GUEST", "SUPER_ADMIN", "WARDEN"), controller.create);
+router.patch("/:id/paid", authorize("GUEST", "SUPER_ADMIN", "WARDEN"), mongoId(), validate, controller.markPaid);
 
 module.exports = router;
