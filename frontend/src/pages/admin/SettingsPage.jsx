@@ -21,6 +21,7 @@ import {
 import { useMemo, useState } from "react";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
+import { digitsOnly, mobileInputProps, MOBILE_NUMBER_ERROR, MOBILE_NUMBER_REGEX } from "../../lib/mobileNumber";
 
 const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25 disabled:bg-paper disabled:text-slate-500";
 const textareaClass = `${fieldClass} min-h-28 py-3`;
@@ -156,7 +157,7 @@ const validateSection = (section, values) => {
     if (!String(values[field] || "").trim()) errors[field] = `${labels[field]} is required`;
   });
   if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) errors.email = "Enter a valid email";
-  if (values.phone && !/^\d{10}$/.test(values.phone)) errors.phone = "Enter a 10 digit phone number";
+  if (values.phone && !MOBILE_NUMBER_REGEX.test(values.phone)) errors.phone = MOBILE_NUMBER_ERROR;
   if (values.newPassword || values.confirmPassword) {
     if (values.newPassword.length < 8) errors.newPassword = "Password must be at least 8 characters";
     if (values.newPassword !== values.confirmPassword) errors.confirmPassword = "Passwords do not match";
@@ -246,7 +247,8 @@ const SettingsPage = () => {
       <input
         className={fieldClass}
         value={settings[section][field]}
-        onChange={(event) => update(section, field, event.target.value)}
+        onChange={(event) => update(section, field, field === "phone" ? digitsOnly(event.target.value) : event.target.value)}
+        {...(field === "phone" ? mobileInputProps : {})}
         {...props}
       />
     </Field>

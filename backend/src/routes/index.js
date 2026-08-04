@@ -7,6 +7,7 @@ router.get("/health", (_req, res) => {
 });
 
 router.use("/auth", require("./auth.routes"));
+router.use("/admin", require("./admin.routes"));
 router.use("/branches", require("./branch.routes"));
 router.use("/rooms", require("./room.routes"));
 router.use("/beds", require("./bed.routes"));

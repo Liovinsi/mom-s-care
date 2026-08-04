@@ -8,6 +8,7 @@ import { AREAS, loadBranches } from "../../data/adminBranches";
 import { BED_STATUSES, BED_TYPES, luxuryBedImage } from "../../data/adminBeds";
 import { loadRooms } from "../../data/adminRooms";
 import { saveAvailabilitySnapshot, useLiveAvailability } from "../../lib/liveAvailability";
+import { authenticatedFetch } from "../../services/apiClient";
 
 const rowsPerPage = 10;
 const maxImageSize = 5 * 1024 * 1024;
@@ -19,6 +20,7 @@ const emptyBed = {
   branchName: "",
   roomId: "",
   roomNumber: "",
+  floor: "",
   sharingType: "",
   bedName: "",
   bedCode: "",
@@ -81,7 +83,7 @@ const validateImageFile = (file) => {
 const validateBed = (bed, beds, editingId) => {
   const errors = {};
   if (!bed.branchId) errors.branchId = "Branch is required";
-  if (!bed.roomId) errors.roomId = "Room is required";
+  if (!bed.roomId) errors.roomId = "Please select a room.";
   if (!bed.bedName.trim()) errors.bedName = "Bed name is required";
   if (!bed.bedCode.trim()) errors.bedCode = "Bed code is required";
   if (bed.bedType === "Bunk Cot" && !["Upper", "Lower"].includes(bed.position)) errors.position = "Bunk position is required";
@@ -128,8 +130,43 @@ const BedDrawer = ({ bed, beds, rooms, branches, onClose, onSave }) => {
   const [form, setForm] = useState(bed || emptyBed);
   const [errors, setErrors] = useState({});
   const [imageError, setImageError] = useState("");
+  const [branchRooms, setBranchRooms] = useState(() => bed ? rooms.filter((room) => room.branchId === bed.branchId) : []);
+  const [roomsLoading, setRoomsLoading] = useState(false);
   const editingId = bed?.id;
-  const roomOptions = rooms.filter((room) => room.branchId === form.branchId);
+
+  useEffect(() => {
+    if (!form.branchId) {
+      setBranchRooms([]);
+      return undefined;
+    }
+    if (editingId) {
+      setBranchRooms(rooms.filter((room) => room.branchId === form.branchId));
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const selectedBranch = branches.find((item) => item.id === form.branchId);
+    const fallbackRooms = rooms.filter((room) => room.branchId === form.branchId);
+    setRoomsLoading(true);
+    authenticatedFetch(`/admin/rooms?branch=${encodeURIComponent(selectedBranch?.area || selectedBranch?.name || "")}`, { signal: controller.signal, skipUnauthorizedEvent: true })
+      .then((payload) => {
+        const fetchedRooms = (payload?.data || []).map((room) => ({
+          id: room._id || room.id,
+          branchId: form.branchId,
+          branchName: room.branch?.name || selectedBranch?.area || "",
+          roomNumber: room.name || room.roomNumber,
+          floor: room.floor,
+          sharingType: typeof room.sharingType === "number" ? `${room.sharingType} Sharing` : room.sharingType,
+          roomType: room.roomType
+        }));
+        setBranchRooms(fetchedRooms.length ? fetchedRooms : fallbackRooms);
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") setBranchRooms(fallbackRooms);
+      })
+      .finally(() => setRoomsLoading(false));
+    return () => controller.abort();
+  }, [form.branchId, editingId, rooms, branches]);
 
   const update = (field, value) => {
     setForm((current) => {
@@ -142,9 +179,10 @@ const BedDrawer = ({ bed, beds, rooms, branches, onClose, onSave }) => {
         next.sharingType = "";
       }
       if (field === "roomId") {
-        const room = rooms.find((item) => item.id === value);
+        const room = branchRooms.find((item) => item.id === value);
         next.roomNumber = room?.roomNumber || "";
         next.sharingType = room?.sharingType || "";
+        next.floor = room?.floor || "";
       }
       return next;
     });
@@ -189,14 +227,20 @@ const BedDrawer = ({ bed, beds, rooms, branches, onClose, onSave }) => {
               {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.area}</option>)}
             </select>
           </Field>
-          <Field label="Room" required error={errors.roomId}>
+          <Field label="Room" required error={errors.roomId || (form.branchId && !form.roomId && !roomsLoading ? "Please select a room." : "")}>
             <select className={fieldClass} value={form.roomId} onChange={(event) => update("roomId", event.target.value)} disabled={Boolean(editingId) || !form.branchId}>
-              <option value="">Select room</option>
-              {roomOptions.map((room) => <option key={room.id} value={room.id}>Room {room.roomNumber}</option>)}
+              <option value="">{roomsLoading ? "Loading rooms..." : "Select Room"}</option>
+              {branchRooms.map((room) => <option key={room.id} value={room.id}>Room {room.roomNumber}</option>)}
             </select>
           </Field>
-          <Field label="Bed Name" required error={errors.bedName}>
+          <Field label="Bed Number" required error={errors.bedName}>
             <input className={fieldClass} placeholder="Bed A" value={form.bedName} onChange={(event) => update("bedName", event.target.value)} />
+          </Field>
+          <Field label="Floor">
+            <input className={fieldClass} value={form.floor || ""} readOnly disabled placeholder="Selected room floor" />
+          </Field>
+          <Field label="Sharing Type">
+            <input className={fieldClass} value={form.sharingType || ""} readOnly disabled placeholder="Selected room sharing type" />
           </Field>
           <Field label="Bed Code" required error={errors.bedCode}>
             <input className={fieldClass} placeholder="BED101A" value={form.bedCode} onChange={(event) => update("bedCode", event.target.value.toUpperCase())} disabled={Boolean(editingId)} />
@@ -233,7 +277,7 @@ const BedDrawer = ({ bed, beds, rooms, branches, onClose, onSave }) => {
 
         <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-line pt-4">
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button type="submit">Save Bed</Button>
+          <Button type="submit" disabled={!form.branchId || !form.roomId || !form.bedName.trim() || roomsLoading}>Save Bed</Button>
         </div>
       </form>
     </div>

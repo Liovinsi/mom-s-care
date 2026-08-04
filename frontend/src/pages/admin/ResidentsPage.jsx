@@ -10,6 +10,7 @@ import { loadBookings, saveBookings } from "../../data/adminBookings";
 import { RESIDENT_GENDERS, RESIDENT_STATUSES, loadResidents, saveResidents } from "../../data/adminResidents";
 import { loadRooms } from "../../data/adminRooms";
 import { saveAvailabilitySnapshot } from "../../lib/liveAvailability";
+import { digitsOnly, mobileInputProps, MOBILE_NUMBER_ERROR, MOBILE_NUMBER_REGEX } from "../../lib/mobileNumber";
 
 const rowsPerPage = 10;
 const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
@@ -40,10 +41,11 @@ const DetailGrid = ({ items }) => (
   </div>
 );
 
-const Field = ({ label, children }) => (
+const Field = ({ label, error, children }) => (
   <label className="block">
     <span className="mb-2 block text-sm font-semibold text-ink">{label}</span>
     {children}
+    {error && <span className="mt-1 block text-xs font-semibold text-danger">{error}</span>}
   </label>
 );
 
@@ -180,6 +182,7 @@ const ResidentViewModal = ({ resident, onClose }) => (
 
 const ResidentEditModal = ({ resident, onClose, onSave }) => {
   const [form, setForm] = useState(resident);
+  const [errors, setErrors] = useState({});
   const update = (field, value) => setForm((current) => ({ ...current, [field]: value }));
 
   return (
@@ -187,6 +190,11 @@ const ResidentEditModal = ({ resident, onClose, onSave }) => {
       <form
         onSubmit={(event) => {
           event.preventDefault();
+          const nextErrors = {};
+          if (!MOBILE_NUMBER_REGEX.test(form.phone)) nextErrors.phone = MOBILE_NUMBER_ERROR;
+          if (!MOBILE_NUMBER_REGEX.test(form.emergencyPhone)) nextErrors.emergencyPhone = MOBILE_NUMBER_ERROR;
+          setErrors(nextErrors);
+          if (Object.keys(nextErrors).length) return;
           onSave(form);
         }}
         className="h-full w-full max-w-2xl overflow-y-auto bg-white p-5 shadow-luxury"
@@ -201,8 +209,8 @@ const ResidentEditModal = ({ resident, onClose, onSave }) => {
           </button>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Phone">
-            <input className={fieldClass} value={form.phone} onChange={(event) => update("phone", event.target.value)} />
+          <Field label="Phone" error={errors.phone}>
+            <input className={fieldClass} {...mobileInputProps} value={form.phone} onChange={(event) => update("phone", digitsOnly(event.target.value))} />
           </Field>
           <Field label="Email">
             <input type="email" className={fieldClass} value={form.email} onChange={(event) => update("email", event.target.value)} />
@@ -216,8 +224,8 @@ const ResidentEditModal = ({ resident, onClose, onSave }) => {
           <Field label="Relationship">
             <input className={fieldClass} value={form.relationship} onChange={(event) => update("relationship", event.target.value)} />
           </Field>
-          <Field label="Emergency Phone">
-            <input className={fieldClass} value={form.emergencyPhone} onChange={(event) => update("emergencyPhone", event.target.value)} />
+          <Field label="Emergency Phone" error={errors.emergencyPhone}>
+            <input className={fieldClass} {...mobileInputProps} value={form.emergencyPhone} onChange={(event) => update("emergencyPhone", digitsOnly(event.target.value))} />
           </Field>
           <div className="md:col-span-2">
             <Field label="Emergency Address">

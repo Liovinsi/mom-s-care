@@ -9,6 +9,7 @@ import { loadBeds, saveBeds } from "../../data/adminBeds";
 import { loadRooms } from "../../data/adminRooms";
 import { loadResidents, saveResidents } from "../../data/adminResidents";
 import { saveAvailabilitySnapshot } from "../../lib/liveAvailability";
+import { digitsOnly, mobileInputProps, MOBILE_NUMBER_ERROR, MOBILE_NUMBER_REGEX } from "../../lib/mobileNumber";
 
 const rowsPerPage = 10;
 const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/25";
@@ -201,7 +202,7 @@ const DirectBookingDialog = ({ bookings, beds, rooms, onClose, onCreate }) => {
     event.preventDefault();
     const nextErrors = {};
     if (!form.customerName.trim()) nextErrors.customerName = "Customer name is required";
-    if (!/^[6-9]\d{9}$/.test(form.phone.trim())) nextErrors.phone = "Enter a valid 10 digit mobile number";
+    if (!MOBILE_NUMBER_REGEX.test(form.phone.trim())) nextErrors.phone = MOBILE_NUMBER_ERROR;
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) nextErrors.email = "Enter a valid email address";
     if (!form.branchId) nextErrors.branchId = "Branch is required";
     if (!form.roomId) nextErrors.roomId = "Room is required";
@@ -270,7 +271,7 @@ const DirectBookingDialog = ({ bookings, beds, rooms, onClose, onCreate }) => {
           </label>
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-ink">Mobile Number *</span>
-            <input className={fieldClass} inputMode="numeric" maxLength="10" value={form.phone} onChange={(event) => update("phone", event.target.value)} />
+            <input className={fieldClass} {...mobileInputProps} value={form.phone} onChange={(event) => update("phone", digitsOnly(event.target.value))} />
             {errors.phone && <span className="mt-1 block text-xs font-semibold text-danger">{errors.phone}</span>}
           </label>
           <label className="block">

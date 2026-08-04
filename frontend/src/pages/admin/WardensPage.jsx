@@ -9,6 +9,7 @@ import { loadBeds } from "../../data/adminBeds";
 import { loadResidents } from "../../data/adminResidents";
 import { loadRooms } from "../../data/adminRooms";
 import { WARDEN_GENDERS, WARDEN_ROLE, WARDEN_STATUSES, loadWardens, saveWardens } from "../../data/adminWardens";
+import { digitsOnly, mobileInputProps, MOBILE_NUMBER_ERROR, MOBILE_NUMBER_REGEX } from "../../lib/mobileNumber";
 
 const rowsPerPage = 10;
 const maxImageSize = 5 * 1024 * 1024;
@@ -125,7 +126,7 @@ const validateWarden = (warden, wardens, editingId) => {
   if (!warden.lastName.trim()) errors.lastName = "Last name is required";
   if (!warden.gender) errors.gender = "Gender is required";
   if (!warden.dob) errors.dob = "Date of birth is required";
-  if (!warden.phone.trim()) errors.phone = "Phone is required";
+  if (!MOBILE_NUMBER_REGEX.test(warden.phone.trim())) errors.phone = MOBILE_NUMBER_ERROR;
   if (!warden.email.trim()) errors.email = "Email is required";
   if (!warden.employeeId.trim()) errors.employeeId = "Employee ID is required";
   if (!warden.joiningDate) errors.joiningDate = "Joining date is required";
@@ -239,7 +240,7 @@ const WardenDrawer = ({ warden, wardens, branches, onClose, onSave }) => {
               <input type="date" className={fieldClass} value={form.dob} onChange={(event) => update("dob", event.target.value)} disabled={Boolean(editingId)} />
             </Field>
             <Field label="Phone" required error={errors.phone}>
-              <input className={fieldClass} value={form.phone} onChange={(event) => update("phone", event.target.value)} />
+              <input className={fieldClass} {...mobileInputProps} value={form.phone} onChange={(event) => update("phone", digitsOnly(event.target.value))} />
             </Field>
             <Field label="Email" required error={errors.email}>
               <input type="email" className={fieldClass} value={form.email} onChange={(event) => update("email", event.target.value)} />

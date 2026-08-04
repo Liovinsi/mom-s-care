@@ -1,4 +1,4 @@
-import { BarChart3, BedDouble, Bell, Building2, CreditCard, FileText, Home, LogOut, MessageSquareWarning, Moon, Settings, Sun, Users } from "lucide-react";
+import { BarChart3, BedDouble, Bell, Building2, CreditCard, FileText, Home, LogOut, Menu, MessageSquareWarning, Moon, Settings, Sun, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -16,9 +16,8 @@ const adminLinks = [
   ["Residents", "/pgbooking/admin/residents", Users],
   ["Wardens", "/pgbooking/admin/wardens", Users],
   ["Payments", "/pgbooking/admin/payments", CreditCard],
-  ["Complaint Management", "/pgbooking/admin/complaints", MessageSquareWarning],
-  ["Update Requests", "/pgbooking/admin/update-requests", Bell],
-  ["Reports & Analytics", "/pgbooking/admin/reports", BarChart3],
+  ["Complaints", "/pgbooking/admin/complaints", MessageSquareWarning],
+  ["Reports", "/pgbooking/admin/reports", BarChart3],
   ["Settings", "/pgbooking/admin/settings", Settings]
 ];
 
@@ -36,6 +35,7 @@ const DashboardLayout = ({ role }) => {
   const [pendingCount, setPendingCount] = useState(() => loadBookings().filter((booking) => booking.bookingStatus === "Pending Approval").length);
   const [complaintCount, setComplaintCount] = useState(() => loadComplaints().filter((complaint) => complaint.raisedBy === "Warden" && complaint.status === "Open").length);
   const [updateRequestCount, setUpdateRequestCount] = useState(() => loadStatusUpdateRequests().filter((request) => request.status === "Pending Approval").length);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const refreshCount = () => setPendingCount(loadBookings().filter((booking) => booking.bookingStatus === "Pending Approval").length);
@@ -66,20 +66,39 @@ const DashboardLayout = ({ role }) => {
   };
   const links = linksByRole[role] ?? adminLinks;
 
+  useEffect(() => {
+    if (!drawerOpen) return undefined;
+    const closeOnEscape = (event) => event.key === "Escape" && setDrawerOpen(false);
+    document.addEventListener("keydown", closeOnEscape);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      document.body.style.overflow = "";
+    };
+  }, [drawerOpen]);
+
+  const handleLogout = () => {
+    setDrawerOpen(false);
+    logout();
+  };
+
   return (
-    <div className="min-h-screen bg-paper lg:grid lg:grid-cols-[260px_1fr]">
-      <aside className="border-r border-slate-200 bg-white p-4 lg:min-h-screen">
-        <div className="mb-5 flex items-center gap-2 text-lg font-bold">
+    <div className="min-h-screen overflow-x-hidden bg-paper lg:grid lg:grid-cols-[260px_1fr]">
+      <button type="button" aria-label="Close navigation" onClick={() => setDrawerOpen(false)} className={`fixed inset-0 z-40 bg-ink/45 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden ${drawerOpen ? "opacity-100" : "pointer-events-none opacity-0"}`} />
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[min(86vw,320px)] flex-col border-r border-line bg-white p-5 shadow-luxury transition-transform duration-300 ease-out lg:static lg:z-auto lg:w-auto lg:min-h-screen lg:translate-x-0 lg:p-4 lg:shadow-none ${drawerOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="mb-6 flex items-center gap-3 text-lg font-bold text-ink">
           <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-brand/20 bg-white shadow-soft">
             <img src="/logo.jpeg" alt="PG Stay logo" className="h-full w-full object-cover" />
           </span>
-          <span>PGStay</span>
+          <span className="min-w-0 flex-1">PGStay<span className="block text-[10px] font-bold uppercase tracking-[0.28em] text-muted">Admin Portal</span></span>
+          <button type="button" onClick={() => setDrawerOpen(false)} className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink lg:hidden" aria-label="Close menu"><X className="h-5 w-5" /></button>
         </div>
-        <nav className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible">
+        <nav className="scrollbar-thin flex flex-1 flex-col gap-2 overflow-y-auto pb-4">
           {links.map(([label, to, Icon]) => (
             <NavLink
               key={to}
               to={to}
+              onClick={() => setDrawerOpen(false)}
               end={to.endsWith("/dashboard")}
               className={({ isActive }) =>
                 `flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${isActive ? "bg-mint text-white" : "text-slate-600 hover:bg-slate-50"}`
@@ -88,17 +107,20 @@ const DashboardLayout = ({ role }) => {
               <Icon className="h-4 w-4" />
               {label}
               {role === "ADMIN" && label === "Bookings" && pendingCount > 0 && <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{pendingCount}</span>}
-              {role === "ADMIN" && label === "Complaint Management" && complaintCount > 0 && <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-bold text-white">{complaintCount}</span>}
-              {role === "ADMIN" && label === "Update Requests" && updateRequestCount > 0 && <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{updateRequestCount}</span>}
+              {role === "ADMIN" && label === "Complaints" && complaintCount > 0 && <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-bold text-white">{complaintCount}</span>}
             </NavLink>
           ))}
         </nav>
+        <button type="button" onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl border border-line px-3 py-3 text-left text-sm font-semibold text-secondary transition hover:border-brand hover:bg-paper hover:text-brandDark lg:hidden"><LogOut className="h-4 w-4" /> Logout</button>
       </aside>
       <main className="min-w-0">
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
-          <div>
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-xl">
+          <div className="flex min-w-0 items-center gap-3">
+            <button type="button" onClick={() => setDrawerOpen(true)} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line text-ink lg:hidden" aria-label="Open menu" aria-expanded={drawerOpen}><Menu className="h-5 w-5" /></button>
+            <div className="min-w-0">
             <p className="text-sm text-slate-500">{roleLabels[role] ?? "Dashboard"}</p>
-            <h1 className="text-lg font-semibold">{user?.name}</h1>
+            <h1 className="truncate text-base font-semibold text-ink sm:text-lg">{user?.name}</h1>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {role === "ADMIN" && <span className="relative grid h-10 w-10 place-items-center rounded-md border bg-white text-mint" aria-label={`${pendingCount + complaintCount + updateRequestCount} pending notifications`}><Bell className="h-4 w-4" />{pendingCount + complaintCount + updateRequestCount > 0 && <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white">{pendingCount + complaintCount + updateRequestCount}</span>}</span>}
@@ -110,7 +132,7 @@ const DashboardLayout = ({ role }) => {
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <button onClick={logout} className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
+            <button onClick={handleLogout} className="hidden items-center gap-2 rounded-md border px-3 py-2 text-sm lg:inline-flex">
               <LogOut className="h-4 w-4" /> Logout
             </button>
           </div>

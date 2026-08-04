@@ -6,6 +6,7 @@ import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import StatCard from "../../components/ui/StatCard";
 import { loadAmenities, loadBranches, saveAmenities, saveBranches } from "../../data/adminBranches";
+import { digitsOnly, mobileInputProps, MOBILE_NUMBER_ERROR, MOBILE_NUMBER_REGEX } from "../../lib/mobileNumber";
 
 const rowsPerPage = 10;
 
@@ -70,8 +71,8 @@ const validateBranch = (branch, branches, editingId) => {
     if (!String(branch[field] || "").trim()) errors[field] = "Required";
   });
 
-  if (branch.contactNumber && !/^[6-9]\d{9}$/.test(branch.contactNumber)) {
-    errors.contactNumber = "Enter a valid 10 digit phone number";
+  if (branch.contactNumber && !MOBILE_NUMBER_REGEX.test(branch.contactNumber)) {
+    errors.contactNumber = MOBILE_NUMBER_ERROR;
   }
   if (branch.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(branch.email)) {
     errors.email = "Enter a valid email address";
@@ -316,7 +317,7 @@ const BranchModal = ({ branch, branches, amenities, onAmenitiesChange, onClose, 
             <input className={fieldClass} value={form.pincode} onChange={(e) => update("pincode", e.target.value)} />
           </Field>
           <Field label="Contact Number" required error={errors.contactNumber}>
-            <input className={fieldClass} value={form.contactNumber} onChange={(e) => update("contactNumber", e.target.value)} />
+            <input className={fieldClass} {...mobileInputProps} value={form.contactNumber} onChange={(e) => update("contactNumber", digitsOnly(e.target.value))} />
           </Field>
           <Field label="Email" error={errors.email}>
             <input className={fieldClass} value={form.email} onChange={(e) => update("email", e.target.value)} />
