@@ -217,35 +217,47 @@ const legacyDefaultRooms = [
   }
 ];
 
-const canonicalRoom = (id, branchId, branchName, roomNumber, floor, roomType, monthlyRent, signature) => ({
-  id,
-  branchId,
-  branchName,
-  roomNumber,
-  floor,
-  sharingType: "4 Sharing",
-  roomType,
-  monthlyRent,
-  securityDeposit: monthlyRent * 2,
-  size: "320",
-  description: `Well-maintained four-sharing ${roomType} room with individual storage and study space.`,
-  status: "Available",
-  amenities: ["Attached Bathroom", "Study Table", "Wardrobe", "Fan", "Geyser", "Window", "Mirror", ...(roomType === "AC" ? ["Air Conditioner"] : [])],
-  images: roomImages("photo-1595526114035-0d45ed16cfbf", signature),
-  beds: 4,
-  availableBeds: 3,
-  occupiedBeds: 1
-});
+export const getBedsForSharing = (sharingType) => Number(String(sharingType).split(" ")[0]) || 0;
 
+const canonicalRoom = (id, branchId, branchName, roomNumber, floor, roomType, monthlyRent, signature, sharingType) => {
+  const beds = getBedsForSharing(sharingType);
+  return {
+    id,
+    branchId,
+    branchName,
+    roomNumber,
+    floor,
+    sharingType,
+    roomType,
+    monthlyRent,
+    securityDeposit: monthlyRent * 2,
+    size: "320",
+    description: `Well-maintained ${sharingType.toLowerCase()} ${roomType} room with individual storage and study space.`,
+    status: "Available",
+    amenities: ["Attached Bathroom", "Study Table", "Wardrobe", "Fan", "Geyser", "Window", "Mirror", ...(roomType === "AC" ? ["Air Conditioner"] : [])],
+    images: roomImages("photo-1595526114035-0d45ed16cfbf", signature),
+    beds,
+    availableBeds: Math.max(beds - 1, 0),
+    occupiedBeds: Math.min(1, beds)
+  };
+};
+
+// sharingType reflects each room's actual bed count in adminBeds.js — keep them in sync when a room's bed layout changes.
 export const defaultRooms = [
-  canonicalRoom("anna-101", "anna-nagar", "Anna Nagar", "101", "1st Floor", "AC", 16000, 101),
-  canonicalRoom("anna-102", "anna-nagar", "Anna Nagar", "102", "1st Floor", "Non AC", 14000, 102),
-  canonicalRoom("anna-201", "anna-nagar", "Anna Nagar", "201", "2nd Floor", "AC", 16500, 201),
-  canonicalRoom("anna-202", "anna-nagar", "Anna Nagar", "202", "2nd Floor", "Non AC", 14500, 202),
-  canonicalRoom("viru-301", "virugambakkam", "Virugambakkam", "301", "3rd Floor", "AC", 15500, 301),
-  canonicalRoom("viru-302", "virugambakkam", "Virugambakkam", "302", "3rd Floor", "Non AC", 13500, 302),
-  canonicalRoom("viru-303", "virugambakkam", "Virugambakkam", "303", "3rd Floor", "AC", 16000, 303),
-  canonicalRoom("viru-304", "virugambakkam", "Virugambakkam", "304", "3rd Floor", "Non AC", 14000, 304)
+  canonicalRoom("anna-101", "anna-nagar", "Anna Nagar", "101", "1st Floor", "AC", 16000, 101, "4 Sharing"),
+  canonicalRoom("anna-102", "anna-nagar", "Anna Nagar", "102", "1st Floor", "Non AC", 14000, 102, "4 Sharing"),
+  canonicalRoom("anna-201", "anna-nagar", "Anna Nagar", "201", "2nd Floor", "AC", 16500, 201, "4 Sharing"),
+  canonicalRoom("anna-202", "anna-nagar", "Anna Nagar", "202", "2nd Floor", "Non AC", 14500, 202, "4 Sharing"),
+  canonicalRoom("viru-301", "virugambakkam", "Virugambakkam", "301", "3rd Floor", "AC", 15500, 301, "4 Sharing"),
+  canonicalRoom("viru-302", "virugambakkam", "Virugambakkam", "302", "3rd Floor", "Non AC", 13500, 302, "4 Sharing"),
+  canonicalRoom("viru-303", "virugambakkam", "Virugambakkam", "303", "3rd Floor", "AC", 16000, 303, "4 Sharing"),
+  canonicalRoom("viru-304", "virugambakkam", "Virugambakkam", "304", "3rd Floor", "Non AC", 14000, 304, "4 Sharing"),
+  canonicalRoom("viru-105", "virugambakkam", "Virugambakkam", "105", "1st Floor", "AC", 19500, 305, "1 Sharing"),
+  canonicalRoom("viru-106", "virugambakkam", "Virugambakkam", "106", "1st Floor", "AC", 17500, 306, "2 Sharing"),
+  canonicalRoom("viru-205", "virugambakkam", "Virugambakkam", "205", "2nd Floor", "Non AC", 13500, 307, "3 Sharing"),
+  canonicalRoom("anna-105", "anna-nagar", "Anna Nagar", "105", "1st Floor", "AC", 20500, 401, "1 Sharing"),
+  canonicalRoom("anna-106", "anna-nagar", "Anna Nagar", "106", "1st Floor", "AC", 18500, 402, "2 Sharing"),
+  canonicalRoom("anna-205", "anna-nagar", "Anna Nagar", "205", "2nd Floor", "Non AC", 14500, 403, "3 Sharing")
 ];
 
 export const loadRooms = () => {

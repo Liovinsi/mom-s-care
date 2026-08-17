@@ -441,10 +441,112 @@ export const bookingRooms = [
   publicRoom("anna-102", "anna-nagar-pg", "102", "Non AC", 14000),
   publicRoom("anna-201", "anna-nagar-pg", "201", "AC", 16500),
   publicRoom("anna-202", "anna-nagar-pg", "202", "Non AC", 14500),
+  {
+    id: "anna-105",
+    branchId: "anna-nagar-pg",
+    number: "105",
+    sharingType: "1 Sharing",
+    roomType: "AC",
+    beds: 1,
+    status: "Available",
+    monthlyRent: 20500,
+    securityDeposit: 30000,
+    bookingAmount: 4500,
+    bedType: "Single Cot",
+    bedList: [
+      { id: "anna-105-a", label: "Bed A", status: "Available", bedType: "Single Cot", position: "Single" }
+    ]
+  },
+  {
+    id: "anna-106",
+    branchId: "anna-nagar-pg",
+    number: "106",
+    sharingType: "2 Sharing",
+    roomType: "AC",
+    beds: 2,
+    status: "Available",
+    monthlyRent: 18500,
+    securityDeposit: 26000,
+    bookingAmount: 3200,
+    bedType: "Single Cot",
+    bedList: [
+      { id: "anna-106-a", label: "Bed A", status: "Available", bedType: "Single Cot", position: "Single" },
+      { id: "anna-106-b", label: "Bed B", status: "Booked", bedType: "Single Cot", position: "Single" }
+    ]
+  },
+  {
+    id: "anna-205",
+    branchId: "anna-nagar-pg",
+    number: "205",
+    sharingType: "3 Sharing",
+    roomType: "Non AC",
+    beds: 3,
+    status: "Available",
+    monthlyRent: 14500,
+    securityDeposit: 20000,
+    bookingAmount: 2700,
+    bedType: "Single Cot",
+    bedList: [
+      { id: "anna-205-a", label: "Bed A", status: "Available", bedType: "Single Cot", position: "Single" },
+      { id: "anna-205-b", label: "Bed B", status: "Available", bedType: "Single Cot", position: "Single" },
+      { id: "anna-205-c", label: "Bed C", status: "Booked", bedType: "Single Cot", position: "Single" }
+    ]
+  },
   publicRoom("viru-301", "virugambakkam-pg", "301", "AC", 15500),
   publicRoom("viru-302", "virugambakkam-pg", "302", "Non AC", 13500),
   publicRoom("viru-303", "virugambakkam-pg", "303", "AC", 16000),
-  publicRoom("viru-304", "virugambakkam-pg", "304", "Non AC", 14000)
+  publicRoom("viru-304", "virugambakkam-pg", "304", "Non AC", 14000),
+  {
+    id: "viru-105",
+    branchId: "virugambakkam-pg",
+    number: "105",
+    sharingType: "1 Sharing",
+    roomType: "AC",
+    beds: 1,
+    status: "Available",
+    monthlyRent: 19500,
+    securityDeposit: 28000,
+    bookingAmount: 4000,
+    bedType: "Single Cot",
+    bedList: [
+      { id: "viru-105-a", label: "Bed A", status: "Available", bedType: "Single Cot", position: "Single" }
+    ]
+  },
+  {
+    id: "viru-106",
+    branchId: "virugambakkam-pg",
+    number: "106",
+    sharingType: "2 Sharing",
+    roomType: "AC",
+    beds: 2,
+    status: "Available",
+    monthlyRent: 17500,
+    securityDeposit: 24000,
+    bookingAmount: 3000,
+    bedType: "Single Cot",
+    bedList: [
+      { id: "viru-106-a", label: "Bed A", status: "Available", bedType: "Single Cot", position: "Single" },
+      { id: "viru-106-b", label: "Bed B", status: "Booked", bedType: "Single Cot", position: "Single" }
+    ]
+  },
+  {
+    id: "viru-205",
+    branchId: "virugambakkam-pg",
+    number: "205",
+    sharingType: "3 Sharing",
+    roomType: "Non AC",
+    beds: 3,
+    status: "Available",
+    monthlyRent: 13500,
+    securityDeposit: 19000,
+    bookingAmount: 2500,
+    bedType: "Single Cot",
+    bedList: [
+      { id: "viru-205-a", label: "Bed A", status: "Available", bedType: "Single Cot", position: "Single" },
+      { id: "viru-205-b", label: "Bed B", status: "Available", bedType: "Single Cot", position: "Single" },
+      { id: "viru-205-c", label: "Bed C", status: "Booked", bedType: "Single Cot", position: "Single" }
+    ]
+  }
 ];
 
 export const formatCurrency = (amount) => `₹${amount.toLocaleString("en-IN")}`;

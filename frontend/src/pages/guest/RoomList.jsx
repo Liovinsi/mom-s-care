@@ -1,4 +1,4 @@
-import { Bed, BedDouble, Check, Lock, MapPin, Search, Users, Wrench } from "lucide-react";
+import { Bed, BedDouble, Check, ChevronDown, Lock, MapPin, Search, Users, Wrench } from "lucide-react";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
@@ -43,6 +43,7 @@ const RoomList = () => {
   const [modalMode, setModalMode] = useState("booking");
   const [selectedBeds, setSelectedBeds] = useState([]);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [mobileSearchExpanded, setMobileSearchExpanded] = useState(true);
   const branch = bookingBranches.find((item) => item.id === appliedBranchId) || bookingBranches[0];
   const { beds: liveBeds, rooms: liveRooms } = useLiveAvailability();
   const { continueToBooking, showSignInNotice } = useBookingAuth();
@@ -60,7 +61,10 @@ const RoomList = () => {
     nextParams.set("branch", branchSelection);
     if (endStay) nextParams.set("checkOut", endStay); else nextParams.delete("checkOut");
     setSearchParams(nextParams, { replace: true });
+    setMobileSearchExpanded(false);
   };
+
+  const formatSummaryDate = (value) => value ? new Date(`${value}T00:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) : "";
 
   const allRooms = bookingRooms
     .filter((room) => room.branchId === branch.id)
@@ -247,33 +251,48 @@ const RoomList = () => {
       )}
 
       <section className="sticky top-[73px] z-30 border-b border-line bg-white/95 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 py-7 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-semibold text-ink">🏠 {branch.name}</h1>
-          <form onSubmit={searchRooms} className="mt-6 rounded-[18px] border border-line bg-white p-4 shadow-soft">
-            <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
-              <label className="block"><span className="mb-2 block text-sm font-semibold text-ink">Branch</span><select value={branchSelection} onChange={(event) => setBranchSelection(event.target.value)} className="min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink">{bookingBranches.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-              <label className="block"><span className="mb-2 block text-sm font-semibold text-ink">Guests</span><button type="button" onClick={() => setGuestSelectorOpen(true)} className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-line bg-white px-4 text-left text-sm font-semibold text-ink"><Users className="h-4 w-4 text-brand" /> {guestCount} {guestCount === 1 ? "Guest" : "Guests"}</button></label>
-              <Button type="submit" className="min-h-12"><Search className="h-4 w-4" /> Search</Button>
-            </div>
-            <div className="mt-4 border-t border-line pt-4"><InlineStayCalendar startDate={moveInDate} endDate={endStay} activeField={activeDateField} onActiveFieldChange={setActiveDateField} onStartDateChange={setMoveInDate} onEndDateChange={setEndStay} /></div>
-          </form>
+        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-xl font-semibold text-ink sm:text-2xl">🏠 {branch.name}</h1>
+            <button type="button" onClick={() => setMobileSearchExpanded((value) => !value)} aria-expanded={mobileSearchExpanded} className="flex shrink-0 items-center gap-1 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-secondary md:hidden">
+              {mobileSearchExpanded ? "Hide search" : "Edit search"} <ChevronDown className={`h-3.5 w-3.5 transition-transform ${mobileSearchExpanded ? "rotate-180" : ""}`} />
+            </button>
+          </div>
+
+          {!mobileSearchExpanded && (
+            <button type="button" onClick={() => setMobileSearchExpanded(true)} className="mt-3 flex w-full items-center justify-between gap-3 rounded-xl border border-line bg-white px-4 py-3 text-left text-sm font-semibold text-ink md:hidden">
+              <span className="truncate">{branch.name} · {guestCount} {guestCount === 1 ? "Guest" : "Guests"} · {moveInDate ? formatSummaryDate(moveInDate) : "Select date"}{endStay ? ` – ${formatSummaryDate(endStay)}` : " · Monthly stay"}</span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+            </button>
+          )}
+
+          <div className={`${mobileSearchExpanded ? "block" : "hidden"} md:block`}>
+            <form onSubmit={searchRooms} className="mt-3 rounded-[18px] border border-line bg-white p-3 shadow-soft">
+              <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                <label className="block"><span className="mb-1.5 block text-sm font-semibold text-ink">Branch</span><select value={branchSelection} onChange={(event) => setBranchSelection(event.target.value)} className="min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink">{bookingBranches.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+                <label className="block"><span className="mb-1.5 block text-sm font-semibold text-ink">Guests</span><button type="button" onClick={() => setGuestSelectorOpen(true)} className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-line bg-white px-4 text-left text-sm font-semibold text-ink"><Users className="h-4 w-4 text-brand" /> {guestCount} {guestCount === 1 ? "Guest" : "Guests"}</button></label>
+                <Button type="submit" className="min-h-12"><Search className="h-4 w-4" /> Search</Button>
+              </div>
+              <div className="mt-3 border-t border-line pt-3"><InlineStayCalendar startDate={moveInDate} endDate={endStay} activeField={activeDateField} onActiveFieldChange={setActiveDateField} onStartDateChange={setMoveInDate} onEndDateChange={setEndStay} /></div>
+            </form>
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-7 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
         <Card className="hover:translate-y-0">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div><p className="text-xs font-bold uppercase tracking-widest text-muted">Sharing Type</p><div className="mt-3 flex flex-wrap gap-2">{sharingOptions.map((option) => <button key={option} type="button" onClick={() => setSharingType((value) => value === option ? "" : option)} className={`rounded-xl border px-4 py-2 text-sm font-semibold ${sharingType === option ? "border-brand bg-brand text-white" : "border-line bg-white text-secondary"}`}>{option}</button>)}</div></div>
-            <div><p className="text-xs font-bold uppercase tracking-widest text-muted">Room Type</p><div className="mt-3 flex flex-wrap gap-2">{roomTypeOptions.map((option) => <button key={option} type="button" onClick={() => setRoomType((value) => value === option ? "" : option)} className={`rounded-xl border px-4 py-2 text-sm font-semibold ${roomType === option ? "border-brand bg-brand text-white" : "border-line bg-white text-secondary"}`}>{option}</button>)}</div></div>
-            <label><span className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted">Price Range</span><select value={priceFilter} onChange={(event) => setPriceFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="">All Prices</option><option value="under-10000">Under ₹10,000</option><option value="10000-15000">₹10,000–₹15,000</option><option value="15000-plus">₹15,000+</option></select></label>
-            <label><span className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted">Availability</span><select value={availabilityFilter} onChange={(event) => setAvailabilityFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="">Any Availability</option><option value="available">Available Now</option><option value="one">1 Bed Left</option><option value="two-plus">2+ Beds</option></select></label>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div><p className="text-xs font-bold uppercase tracking-widest text-muted">Sharing Type</p><div className="mt-2 flex flex-wrap gap-2">{sharingOptions.map((option) => <button key={option} type="button" onClick={() => setSharingType((value) => value === option ? "" : option)} className={`rounded-xl border px-4 py-2 text-sm font-semibold ${sharingType === option ? "border-brand bg-brand text-white" : "border-line bg-white text-secondary"}`}>{option}</button>)}</div></div>
+            <div><p className="text-xs font-bold uppercase tracking-widest text-muted">Room Type</p><div className="mt-2 flex flex-wrap gap-2">{roomTypeOptions.map((option) => <button key={option} type="button" onClick={() => setRoomType((value) => value === option ? "" : option)} className={`rounded-xl border px-4 py-2 text-sm font-semibold ${roomType === option ? "border-brand bg-brand text-white" : "border-line bg-white text-secondary"}`}>{option}</button>)}</div></div>
+            <label><span className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-muted">Price Range</span><select value={priceFilter} onChange={(event) => setPriceFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="">All Prices</option><option value="under-10000">Under ₹10,000</option><option value="10000-15000">₹10,000–₹15,000</option><option value="15000-plus">₹15,000+</option></select></label>
+            <label><span className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-muted">Availability</span><select value={availabilityFilter} onChange={(event) => setAvailabilityFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="">Any Availability</option><option value="available">Available Now</option><option value="one">1 Bed Left</option><option value="two-plus">2+ Beds</option></select></label>
           </div>
-          <div className="mt-6 flex flex-wrap items-end justify-between gap-4 border-t border-line pt-5"><label><span className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted">Sort</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="min-h-11 rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="price-low">Price Low → High</option><option value="price-high">Price High → Low</option><option value="newest">Newest</option><option value="popular">Most Popular</option><option value="rated">Highest Rated</option><option value="available">Most Available Beds</option></select></label><Button type="button" variant="secondary" onClick={resetSearch}>Reset</Button></div>
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-line pt-4"><label><span className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-muted">Sort</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="min-h-11 rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="price-low">Price Low → High</option><option value="price-high">Price High → Low</option><option value="newest">Newest</option><option value="popular">Most Popular</option><option value="rated">Highest Rated</option><option value="available">Most Available Beds</option></select></label><Button type="button" variant="secondary" onClick={resetSearch}>Reset</Button></div>
         </Card>
 
-        <div className="mb-5 mt-7 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-semibold text-ink">Showing {rooms.length} of {allRooms.length} Rooms</h2><p className="text-sm font-semibold text-secondary">{appliedDate ? new Date(`${appliedDate}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "All dates"} · {appliedGuests} {appliedGuests === 1 ? "Guest" : "Guests"}</p></div>
+        <div className="mb-4 mt-5 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-semibold text-ink">Showing {rooms.length} of {allRooms.length} Rooms</h2><p className="text-sm font-semibold text-secondary">{appliedDate ? new Date(`${appliedDate}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "All dates"} · {appliedGuests} {appliedGuests === 1 ? "Guest" : "Guests"}</p></div>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           {rooms.map((room, index) => (
             <Card key={room.id} className="overflow-hidden p-0 hover:translate-y-0">
               <div className="grid md:grid-cols-[320px_1fr]">
