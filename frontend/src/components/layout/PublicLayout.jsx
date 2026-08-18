@@ -24,6 +24,8 @@ const NavLinks = ({ sectionLinks, activeSection, onSectionClick, theme, toggleTh
   }, []);
 
   const profileInitial = (user?.name || user?.email || "U").slice(0, 1).toUpperCase();
+  const isStaffSession = user && ["Admin", "Warden"].includes(user.role);
+  const showProfileMenu = user && !isStaffSession;
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-7">
@@ -48,7 +50,7 @@ const NavLinks = ({ sectionLinks, activeSection, onSectionClick, theme, toggleTh
       >
         {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </button>
-      {user ? (
+      {showProfileMenu ? (
         <div ref={profileMenuRef} className="relative">
           <button
             type="button"

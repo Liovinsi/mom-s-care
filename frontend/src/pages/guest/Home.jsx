@@ -148,7 +148,7 @@ const Home = () => {
 
     <section id="featured" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
       <SectionHeader eyebrow="Branches" title="Our Chennai residences" description="Choose Virugambakkam or Anna Nagar, compare available rooms, and book your preferred bed." />
-      <div className="mt-12 grid gap-6 lg:grid-cols-3">
+      <div className="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-2">
         {featuredPgs.map((pg) => (
           <Card key={pg.id} className="overflow-hidden p-0">
             <img src={pg.image} alt={pg.name} className="h-64 w-full object-cover" />
@@ -176,8 +176,8 @@ const Home = () => {
 
     <section className="bg-paper py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader align="left" eyebrow="Our Branches" title="Two prime Chennai neighborhoods" description="Mom’s Care PG House is available only at Virugambakkam and Anna Nagar." />
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SectionHeader eyebrow="Our Branches" title="Two prime Chennai neighborhoods" description="Mom’s Care PG House is available only at Virugambakkam and Anna Nagar." />
+        <div className="mx-auto mt-10 grid max-w-3xl gap-6 sm:grid-cols-2">
           {popularBranches.map((branch) => (
             <Link key={`${branch.city}-${branch.area}`} to={`/featured-branches?location=${encodeURIComponent(branch.area)}`}>
               <Card>
@@ -195,9 +195,9 @@ const Home = () => {
       </div>
     </section>
 
-    <section className="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-      <SectionHeader align="left" eyebrow="WHY CHOOSE PGSTAY" title="Why Thousands Choose PGStay" description="Find verified PG accommodations across Chennai with transparent pricing, real-time bed availability, online bed blocking, and premium amenities. Whether you're a student or a working professional, PGStay helps you discover the right place with confidence." />
-      <div className="grid gap-4 sm:grid-cols-2">
+    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <SectionHeader eyebrow="WHY CHOOSE PGSTAY" title="Why Thousands Choose PGStay" description="Find verified PG accommodations across Chennai with transparent pricing, real-time bed availability, online bed blocking, and premium amenities. Whether you're a student or a working professional, PGStay helps you discover the right place with confidence." />
+      <div className="mx-auto mt-14 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Verified PG Branches", "Every PG is verified with complete property details, amenities, room information, and genuine photos before being listed."],
           ["Live Room & Bed Availability", "Check real-time room occupancy, available beds, sharing options, and AC or Non-AC availability before booking."],

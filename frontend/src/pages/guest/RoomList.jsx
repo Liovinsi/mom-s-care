@@ -326,13 +326,13 @@ const RoomList = () => {
                 role="dialog"
                 aria-modal="true"
                 aria-label="Edit search and filters"
-                className="absolute inset-x-0 top-full z-30 max-h-[calc(100vh-140px)] overflow-y-auto border-b border-line bg-white shadow-luxury"
+                className="absolute inset-x-0 top-full z-30 max-h-[calc(100vh-140px)] overflow-y-auto px-4 pb-4 pt-3 sm:px-6 lg:px-8"
                 initial={{ opacity: 0, y: -12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.22, ease: "easeOut" }}
               >
-                <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-6xl rounded-[18px] border border-line bg-white p-4 shadow-luxury sm:p-6">
                   <form onSubmit={searchRooms} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_auto] lg:items-end">
                     <label className="block min-w-0">
                       <span className="mb-1.5 block text-sm font-semibold text-ink">Branch</span>
