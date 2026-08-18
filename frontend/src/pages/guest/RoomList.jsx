@@ -1,10 +1,12 @@
-import { Bed, BedDouble, Check, ChevronDown, Lock, MapPin, Search, Users, Wrench } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Bed, BedDouble, Check, ChevronDown, Lock, MapPin, Search, Users, Wrench, X } from "lucide-react";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import InlineStayCalendar from "../../components/booking/InlineStayCalendar";
 import { bookingBranches, bookingRooms, formatCurrency } from "../../data/bookingFlow";
+import { useNavbarVisibility } from "../../context/NavbarVisibilityContext";
 import { useLiveAvailability } from "../../lib/liveAvailability";
 import { BookingAuthToast, useBookingAuth } from "../../hooks/useBookingAuth";
 
@@ -43,10 +45,11 @@ const RoomList = () => {
   const [modalMode, setModalMode] = useState("booking");
   const [selectedBeds, setSelectedBeds] = useState([]);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const [mobileSearchExpanded, setMobileSearchExpanded] = useState(true);
+  const [searchExpanded, setSearchExpanded] = useState(false);
   const branch = bookingBranches.find((item) => item.id === appliedBranchId) || bookingBranches[0];
   const { beds: liveBeds, rooms: liveRooms } = useLiveAvailability();
   const { continueToBooking, showSignInNotice } = useBookingAuth();
+  const { visible: navbarVisible, headerHeight } = useNavbarVisibility();
 
   const searchRooms = (event) => {
     event.preventDefault();
@@ -61,7 +64,7 @@ const RoomList = () => {
     nextParams.set("branch", branchSelection);
     if (endStay) nextParams.set("checkOut", endStay); else nextParams.delete("checkOut");
     setSearchParams(nextParams, { replace: true });
-    setMobileSearchExpanded(false);
+    setSearchExpanded(false);
   };
 
   const formatSummaryDate = (value) => value ? new Date(`${value}T00:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) : "";
@@ -140,6 +143,27 @@ const RoomList = () => {
       return [...current, bed];
     });
   };
+
+  const stayLabel = endStay
+    ? `${formatSummaryDate(moveInDate)} – ${formatSummaryDate(endStay)}`
+    : moveInDate
+      ? `${formatSummaryDate(moveInDate)} · Monthly stay`
+      : "Monthly stay";
+
+  const activeFilters = [
+    sharingType && { key: "sharingType", label: sharingType, clear: () => setSharingType("") },
+    roomType && { key: "roomType", label: roomType, clear: () => setRoomType("") },
+    priceFilter && {
+      key: "priceFilter",
+      label: priceFilter === "under-10000" ? "Under ₹10,000" : priceFilter === "10000-15000" ? "₹10,000–₹15,000" : "₹15,000+",
+      clear: () => setPriceFilter("")
+    },
+    availabilityFilter && {
+      key: "availabilityFilter",
+      label: availabilityFilter === "available" ? "Available now" : availabilityFilter === "one" ? "1 bed left" : "2+ beds",
+      clear: () => setAvailabilityFilter("")
+    }
+  ].filter(Boolean);
 
   const gallery = selectedRoom ? (branch.gallery?.slice(0, 4) || [branch.image]).filter(Boolean) : [];
   const roomQuery = new URLSearchParams(searchParams);
@@ -250,47 +274,129 @@ const RoomList = () => {
         </div>
       )}
 
-      <section className="sticky top-[73px] z-30 border-b border-line bg-white/95 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
-          <div className="flex items-center justify-between gap-3">
-            <h1 className="text-xl font-semibold text-ink sm:text-2xl">🏠 {branch.name}</h1>
-            <button type="button" onClick={() => setMobileSearchExpanded((value) => !value)} aria-expanded={mobileSearchExpanded} className="flex shrink-0 items-center gap-1 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-secondary md:hidden">
-              {mobileSearchExpanded ? "Hide search" : "Edit search"} <ChevronDown className={`h-3.5 w-3.5 transition-transform ${mobileSearchExpanded ? "rotate-180" : ""}`} />
-            </button>
-          </div>
+      <div className="mx-auto max-w-6xl px-4 pt-5 sm:px-6 sm:pt-6 lg:px-8">
+        <h1 className="text-2xl font-semibold text-ink sm:text-3xl">{branch.name}</h1>
+        {branch.addressLines?.[0] && <p className="mt-1 text-sm text-secondary">{branch.addressLines[0]}</p>}
+      </div>
 
-          {!mobileSearchExpanded && (
-            <button type="button" onClick={() => setMobileSearchExpanded(true)} className="mt-3 flex w-full items-center justify-between gap-3 rounded-xl border border-line bg-white px-4 py-3 text-left text-sm font-semibold text-ink md:hidden">
-              <span className="truncate">{branch.name} · {guestCount} {guestCount === 1 ? "Guest" : "Guests"} · {moveInDate ? formatSummaryDate(moveInDate) : "Select date"}{endStay ? ` – ${formatSummaryDate(endStay)}` : " · Monthly stay"}</span>
-              <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+      <div
+        className="sticky z-30 mt-4 transition-[top] duration-300 ease-out"
+        style={{ top: navbarVisible ? headerHeight : 0 }}
+      >
+        <div className="border-y border-line bg-white/95 backdrop-blur">
+          <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
+            <button
+              type="button"
+              onClick={() => setSearchExpanded((value) => !value)}
+              aria-expanded={searchExpanded}
+              aria-label="Edit search and filters"
+              className="flex w-full items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 text-left shadow-soft transition hover:border-brand/50"
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand/10 text-brand">
+                <Search className="h-4 w-4" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold text-ink sm:text-base">
+                  {branch.name} <span className="text-muted">•</span> {guestCount} {guestCount === 1 ? "Guest" : "Guests"} <span className="text-muted">•</span> {stayLabel}
+                </span>
+                {activeFilters.length > 0 && (
+                  <span className="mt-0.5 block text-xs font-semibold text-brand">{activeFilters.length} filter{activeFilters.length > 1 ? "s" : ""} applied</span>
+                )}
+              </span>
+              <ChevronDown className={`h-5 w-5 shrink-0 text-muted transition-transform duration-200 ${searchExpanded ? "rotate-180" : ""}`} />
             </button>
-          )}
-
-          <div className={`${mobileSearchExpanded ? "block" : "hidden"} md:block`}>
-            <form onSubmit={searchRooms} className="mt-3 rounded-[18px] border border-line bg-white p-3 shadow-soft">
-              <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
-                <label className="block"><span className="mb-1.5 block text-sm font-semibold text-ink">Branch</span><select value={branchSelection} onChange={(event) => setBranchSelection(event.target.value)} className="min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink">{bookingBranches.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-                <label className="block"><span className="mb-1.5 block text-sm font-semibold text-ink">Guests</span><button type="button" onClick={() => setGuestSelectorOpen(true)} className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-line bg-white px-4 text-left text-sm font-semibold text-ink"><Users className="h-4 w-4 text-brand" /> {guestCount} {guestCount === 1 ? "Guest" : "Guests"}</button></label>
-                <Button type="submit" className="min-h-12"><Search className="h-4 w-4" /> Search</Button>
-              </div>
-              <div className="mt-3 border-t border-line pt-3"><InlineStayCalendar startDate={moveInDate} endDate={endStay} activeField={activeDateField} onActiveFieldChange={setActiveDateField} onStartDateChange={setMoveInDate} onEndDateChange={setEndStay} /></div>
-            </form>
           </div>
         </div>
-      </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
-        <Card className="hover:translate-y-0">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div><p className="text-xs font-bold uppercase tracking-widest text-muted">Sharing Type</p><div className="mt-2 flex flex-wrap gap-2">{sharingOptions.map((option) => <button key={option} type="button" onClick={() => setSharingType((value) => value === option ? "" : option)} className={`rounded-xl border px-4 py-2 text-sm font-semibold ${sharingType === option ? "border-brand bg-brand text-white" : "border-line bg-white text-secondary"}`}>{option}</button>)}</div></div>
-            <div><p className="text-xs font-bold uppercase tracking-widest text-muted">Room Type</p><div className="mt-2 flex flex-wrap gap-2">{roomTypeOptions.map((option) => <button key={option} type="button" onClick={() => setRoomType((value) => value === option ? "" : option)} className={`rounded-xl border px-4 py-2 text-sm font-semibold ${roomType === option ? "border-brand bg-brand text-white" : "border-line bg-white text-secondary"}`}>{option}</button>)}</div></div>
-            <label><span className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-muted">Price Range</span><select value={priceFilter} onChange={(event) => setPriceFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="">All Prices</option><option value="under-10000">Under ₹10,000</option><option value="10000-15000">₹10,000–₹15,000</option><option value="15000-plus">₹15,000+</option></select></label>
-            <label><span className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-muted">Availability</span><select value={availabilityFilter} onChange={(event) => setAvailabilityFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="">Any Availability</option><option value="available">Available Now</option><option value="one">1 Bed Left</option><option value="two-plus">2+ Beds</option></select></label>
+        <AnimatePresence>
+          {searchExpanded && (
+            <>
+              <motion.div
+                key="search-backdrop"
+                className="fixed inset-0 z-20 bg-ink/30"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setSearchExpanded(false)}
+                aria-hidden="true"
+              />
+              <motion.div
+                key="search-drawer"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Edit search and filters"
+                className="absolute inset-x-0 top-full z-30 max-h-[calc(100vh-140px)] overflow-y-auto border-b border-line bg-white shadow-luxury"
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+              >
+                <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
+                  <form onSubmit={searchRooms} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_auto] lg:items-end">
+                    <label className="block min-w-0">
+                      <span className="mb-1.5 block text-sm font-semibold text-ink">Branch</span>
+                      <select value={branchSelection} onChange={(event) => setBranchSelection(event.target.value)} className="min-h-12 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink">
+                        {bookingBranches.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                      </select>
+                    </label>
+                    <label className="block min-w-0">
+                      <span className="mb-1.5 block text-sm font-semibold text-ink">Guests</span>
+                      <button type="button" onClick={() => setGuestSelectorOpen(true)} className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-line bg-white px-4 text-left text-sm font-semibold text-ink">
+                        <Users className="h-4 w-4 text-brand" /> {guestCount} {guestCount === 1 ? "Guest" : "Guests"}
+                      </button>
+                    </label>
+                    <Button type="submit" className="min-h-12 min-w-0 sm:col-span-2 lg:col-span-1">
+                      <Search className="h-4 w-4" /> Search
+                    </Button>
+                    <div className="min-w-0 sm:col-span-2 lg:col-span-3">
+                      <InlineStayCalendar startDate={moveInDate} endDate={endStay} activeField={activeDateField} onActiveFieldChange={setActiveDateField} onStartDateChange={setMoveInDate} onEndDateChange={setEndStay} />
+                    </div>
+                  </form>
+
+                  <div className="mt-5 grid gap-4 border-t border-line pt-5 lg:grid-cols-2">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted">Sharing Type</p>
+                      <div className="mt-2 flex flex-wrap gap-2">{sharingOptions.map((option) => <button key={option} type="button" onClick={() => setSharingType((value) => value === option ? "" : option)} className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${sharingType === option ? "border-brand bg-brand text-white" : "border-line bg-white text-secondary hover:border-brand/50"}`}>{option}</button>)}</div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted">Room Type</p>
+                      <div className="mt-2 flex flex-wrap gap-2">{roomTypeOptions.map((option) => <button key={option} type="button" onClick={() => setRoomType((value) => value === option ? "" : option)} className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${roomType === option ? "border-brand bg-brand text-white" : "border-line bg-white text-secondary hover:border-brand/50"}`}>{option}</button>)}</div>
+                    </div>
+                    <label><span className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-muted">Price Range</span><select value={priceFilter} onChange={(event) => setPriceFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="">All Prices</option><option value="under-10000">Under ₹10,000</option><option value="10000-15000">₹10,000–₹15,000</option><option value="15000-plus">₹15,000+</option></select></label>
+                    <label><span className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-muted">Availability</span><select value={availabilityFilter} onChange={(event) => setAvailabilityFilter(event.target.value)} className="min-h-11 w-full rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="">Any Availability</option><option value="available">Available Now</option><option value="one">1 Bed Left</option><option value="two-plus">2+ Beds</option></select></label>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-line pt-4">
+                    <label><span className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-muted">Sort</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="min-h-11 rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="price-low">Price Low → High</option><option value="price-high">Price High → Low</option><option value="newest">Newest</option><option value="popular">Most Popular</option><option value="rated">Highest Rated</option><option value="available">Most Available Beds</option></select></label>
+                    <div className="flex gap-3">
+                      <Button type="button" variant="secondary" onClick={resetSearch}>Reset</Button>
+                      <Button type="button" onClick={() => setSearchExpanded(false)}>Show {rooms.length} Rooms</Button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <section className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold text-ink sm:text-2xl">Showing {rooms.length} of {allRooms.length} Rooms</h2>
+            <p className="mt-1 text-sm text-secondary">{appliedDate ? new Date(`${appliedDate}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "All dates"} · {appliedGuests} {appliedGuests === 1 ? "Guest" : "Guests"}</p>
           </div>
-          <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-line pt-4"><label><span className="mb-1.5 block text-xs font-bold uppercase tracking-widest text-muted">Sort</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="min-h-11 rounded-xl border border-line bg-white px-4 text-sm font-semibold text-secondary"><option value="price-low">Price Low → High</option><option value="price-high">Price High → Low</option><option value="newest">Newest</option><option value="popular">Most Popular</option><option value="rated">Highest Rated</option><option value="available">Most Available Beds</option></select></label><Button type="button" variant="secondary" onClick={resetSearch}>Reset</Button></div>
-        </Card>
-
-        <div className="mb-4 mt-5 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-semibold text-ink">Showing {rooms.length} of {allRooms.length} Rooms</h2><p className="text-sm font-semibold text-secondary">{appliedDate ? new Date(`${appliedDate}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "All dates"} · {appliedGuests} {appliedGuests === 1 ? "Guest" : "Guests"}</p></div>
+          {activeFilters.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {activeFilters.map((filter) => (
+                <button key={filter.key} type="button" onClick={filter.clear} className="inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand transition hover:border-brand">
+                  {filter.label} <X className="h-3 w-3" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="space-y-5">
           {rooms.map((room, index) => (

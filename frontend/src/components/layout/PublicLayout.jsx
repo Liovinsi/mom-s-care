@@ -1,9 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { BedDouble, ChevronDown, ChevronUp, LogOut, Menu, Moon, Sun, UserRound, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { NavbarVisibilityProvider } from "../../context/NavbarVisibilityContext";
 import { useTheme } from "../../context/ThemeContext";
+import useScrollDirection from "../../hooks/useScrollDirection";
 import Button from "../ui/Button";
 
 const DRAWER_TRANSITION = { duration: 0.28, ease: "easeOut" };
@@ -113,12 +115,29 @@ const PublicLayout = () => {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const navbarVisible = useScrollDirection() || open;
+  const headerRef = useRef(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const sectionLinks = [
     ["Home", "home"],
     ["Branches", "featured"],
     ["Amenities", "amenities"],
     ["FAQ", "faq"]
   ];
+
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) return undefined;
+
+    const updateHeight = () => setHeaderHeight(header.getBoundingClientRect().height);
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
+
+  const navbarContextValue = useMemo(() => ({ visible: navbarVisible, headerHeight }), [navbarVisible, headerHeight]);
 
   useEffect(() => {
     if (location.pathname !== "/") {
@@ -177,8 +196,14 @@ const PublicLayout = () => {
   };
 
   return (
+    <NavbarVisibilityProvider value={navbarContextValue}>
     <div className="min-h-screen bg-white">
-      <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur-xl">
+      <header
+        ref={headerRef}
+        className={`fixed inset-x-0 top-0 z-40 border-b border-line bg-white/95 backdrop-blur-xl transition-transform duration-300 ease-out will-change-transform ${
+          navbarVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-3 text-lg font-semibold text-ink" onClick={() => setOpen(false)}>
             <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-brand/20 bg-white shadow-soft">
@@ -209,6 +234,7 @@ const PublicLayout = () => {
           </nav>
         </div>
       </header>
+      <div style={{ height: headerHeight }} aria-hidden="true" />
 
       <AnimatePresence>
         {open && (
@@ -278,6 +304,7 @@ const PublicLayout = () => {
 
       <Outlet />
     </div>
+    </NavbarVisibilityProvider>
   );
 };
 
