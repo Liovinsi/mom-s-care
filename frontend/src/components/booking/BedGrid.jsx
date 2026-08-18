@@ -1,9 +1,9 @@
 import { Armchair } from "lucide-react";
 
 const stateStyles = {
-  AVAILABLE: "border-brand/30 bg-brand/10 text-brandDark hover:bg-paper",
-  HELD: "border-brand/30 bg-brand/10 text-brandDark",
-  BOOKED: "border-brand/30 bg-paper text-brandDark",
+  AVAILABLE: "border-brand/30 bg-brand/10 text-brandDark hover:bg-paper dark:bg-brand/15",
+  HELD: "border-brand/30 bg-brand/10 text-brandDark dark:bg-brand/15",
+  BOOKED: "border-brand/30 bg-paper text-brandDark dark:bg-slate-800",
   MAINTENANCE: "border-slate-300 bg-slate-100 text-slate-500"
 };
 

@@ -14,7 +14,7 @@ const editableStatuses = ["Available", "Occupied", "Reserved", "Maintenance"];
 
 const statusStyles = {
   Available: "bg-brand/10 text-brandDark",
-  Blocked: "bg-orange-100 text-orange-700",
+  Blocked: "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
   Occupied: "bg-paper text-brandDark",
   Reserved: "bg-paper text-brandDark",
   Maintenance: "bg-slate-100 text-slate-600"
@@ -41,8 +41,8 @@ const StatusBadge = ({ status }) => (
 );
 
 const roomStatusStyles = {
-  Vacant: "bg-emerald-50 text-emerald-700",
-  "Partially Occupied": "bg-orange-50 text-orange-700",
+  Vacant: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+  "Partially Occupied": "bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
   Full: "bg-brand/10 text-brandDark",
   Maintenance: "bg-slate-100 text-slate-600"
 };
@@ -59,9 +59,9 @@ const RoomStatusBadge = ({ status }) => (
 );
 
 const requestStatusStyles = {
-  "Pending Approval": "bg-orange-100 text-orange-700",
-  Approved: "bg-emerald-100 text-emerald-700",
-  Rejected: "bg-red-50 text-red-700"
+  "Pending Approval": "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
+  Approved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+  Rejected: "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-400"
 };
 
 const OccupancyPage = () => {
@@ -158,7 +158,7 @@ const OccupancyPage = () => {
       </div>
 
       {notice && <div className="mt-5 rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm font-semibold text-ink">{notice}</div>}
-      {branchRequests.some((request) => request.status === "Rejected") && <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">Your update request was rejected. Review the Admin reason in My Update Requests.</div>}
+      {branchRequests.some((request) => request.status === "Rejected") && <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-400">Your update request was rejected. Review the Admin reason in My Update Requests.</div>}
 
       <div className="mt-5 space-y-4">
         {branchRooms.map((room) => {
@@ -190,7 +190,7 @@ const OccupancyPage = () => {
                 <div className="grid w-full gap-3 grid-cols-2 sm:grid-cols-4 lg:w-auto lg:min-w-[620px]">
                   <div><p className="text-xs font-semibold uppercase text-slate-400">Status</p><div className="mt-1"><RoomStatusBadge status={roomStatus} /></div></div>
                   <div><p className="text-xs font-semibold uppercase text-slate-400">Occupied</p><p className="mt-1 font-bold text-ink">{occupiedCount} / {roomBeds.length}</p></div>
-                  <div><p className="text-xs font-semibold uppercase text-slate-400">Available</p><p className="mt-1 font-bold text-emerald-700">{availableCount}</p></div>
+                  <div><p className="text-xs font-semibold uppercase text-slate-400">Available</p><p className="mt-1 font-bold text-emerald-700 dark:text-emerald-400">{availableCount}</p></div>
                   <div><p className="text-xs font-semibold uppercase text-slate-400">Total Beds</p><p className="mt-1 flex items-center gap-2 font-bold text-ink"><BedDouble className="h-4 w-4 text-brand" /> {roomBeds.length}</p></div>
                 </div>
               </button>
@@ -231,7 +231,7 @@ const OccupancyPage = () => {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left text-sm">
             <thead className="border-b border-line bg-slate-50 text-slate-500"><tr>{["Request ID", "Room / Bed", "Old Status", "Requested Status", "Requested", "Status / Decision"].map((heading) => <th key={heading} className="px-4 py-3 font-semibold">{heading}</th>)}</tr></thead>
-            <tbody>{branchRequests.map((request) => <tr key={request.id} className="border-b border-line last:border-0"><td className="px-4 py-4 font-bold text-ink">{request.id}</td><td className="px-4 py-4">Room {request.roomNumber} · {request.bedName}</td><td className="px-4 py-4"><StatusBadge status={request.currentStatus} /></td><td className="px-4 py-4"><StatusBadge status={request.requestedStatus} /></td><td className="px-4 py-4 text-slate-600">{new Date(request.createdAt).toLocaleString("en-IN")}</td><td className="px-4 py-4"><span className={`rounded-full px-3 py-1 text-xs font-bold ${requestStatusStyles[request.status]}`}>{request.status}</span>{request.rejectionReason && <p className="mt-2 text-xs font-semibold text-red-600">{request.rejectionReason}</p>}</td></tr>)}{!branchRequests.length && <tr><td colSpan="6" className="px-4 py-8 text-center text-slate-500">No update requests submitted yet.</td></tr>}</tbody>
+            <tbody>{branchRequests.map((request) => <tr key={request.id} className="border-b border-line last:border-0"><td className="px-4 py-4 font-bold text-ink">{request.id}</td><td className="px-4 py-4">Room {request.roomNumber} · {request.bedName}</td><td className="px-4 py-4"><StatusBadge status={request.currentStatus} /></td><td className="px-4 py-4"><StatusBadge status={request.requestedStatus} /></td><td className="px-4 py-4 text-slate-600">{new Date(request.createdAt).toLocaleString("en-IN")}</td><td className="px-4 py-4"><span className={`rounded-full px-3 py-1 text-xs font-bold ${requestStatusStyles[request.status]}`}>{request.status}</span>{request.rejectionReason && <p className="mt-2 text-xs font-semibold text-red-600 dark:text-red-400">{request.rejectionReason}</p>}</td></tr>)}{!branchRequests.length && <tr><td colSpan="6" className="px-4 py-8 text-center text-slate-500">No update requests submitted yet.</td></tr>}</tbody>
           </table>
         </div>
       </Card>

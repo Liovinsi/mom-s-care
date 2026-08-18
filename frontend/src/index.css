@@ -11,9 +11,17 @@ body {
   text-rendering: geometricPrecision;
 }
 
+:root {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
 html.dark body {
-  background: #111116;
-  color: #f8f8f8;
+  background: #0f172a;
+  color: #f1f5f9;
 }
 
 html {
@@ -49,55 +57,127 @@ button:disabled {
   pointer-events: none;
 }
 
-.dark .bg-white,
-.dark .bg-white\/95,
-.dark .bg-white\/92 {
-  background-color: #1e1e24;
-}
+/* ==========================================================================
+   Centralized dark theme system
+   Single source of truth for dark-mode color tokens across the whole app.
+   Palette: background=slate-900, surfaces(cards/dropdowns/modals)=slate-800,
+   borders=slate-700, primary text=slate-100, secondary text=slate-300,
+   muted text=slate-400, hover=slate-700.
 
+   Why plain CSS instead of only `dark:` utilities: most of this codebase's
+   components use semantic classes (bg-white, bg-paper, text-ink, text-muted,
+   text-secondary, border-line) plus raw Tailwind slate-* classes rather than
+   `dark:` variants everywhere. These rules give every one of those classes
+   (including their hover/focus/disabled pseudo-state variants, which Tailwind
+   compiles as separate class names and which a bare `.dark .bg-paper` rule
+   can NOT match) a dark-mode-correct value in one place. New UI should still
+   prefer explicit `dark:` utilities (now enabled via darkMode:"class" in
+   tailwind.config.js); this layer is the safety net + legacy-class bridge.
+   ========================================================================== */
+
+/* ---- Page background ---- */
 .dark .bg-paper,
 .dark .bg-paper\/70,
-.dark .bg-slate-50 {
-  background-color: #14141a;
+.dark .bg-slate-50,
+.dark .bg-slate-50\/60 {
+  background-color: #0f172a;
 }
 
+/* ---- Surfaces: cards, dropdowns, popovers, modals, dialogs, menus ---- */
+.dark .bg-white,
+.dark .bg-white\/95,
+.dark .bg-white\/92,
+.dark .bg-white\/90,
+.dark .bg-slate-100,
+.dark .bg-slate-200,
+.dark .bg-slate-300 {
+  background-color: #1e293b;
+}
+
+/* ---- Hover / disabled backgrounds (Tailwind compiles these as distinct
+   class names, e.g. `.hover\:bg-paper:hover`, so they need their own rules) ---- */
+.dark .hover\:bg-white:hover,
+.dark .hover\:bg-paper:hover,
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark .group:hover .group-hover\:bg-paper,
+.dark .disabled\:bg-paper:disabled {
+  background-color: #334155;
+}
+
+/* ---- Borders ---- */
+.dark .border-line,
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .divide-line > :not([hidden]) ~ :not([hidden]) {
+  border-color: #334155;
+}
+
+/* ---- Text ---- */
 .dark .text-ink,
 .dark .text-slate-900,
-.dark .text-slate-800 {
-  color: #f8f8f8;
+.dark .text-slate-800,
+.dark .text-slate-700,
+.dark .hover\:text-ink:hover {
+  color: #f1f5f9;
 }
 
 .dark .text-secondary,
+.dark .text-slate-600 {
+  color: #cbd5e1;
+}
+
 .dark .text-muted,
-.dark .text-slate-600,
-.dark .text-slate-500 {
-  color: #b8bcc8;
+.dark .text-slate-500,
+.dark .text-slate-400,
+.dark .disabled\:text-slate-500:disabled {
+  color: #94a3b8;
 }
 
-.dark .border-line,
-.dark .border-slate-200 {
-  border-color: rgba(221, 94, 103, 0.24);
-}
-
+/* ---- Shadows: heavier so raised surfaces separate from a dark page ---- */
 .dark .shadow-soft {
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
 }
 
 .dark .shadow-luxury {
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
 }
 
+/* ---- Native form controls: inputs, selects, textareas ----
+   `color-scheme: dark` (set above on html.dark) makes browser-native popups
+   (select option lists, <input type="date"> calendars, scrollbars, checkbox/
+   radio chrome) render with matching dark chrome automatically. These rules
+   cover the visible control surface itself. */
 .dark input,
 .dark select,
 .dark textarea {
-  background-color: #1e1e24;
-  color: #f8f8f8;
-  border-color: rgba(221, 94, 103, 0.24);
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #dd5e67;
+}
+
+.dark input:disabled,
+.dark select:disabled,
+.dark textarea:disabled {
+  background-color: #0f172a;
+  color: #94a3b8;
+  border-color: #334155;
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: #8b90a0;
+  color: #94a3b8;
+}
+
+.dark option {
+  background-color: #1e293b;
+  color: #f1f5f9;
 }
 
 @keyframes loginPopup {

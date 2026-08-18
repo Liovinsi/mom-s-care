@@ -85,24 +85,24 @@ const InlineStayCalendar = ({ startDate, endDate, activeField, onActiveFieldChan
 
       {endCalendarOpen && createPortal(
         <div className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/40 sm:items-center sm:p-4" role="presentation" onClick={() => setEndCalendarOpen(false)}>
-          <div role="dialog" aria-modal="true" aria-label="Select end date" className="w-full rounded-t-[24px] bg-white p-5 shadow-luxury sm:max-w-sm sm:rounded-[24px]" onClick={(event) => event.stopPropagation()}>
-            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-line sm:hidden" />
+          <div role="dialog" aria-modal="true" aria-label="Select end date" className="w-full rounded-t-[24px] bg-white p-5 shadow-luxury dark:bg-slate-800 sm:max-w-sm sm:rounded-[24px]" onClick={(event) => event.stopPropagation()}>
+            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-line dark:bg-slate-700 sm:hidden" />
             <div className="flex items-center justify-between">
-              <button type="button" onClick={() => changeViewMonth(-1)} disabled={!canGoPrevMonth} aria-label="Previous month" className="grid h-9 w-9 place-items-center rounded-full border border-line text-ink disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button>
-              <p className="text-sm font-bold text-ink">{viewMonth.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</p>
-              <button type="button" onClick={() => changeViewMonth(1)} aria-label="Next month" className="grid h-9 w-9 place-items-center rounded-full border border-line text-ink"><ChevronRight className="h-4 w-4" /></button>
+              <button type="button" onClick={() => changeViewMonth(-1)} disabled={!canGoPrevMonth} aria-label="Previous month" className="grid h-9 w-9 place-items-center rounded-full border border-line text-ink disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-700 dark:text-slate-100"><ChevronLeft className="h-4 w-4" /></button>
+              <p className="text-sm font-bold text-ink dark:text-slate-100">{viewMonth.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</p>
+              <button type="button" onClick={() => changeViewMonth(1)} aria-label="Next month" className="grid h-9 w-9 place-items-center rounded-full border border-line text-ink dark:border-slate-700 dark:text-slate-100"><ChevronRight className="h-4 w-4" /></button>
             </div>
-            <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-semibold text-muted">
+            <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-semibold text-muted dark:text-slate-400">
               {weekdayLabels.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}
             </div>
             <div className="mt-2 grid grid-cols-7 gap-1">
               {calendarCells.map((cell, index) => cell ? (
-                <button key={cell.value} type="button" disabled={cell.disabled} onClick={() => pickEndDate(cell.value)} className={`aspect-square rounded-lg text-sm font-semibold transition ${cell.value === endDate ? "bg-brand text-white" : cell.disabled ? "cursor-not-allowed text-muted opacity-30" : "text-ink hover:bg-paper"}`}>{cell.day}</button>
+                <button key={cell.value} type="button" disabled={cell.disabled} onClick={() => pickEndDate(cell.value)} className={`aspect-square rounded-lg text-sm font-semibold transition ${cell.value === endDate ? "bg-brand text-white" : cell.disabled ? "cursor-not-allowed text-muted opacity-30 dark:text-slate-400" : "text-ink hover:bg-paper dark:text-slate-100 dark:hover:bg-slate-700"}`}>{cell.day}</button>
               ) : <span key={`blank-${index}`} />)}
             </div>
-            <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4">
+            <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4 dark:border-slate-700">
               <button type="button" onClick={() => pickEndDate("")} className="text-sm font-semibold text-brand hover:text-brandDark">Clear End Stay</button>
-              <button type="button" onClick={() => setEndCalendarOpen(false)} className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink">Done</button>
+              <button type="button" onClick={() => setEndCalendarOpen(false)} className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink dark:border-slate-700 dark:text-slate-100">Done</button>
             </div>
           </div>
         </div>,
@@ -110,16 +110,16 @@ const InlineStayCalendar = ({ startDate, endDate, activeField, onActiveFieldChan
       )}
 
       <div className="mt-3 flex items-center gap-2">
-        <button type="button" onClick={() => scroll(-1)} aria-label="Previous dates" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line bg-white text-ink"><ChevronLeft className="h-4 w-4" /></button>
+        <button type="button" onClick={() => scroll(-1)} aria-label="Previous dates" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line bg-white text-ink dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"><ChevronLeft className="h-4 w-4" /></button>
         <div ref={scrollerRef} className="scrollbar-thin flex flex-1 snap-x gap-2 overflow-x-auto py-1">
           {days.map(({ date, value }) => {
             const selectedStart = value === startDate;
             const selectedEnd = value === endDate;
             const beforeStart = activeField === "end" && startDate && value < startDate;
-            return <button key={value} type="button" disabled={beforeStart} onClick={() => selectDate(value)} className={`min-w-[82px] snap-start rounded-xl border px-3 py-2 text-center transition ${selectedStart ? "border-brand bg-brand text-white" : selectedEnd ? "border-brand bg-brandDark text-white" : beforeStart ? "cursor-not-allowed border-line bg-paper text-muted opacity-40" : "border-line bg-white text-secondary hover:border-brand"}`}><span className="block text-xs font-semibold">{date.toLocaleDateString("en-IN", { weekday: "short" })}</span><span className="mt-1 block text-sm font-bold">{date.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</span></button>;
+            return <button key={value} type="button" disabled={beforeStart} onClick={() => selectDate(value)} className={`min-w-[82px] snap-start rounded-xl border px-3 py-2 text-center transition ${selectedStart ? "border-brand bg-brand text-white" : selectedEnd ? "border-brand bg-brandDark text-white" : beforeStart ? "cursor-not-allowed border-line bg-paper text-muted opacity-40 dark:border-slate-700 dark:text-slate-400" : "border-line bg-white text-secondary hover:border-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"}`}><span className="block text-xs font-semibold">{date.toLocaleDateString("en-IN", { weekday: "short" })}</span><span className="mt-1 block text-sm font-bold">{date.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</span></button>;
           })}
         </div>
-        <button type="button" onClick={() => scroll(1)} aria-label="Next dates" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line bg-white text-ink"><ChevronRight className="h-4 w-4" /></button>
+        <button type="button" onClick={() => scroll(1)} aria-label="Next dates" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line bg-white text-ink dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"><ChevronRight className="h-4 w-4" /></button>
       </div>
       {endDate && <button type="button" onClick={() => onEndDateChange("")} className="mt-3 text-sm font-semibold text-brand hover:text-brandDark">Clear End Stay</button>}
     </div>

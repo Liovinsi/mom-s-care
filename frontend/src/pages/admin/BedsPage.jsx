@@ -46,7 +46,7 @@ const Field = ({ label, required, error, children }) => (
 
 const statusStyles = {
   Available: "bg-brand/10 text-brandDark",
-  Blocked: "bg-orange-100 text-orange-700",
+  Blocked: "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
   Occupied: "bg-paper text-brandDark",
   Reserved: "bg-paper text-brandDark",
   Maintenance: "bg-slate-100 text-slate-600"

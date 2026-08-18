@@ -33,7 +33,7 @@ const statusStyles = {
 const bookingStatusStyles = {
   Pending: "bg-brand/10 text-brandDark",
   Approved: "bg-brand/10 text-brandDark",
-  "Assigned to Warden": "bg-purple-50 text-purple-700",
+  "Assigned to Warden": "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400",
   "Checked-In": "bg-brand/10 text-brandDark",
   "Checked In": "bg-brand/10 text-brandDark",
   Completed: "bg-slate-100 text-slate-600",

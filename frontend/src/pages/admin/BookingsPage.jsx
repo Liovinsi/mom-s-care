@@ -16,7 +16,7 @@ const fieldClass = "min-h-12 w-full rounded-xl border border-line bg-white px-4 
 const activeBookingStatuses = ["Pending Approval", "Pending", "Approved", "Assigned to Warden", "Checked In"];
 
 const statusStyles = {
-  "Pending Approval": "bg-orange-100 text-orange-700",
+  "Pending Approval": "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
   Pending: "bg-brand/10 text-brandDark",
   Approved: "bg-brand/10 text-brandDark",
   "Assigned to Warden": "bg-brand/10 text-brand",
@@ -738,7 +738,7 @@ const BookingsPage = () => {
           </thead>
           <tbody>
             {visibleBookings.map((booking) => (
-              <tr key={booking.id} className={`border-b border-line last:border-0 ${booking.bookingStatus === "Pending Approval" ? "bg-orange-50/80" : ""}`}>
+              <tr key={booking.id} className={`border-b border-line last:border-0 ${booking.bookingStatus === "Pending Approval" ? "bg-orange-50/80 dark:bg-orange-500/10" : ""}`}>
                 <td className="px-4 py-3 font-bold text-ink">{booking.id}</td>
                 <td className="px-4 py-3">
                   <p className="font-semibold text-ink">{booking.customerName}</p>

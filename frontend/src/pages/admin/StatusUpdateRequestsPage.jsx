@@ -11,9 +11,9 @@ import { loadStatusUpdateRequests, updateStatusUpdateRequest } from "../../data/
 import { updateStoredBedStatus } from "../../lib/liveAvailability";
 
 const statusClass = {
-  "Pending Approval": "bg-orange-100 text-orange-700",
-  Approved: "bg-emerald-100 text-emerald-700",
-  Rejected: "bg-red-50 text-red-700"
+  "Pending Approval": "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
+  Approved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+  Rejected: "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-400"
 };
 
 const StatusPill = ({ value }) => <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass[value] || "bg-slate-100 text-slate-700"}`}>{value}</span>;
@@ -92,7 +92,7 @@ const StatusUpdateRequestsPage = () => {
 
       <Card className="mt-5 overflow-hidden p-0">
         <div className="overflow-x-auto"><table className="w-full min-w-[1120px] text-left text-sm"><thead className="border-b border-line bg-slate-50 text-slate-500"><tr>{["Request ID", "Branch", "Room", "Bed", "Current", "Requested", "Warden", "Date & Time", "Status", "Action"].map((heading) => <th key={heading} className="px-4 py-3 font-semibold">{heading}</th>)}</tr></thead><tbody>
-          {requests.map((request) => <tr key={request.id} className={`border-b border-line last:border-0 ${request.status === "Pending Approval" ? "bg-orange-50/60" : ""}`}><td className="px-4 py-4 font-bold text-ink">{request.id}</td><td className="px-4 py-4">{request.branchName}</td><td className="px-4 py-4">{request.roomNumber}</td><td className="px-4 py-4">{request.bedName}</td><td className="px-4 py-4">{request.currentStatus}</td><td className="px-4 py-4 font-bold text-brand">{request.requestedStatus}</td><td className="px-4 py-4">{request.wardenName}</td><td className="px-4 py-4 text-slate-600">{new Date(request.createdAt).toLocaleString("en-IN")}</td><td className="px-4 py-4"><StatusPill value={request.status} /></td><td className="px-4 py-4"><Button variant="secondary" className="px-3" onClick={() => { setSelected(request); setRejectionReason(""); }}><Eye className="h-4 w-4" /> Review</Button></td></tr>)}
+          {requests.map((request) => <tr key={request.id} className={`border-b border-line last:border-0 ${request.status === "Pending Approval" ? "bg-orange-50/60 dark:bg-orange-500/10" : ""}`}><td className="px-4 py-4 font-bold text-ink">{request.id}</td><td className="px-4 py-4">{request.branchName}</td><td className="px-4 py-4">{request.roomNumber}</td><td className="px-4 py-4">{request.bedName}</td><td className="px-4 py-4">{request.currentStatus}</td><td className="px-4 py-4 font-bold text-brand">{request.requestedStatus}</td><td className="px-4 py-4">{request.wardenName}</td><td className="px-4 py-4 text-slate-600">{new Date(request.createdAt).toLocaleString("en-IN")}</td><td className="px-4 py-4"><StatusPill value={request.status} /></td><td className="px-4 py-4"><Button variant="secondary" className="px-3" onClick={() => { setSelected(request); setRejectionReason(""); }}><Eye className="h-4 w-4" /> Review</Button></td></tr>)}
           {!requests.length && <tr><td colSpan="10" className="px-4 py-10 text-center text-slate-500">No room or bed update requests yet.</td></tr>}
         </tbody></table></div>
       </Card>

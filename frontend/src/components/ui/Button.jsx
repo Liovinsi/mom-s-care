@@ -1,7 +1,7 @@
 const variants = {
   primary: "border-0 bg-brand text-white shadow-[0_12px_24px_rgba(221,94,103,0.25)] hover:bg-brandDark hover:shadow-[0_18px_34px_rgba(209,34,51,0.28)]",
-  secondary: "border border-brand bg-white text-brand shadow-sm hover:border-brandDark hover:bg-paper hover:text-brandDark",
-  ghost: "bg-transparent text-ink hover:bg-paper",
+  secondary: "border border-brand bg-white text-brand shadow-sm hover:border-brandDark hover:bg-paper hover:text-brandDark dark:bg-slate-800 dark:hover:bg-slate-700",
+  ghost: "bg-transparent text-ink hover:bg-paper dark:text-slate-100 dark:hover:bg-slate-700",
   danger: "border-0 bg-danger text-white shadow-[0_12px_24px_rgba(221,94,103,0.25)] hover:bg-brandDark"
 };
 

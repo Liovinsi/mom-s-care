@@ -180,8 +180,8 @@ const Toggle = ({ label, checked, onChange }) => (
     className="flex min-h-12 items-center justify-between rounded-xl border border-line bg-white px-4 text-left transition hover:border-brandDark"
   >
     <span className="text-sm font-semibold text-ink">{label}</span>
-    <span className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-brand" : "bg-slate-300"}`}>
-      <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${checked ? "left-6" : "left-1"}`} />
+    <span className={`relative h-6 w-11 rounded-full transition ${checked ? "bg-brand" : "bg-slate-300 dark:bg-slate-600"}`}>
+      <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition dark:bg-slate-200 ${checked ? "left-6" : "left-1"}`} />
     </span>
   </button>
 );

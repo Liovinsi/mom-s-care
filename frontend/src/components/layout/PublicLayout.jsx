@@ -35,7 +35,7 @@ const NavLinks = ({ sectionLinks, activeSection, onSectionClick, theme, toggleTh
             onSectionClick(id);
             onNavigate?.();
           }}
-          className={`text-left text-sm font-semibold transition ${activeSection === id ? "text-brand" : "text-secondary hover:text-brandDark"}`}
+          className={`text-left text-sm font-semibold transition ${activeSection === id ? "text-brand" : "text-secondary hover:text-brandDark dark:text-slate-300"}`}
         >
           {label}
         </button>
@@ -43,7 +43,7 @@ const NavLinks = ({ sectionLinks, activeSection, onSectionClick, theme, toggleTh
       <button
         type="button"
         onClick={toggleTheme}
-        className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-white text-brand transition hover:border-brandDark hover:bg-brandDark hover:text-white"
+        className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-white text-brand transition hover:border-brandDark hover:bg-brandDark hover:text-white dark:border-slate-700 dark:bg-slate-800"
         aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
       >
         {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -53,20 +53,20 @@ const NavLinks = ({ sectionLinks, activeSection, onSectionClick, theme, toggleTh
           <button
             type="button"
             onClick={() => setProfileOpen((value) => !value)}
-            className="flex w-full items-center gap-3 rounded-xl border border-line bg-white px-3 py-2 text-left shadow-soft transition hover:border-brandDark md:w-auto"
+            className="flex w-full items-center gap-3 rounded-xl border border-line bg-white px-3 py-2 text-left shadow-soft transition hover:border-brandDark dark:border-slate-700 dark:bg-slate-800 md:w-auto"
             aria-expanded={profileOpen}
           >
             <span className="grid h-9 w-9 place-items-center rounded-full bg-brand text-sm font-bold text-white">
               {profileInitial}
             </span>
             <span className="min-w-0 md:hidden lg:block">
-              <span className="block max-w-32 truncate text-sm font-bold text-ink">{user.name || "User"}</span>
-              <span className="block max-w-32 truncate text-xs text-muted">{user.email}</span>
+              <span className="block max-w-32 truncate text-sm font-bold text-ink dark:text-slate-100">{user.name || "User"}</span>
+              <span className="block max-w-32 truncate text-xs text-muted dark:text-slate-400">{user.email}</span>
             </span>
             <ChevronDown className={`h-4 w-4 text-brand transition ${profileOpen ? "rotate-180" : ""}`} />
           </button>
           {profileOpen && (
-            <div className="mt-3 w-full rounded-2xl border border-line bg-white p-2 shadow-luxury md:absolute md:right-0 md:mt-2 md:w-56">
+            <div className="mt-3 w-full rounded-2xl border border-line bg-white p-2 shadow-luxury dark:border-slate-700 dark:bg-slate-800 md:absolute md:right-0 md:mt-2 md:w-56">
               {[
                 ["My Bookings", "/my-bookings", BedDouble],
                 ["Profile", "/profile", UserRound]
@@ -78,7 +78,7 @@ const NavLinks = ({ sectionLinks, activeSection, onSectionClick, theme, toggleTh
                     setProfileOpen(false);
                     onNavigate?.();
                   }}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-secondary transition hover:bg-paper hover:text-brandDark"
+                  className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-secondary transition hover:bg-paper hover:text-brandDark dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                   <Icon className="h-4 w-4" /> {label}
                 </Link>
@@ -90,7 +90,7 @@ const NavLinks = ({ sectionLinks, activeSection, onSectionClick, theme, toggleTh
                   onNavigate?.();
                   onLogout();
                 }}
-                className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold text-secondary transition hover:bg-paper hover:text-brandDark"
+                className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold text-secondary transition hover:bg-paper hover:text-brandDark dark:text-slate-300 dark:hover:bg-slate-700"
               >
                 <LogOut className="h-4 w-4" /> Logout
               </button>
@@ -197,25 +197,25 @@ const PublicLayout = () => {
 
   return (
     <NavbarVisibilityProvider value={navbarContextValue}>
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-slate-900">
       <header
         ref={headerRef}
-        className={`fixed inset-x-0 top-0 z-40 border-b border-line bg-white/95 backdrop-blur-xl transition-transform duration-300 ease-out will-change-transform ${
+        className={`fixed inset-x-0 top-0 z-40 border-b border-line bg-white/95 backdrop-blur-xl transition-transform duration-300 ease-out will-change-transform dark:border-slate-700 dark:bg-slate-900/95 ${
           navbarVisible ? "translate-y-0" : "-translate-y-full"
         }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-3 text-lg font-semibold text-ink" onClick={() => setOpen(false)}>
-            <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-brand/20 bg-white shadow-soft">
+          <Link to="/" className="flex items-center gap-3 text-lg font-semibold text-ink dark:text-slate-100" onClick={() => setOpen(false)}>
+            <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-brand/20 bg-white shadow-soft dark:bg-slate-800">
               <img src="/logo.jpeg" alt="PG Stay logo" className="h-full w-full object-cover" />
             </span>
             <span>
               Mom’s Care PG House
-              <span className="block text-[10px] font-bold uppercase tracking-[0.28em] text-muted">Luxe Living</span>
+              <span className="block text-[10px] font-bold uppercase tracking-[0.28em] text-muted dark:text-slate-400">Luxe Living</span>
             </span>
           </Link>
           <button
-            className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink md:hidden"
+            className="grid h-10 w-10 place-items-center rounded-xl border border-line text-ink dark:border-slate-700 dark:text-slate-100 md:hidden"
             onClick={() => setOpen((value) => !value)}
             aria-label="Open menu"
           >
@@ -252,7 +252,7 @@ const PublicLayout = () => {
         {open && (
           <motion.nav
             key="mobile-nav-drawer"
-            className="fixed right-0 top-0 z-[60] flex h-full w-[82%] max-w-xs flex-col overflow-y-auto border-l border-line bg-white p-6 shadow-luxury md:hidden"
+            className="fixed right-0 top-0 z-[60] flex h-full w-[82%] max-w-xs flex-col overflow-y-auto border-l border-line bg-white p-6 shadow-luxury dark:border-slate-700 dark:bg-slate-900 md:hidden"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -260,11 +260,11 @@ const PublicLayout = () => {
             aria-label="Mobile navigation"
           >
             <div className="mb-6 flex items-center justify-between">
-              <span className="text-sm font-bold uppercase tracking-widest text-muted">Menu</span>
+              <span className="text-sm font-bold uppercase tracking-widest text-muted dark:text-slate-400">Menu</span>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="grid h-9 w-9 place-items-center rounded-xl border border-line text-ink"
+                className="grid h-9 w-9 place-items-center rounded-xl border border-line text-ink dark:border-slate-700 dark:text-slate-100"
                 aria-label="Close menu"
               >
                 <X className="h-4 w-4" />

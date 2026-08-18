@@ -31,16 +31,27 @@ const FeaturedBranches = () => {
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {visibleBranches.map((branch) => (
             <Card key={branch.id} className="overflow-hidden p-0">
-              <div className="relative h-64 overflow-hidden">
+              <div className="relative h-64 overflow-hidden sm:h-72 lg:h-80">
                 <img src={branch.image} alt={branch.name} loading="lazy" className="h-full w-full object-cover transition duration-500 hover:scale-105" />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-b from-[rgba(0,0,0,0)] to-[rgba(0,0,0,.75)] p-6 text-white">
-                  <p className="flex items-center gap-2 text-[26px] font-bold text-[#FFFFFF]">
-                    <MapPin className="h-4 w-4 text-[#E5E7EB]" /> {branch.name}
+
+                <span className="absolute right-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/20 px-3 py-1.5 text-sm font-bold text-white shadow-lg backdrop-blur-md">
+                  <Star className="h-4 w-4 fill-white text-white" /> {branch.rating}
+                </span>
+
+                <div
+                  className="absolute inset-x-0 bottom-0 flex flex-col justify-end p-5 sm:p-6"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.15) 75%, rgba(0,0,0,0) 100%)"
+                  }}
+                >
+                  <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/80">Signature Branch</p>
+                  <h3 className="mt-1 text-2xl font-bold leading-tight text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.5)] sm:text-3xl">
+                    {branch.name}
+                  </h3>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-white/90">
+                    <MapPin className="h-4 w-4 shrink-0 text-white/80" /> {getBranchLocation(branch)}
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-[#E5E7EB] opacity-95">{getBranchLocation(branch)}</p>
-                  <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#DD5E67] px-3 py-1.5 text-sm font-semibold text-[#111827]">
-                    <Star className="h-4 w-4 fill-[#111827]" /> {branch.rating}
-                  </span>
                 </div>
               </div>
 

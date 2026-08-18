@@ -43,7 +43,7 @@ const textareaClass = `${fieldClass} min-h-28 py-3`;
 const statusStyles = {
   Open: "bg-brand/10 text-brandDark",
   New: "bg-brand/10 text-brandDark",
-  Assigned: "bg-purple-50 text-purple-700",
+  Assigned: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400",
   "In Progress": "bg-brand/10 text-brandDark",
   "Waiting for Resident": "bg-paper text-brandDark",
   Resolved: "bg-brand/10 text-brandDark",

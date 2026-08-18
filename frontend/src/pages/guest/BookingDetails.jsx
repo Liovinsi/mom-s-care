@@ -281,7 +281,7 @@ const BookingDetails = () => {
       {success && (
         <div className="fixed inset-0 z-[80] grid place-items-center bg-ink/45 px-4 backdrop-blur-sm">
           <div role="dialog" aria-modal="true" aria-labelledby="blocked-success-title" className="w-full max-w-md animate-[loginPopup_300ms_ease-out] rounded-[22px] border border-brand/20 bg-white p-7 text-center shadow-luxury sm:p-8">
-            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-orange-100 text-orange-600"><CheckCircle2 className="h-9 w-9" /></span>
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400"><CheckCircle2 className="h-9 w-9" /></span>
             <h2 id="blocked-success-title" className="mt-5 text-2xl font-semibold text-ink">Bed Blocked Successfully</h2>
             <p className="mt-3 leading-7 text-secondary">Your bed has been reserved temporarily.</p>
             <p className="mt-2 leading-7 text-secondary">Our team will contact you shortly to verify your details and confirm your booking.</p>

@@ -69,7 +69,7 @@ const CurrentBookingCard = ({ booking }) => (
       </div>
       <Badge value={booking.status} />
     </div>
-    {booking.message && <p className="mt-3 text-sm font-semibold text-orange-700">{booking.message}</p>}
+    {booking.message && <p className="mt-3 text-sm font-semibold text-orange-700 dark:text-orange-400">{booking.message}</p>}
     <div className="mt-5 border-t border-line pt-5">
       <DetailGrid booking={booking} />
     </div>
@@ -85,7 +85,7 @@ const HistoryBookingCard = ({ booking }) => {
           <p className="font-semibold text-ink">{booking.branch?.name || "Branch"} · {booking.room?.name || "Room"}</p>
           <p className="mt-1 text-sm text-secondary">{formatDate(booking.moveInDate)}{booking.checkOutDate ? ` – ${formatDate(booking.checkOutDate)}` : " · Monthly stay"}</p>
           {booking.paymentStatus && <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-muted">Payment: {booking.paymentStatus}</p>}
-          {booking.message && <p className="mt-2 text-sm font-semibold text-orange-700">{booking.message}</p>}
+          {booking.message && <p className="mt-2 text-sm font-semibold text-orange-700 dark:text-orange-400">{booking.message}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <Badge value={booking.status} />
