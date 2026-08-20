@@ -10,6 +10,7 @@ import BedsPage from "./pages/admin/BedsPage";
 import BranchDetailsPage from "./pages/admin/BranchDetailsPage";
 import BranchesPage from "./pages/admin/BranchesPage";
 import BookingsPage from "./pages/admin/BookingsPage";
+import EnquiriesPage from "./pages/admin/EnquiriesPage";
 import ManagementPage from "./pages/admin/ManagementPage";
 import PaymentsPage from "./pages/admin/PaymentsPage";
 import ReportsPage from "./pages/admin/ReportsPage";
@@ -71,6 +72,7 @@ const App = () => (
         <Route path="branches/:branchId" element={<BranchDetailsPage />} />
         <Route path="rooms" element={<RoomsPage />} />
         <Route path="beds" element={<BedsPage />} />
+        <Route path="enquiries" element={<EnquiriesPage />} />
         <Route path="bookings" element={<BookingsPage />} />
         <Route path="residents" element={<ResidentsPage />} />
         <Route path="wardens" element={<WardensPage />} />

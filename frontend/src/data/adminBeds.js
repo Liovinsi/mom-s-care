@@ -401,3 +401,34 @@ export const saveBeds = (beds) => {
   localStorage.setItem(BED_STORAGE_KEY, JSON.stringify(scopedBeds));
   window.dispatchEvent(new CustomEvent("pg:beds-updated", { detail: { beds: scopedBeds } }));
 };
+
+// The guest-facing room/bed catalog (data/bookingFlow.js) and this admin bed
+// inventory are two independently seeded datasets, so a bed a guest can select
+// does not always have a matching record here yet. Enquiries must not be
+// rejected just because that record is missing (see BookingDetails.jsx) — this
+// lazily creates it, defaulting to AVAILABLE, so later admin actions (approve,
+// reserve, book) have a real record to update atomically.
+export const ensureBedRecord = (beds, details) => {
+  const existing = beds.find((bed) => bed.id === details.id);
+  if (existing) return { beds, bed: existing };
+
+  const bed = {
+    id: details.id,
+    branchId: details.branchId,
+    branchName: details.branchName,
+    roomId: details.roomId,
+    roomNumber: details.roomNumber,
+    sharingType: details.sharingType || "",
+    bedName: details.bedName || "",
+    bedCode: details.id,
+    bedType: details.sharingType === "4 Sharing" ? "Bunk Cot" : "Single Cot",
+    bedImage: luxuryBedImage,
+    status: "Available",
+    currentResident: "",
+    bookingId: "",
+    checkInDate: "",
+    checkOutDate: "",
+    description: ""
+  };
+  return { beds: [...beds, bed], bed };
+};

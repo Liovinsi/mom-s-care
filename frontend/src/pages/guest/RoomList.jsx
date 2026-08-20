@@ -1,14 +1,17 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Bed, BedDouble, Check, ChevronDown, Lock, MapPin, Search, Users, Wrench, X } from "lucide-react";
+import { Bed, Check, ChevronDown, Lock, MapPin, Search, Send, Users, Wrench, X } from "lucide-react";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
+import Toast from "../../components/ui/Toast";
 import InlineStayCalendar from "../../components/booking/InlineStayCalendar";
 import { bookingBranches, bookingRooms, formatCurrency } from "../../data/bookingFlow";
+import { MAX_ENQUIRIES_PER_BED, countActiveEnquiriesForBed, enquiryLimitMessage, findEnquiryForUserAndBed, useLiveEnquiries } from "../../data/adminEnquiries";
 import { useNavbarVisibility } from "../../context/NavbarVisibilityContext";
-import { useLiveAvailability } from "../../lib/liveAvailability";
+import { buildLiveBedIndex, useLiveAvailability } from "../../lib/liveAvailability";
 import { BookingAuthToast, useBookingAuth } from "../../hooks/useBookingAuth";
+import { useAuth } from "../../context/AuthContext";
 
 const isAvailableOn = (bed, checkIn, checkOut = "") => {
   if (["Maintenance", "Reserved", "Blocked"].includes(bed.status)) return false;
@@ -46,8 +49,11 @@ const RoomList = () => {
   const [selectedBeds, setSelectedBeds] = useState([]);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [limitToast, setLimitToast] = useState("");
   const branch = bookingBranches.find((item) => item.id === appliedBranchId) || bookingBranches[0];
   const { beds: liveBeds, rooms: liveRooms } = useLiveAvailability();
+  const enquiries = useLiveEnquiries();
+  const { user } = useAuth();
   const { continueToBooking, showSignInNotice } = useBookingAuth();
   const { visible: navbarVisible, headerHeight } = useNavbarVisibility();
 
@@ -72,10 +78,18 @@ const RoomList = () => {
   const allRooms = bookingRooms
     .filter((room) => room.branchId === branch.id)
     .map((room) => {
-      const storedBeds = liveBeds.filter((bed) => bed.roomId === room.id);
-      const effectiveBeds = storedBeds.length
-        ? storedBeds.map((bed) => ({ ...bed, label: bed.bedName, effectiveStatus: isAvailableOn(bed, appliedDate, appliedEndStay) ? "Available" : bed.status }))
-        : room.bedList.map((bed) => ({ ...bed, effectiveStatus: bed.status }));
+      // Indexed by both the raw admin bed id and its "public" id — see
+      // buildLiveBedIndex; a raw-id-only map silently misses canonically-seeded
+      // bunk beds and falls back to a stale static status instead of the real one.
+      const storedBedsById = buildLiveBedIndex(liveBeds, room.id);
+      // room.bedList stays the source of truth for which beds exist; only overlay a
+      // bed's own live status when an admin/live record for it exists, so reserving
+      // one bed never hides its siblings from this room's listing for other guests.
+      const effectiveBeds = room.bedList.map((staticBed) => {
+        const liveBed = storedBedsById.get(staticBed.id);
+        if (!liveBed) return { ...staticBed, effectiveStatus: staticBed.status };
+        return { ...staticBed, ...liveBed, label: liveBed.bedName || staticBed.label, effectiveStatus: isAvailableOn(liveBed, appliedDate, appliedEndStay) ? "Available" : liveBed.status };
+      });
       const availableBeds = effectiveBeds.filter((bed) => bed.effectiveStatus === "Available").length;
       const liveRoom = liveRooms.find((item) => item.id === room.id);
       return { ...room, availableBeds, effectiveBeds, isBlocked: liveRoom?.isBlocked || liveRoom?.status === "Blocked", isMaintenance: liveRoom?.status === "Maintenance" };
@@ -176,6 +190,7 @@ const RoomList = () => {
   return (
     <main className="min-h-[calc(100vh-73px)] bg-paper/70">
       <BookingAuthToast visible={showSignInNotice} />
+      <Toast message={limitToast} onClose={() => setLimitToast("")} />
       {selectedRoom && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 sm:items-center sm:p-4" onClick={closeBooking}>
           <div role="dialog" aria-modal="true" aria-label={`Book Room ${selectedRoom.number}`} className="max-h-[96vh] w-full overflow-y-auto rounded-t-[24px] bg-white shadow-luxury sm:max-w-5xl sm:rounded-[24px]" onClick={(event) => event.stopPropagation()}>
@@ -210,7 +225,7 @@ const RoomList = () => {
                   </div>
                 </div>
 
-                <div className="sticky bottom-0 mt-7 border-t border-line bg-white/95 py-4 backdrop-blur"><Button className="w-full" onClick={() => openBooking(selectedRoom)}>Book This Room</Button></div>
+                <div className="sticky bottom-0 mt-7 border-t border-line bg-white/95 py-4 backdrop-blur"><Button className="w-full" onClick={() => openBooking(selectedRoom)}><Send className="h-4 w-4" /> Send Enquiry</Button></div>
               </div>
             ) : (
             <div className="grid gap-7 p-5 sm:p-7 lg:grid-cols-[1fr_340px]">
@@ -236,10 +251,32 @@ const RoomList = () => {
                     {selectedRoom.effectiveBeds.map((bed, index) => {
                       const available = bed.effectiveStatus === "Available";
                       const selected = selectedBeds.some((item) => item.id === bed.id);
-                      const limitReached = selectedBeds.length >= appliedGuests && !selected;
+                      const activeEnquiryCount = countActiveEnquiriesForBed(enquiries, bed.id);
+                      const alreadyEnquired = Boolean(user && findEnquiryForUserAndBed(enquiries, user, bed.id));
+                      const atCapacity = available && !alreadyEnquired && activeEnquiryCount >= MAX_ENQUIRIES_PER_BED;
+                      const guestLimitReached = selectedBeds.length >= appliedGuests && !selected;
+                      const softBlocked = alreadyEnquired || atCapacity;
                       const label = bed.positionLabel || bed.label?.match(/([A-Z])$/i)?.[1]?.toUpperCase() || String.fromCharCode(65 + index);
                       const maintenance = bed.effectiveStatus === "Maintenance";
-                      return <button key={bed.id} type="button" disabled={!available || limitReached} onClick={() => toggleBed(bed)} className={`relative grid h-40 w-[100px] place-items-center rounded-[14px] border-2 px-3 text-sm font-semibold transition duration-200 ${selected ? "border-brand bg-white text-brand shadow-soft" : available ? `border-slate-300 bg-white text-ink ${limitReached ? "opacity-40" : "hover:-translate-y-1 hover:border-brand hover:shadow-soft"}` : maintenance ? "cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500" : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"}`}>{selected && <Check className="absolute right-2 top-2 h-5 w-5 rounded-full bg-brand p-1 text-white" />}{!available && (maintenance ? <Wrench className="absolute right-2 top-2 h-4 w-4" /> : <Lock className="absolute right-2 top-2 h-4 w-4" />)}<span className="text-center">{bed.position && bed.position !== "Single" && <span className="mb-1 block text-xs">{bed.position}</span>}<span className="text-lg">{label}</span></span></button>;
+                      const badgeText = !available
+                        ? null
+                        : alreadyEnquired ? "Enquiry Sent" : atCapacity ? "🟠 Enquiry Limit Reached" : activeEnquiryCount > 0 ? `🟠 ${activeEnquiryCount} ${activeEnquiryCount === 1 ? "Enquiry" : "Enquiries"}` : "🟢 Available";
+                      const handleBedClick = () => {
+                        if (alreadyEnquired) { setLimitToast("You already sent an enquiry for this bed. Our admin team will contact you."); return; }
+                        if (atCapacity) { setLimitToast(enquiryLimitMessage(label)); return; }
+                        toggleBed(bed);
+                      };
+                      return (
+                        <button key={bed.id} type="button" disabled={!available || (guestLimitReached && !softBlocked)} onClick={handleBedClick} className={`relative grid h-40 w-[100px] place-items-center rounded-[14px] border-2 px-3 text-sm font-semibold transition duration-200 ${selected ? "border-brand bg-white text-brand shadow-soft" : available ? `border-slate-300 bg-white text-ink ${softBlocked || guestLimitReached ? "opacity-40" : "hover:-translate-y-1 hover:border-brand hover:shadow-soft"}` : maintenance ? "cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500" : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"}`}>
+                          {selected && <Check className="absolute right-2 top-2 h-5 w-5 rounded-full bg-brand p-1 text-white" />}
+                          {!available && (maintenance ? <Wrench className="absolute right-2 top-2 h-4 w-4" /> : <Lock className="absolute right-2 top-2 h-4 w-4" />)}
+                          <span className="text-center">
+                            {bed.position && bed.position !== "Single" && <span className="mb-1 block text-xs">{bed.position}</span>}
+                            <span className="text-lg">{label}</span>
+                            {badgeText && <span className="mt-1 block text-[10px] font-bold normal-case leading-tight text-secondary">{badgeText}</span>}
+                          </span>
+                        </button>
+                      );
                     })}
                   </div>
                 </section>
@@ -409,7 +446,7 @@ const RoomList = () => {
                   <p className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-success"><span className="h-2.5 w-2.5 rounded-full bg-success" /> {room.availableBeds} {room.availableBeds === 1 ? "Bed" : "Beds"} Left</p>
                   <div className="mt-4 flex flex-wrap gap-2">{branch.facilities.slice(0, 3).map((amenity) => <span key={amenity} className="rounded-full border border-line px-3 py-1 text-xs font-semibold text-secondary">{amenity}</span>)}</div>
                   <p className="mt-4 flex items-center gap-2 text-xs text-muted"><MapPin className="h-3.5 w-3.5" /> {branch.addressLines.slice(-2).join(" ")}</p>
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row"><Link to={`/rooms/${room.id}?${roomQuery.toString()}`}><Button variant="secondary" className="w-full sm:w-auto">More Details</Button></Link><Button className="w-full sm:w-auto" onClick={() => openBooking(room)}><BedDouble className="h-4 w-4" /> Book Now</Button></div>
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row"><Link to={`/rooms/${room.id}?${roomQuery.toString()}`}><Button variant="secondary" className="w-full sm:w-auto">More Details</Button></Link><Button className="w-full sm:w-auto" onClick={() => openBooking(room)}><Send className="h-4 w-4" /> Send Enquiry</Button></div>
                 </div>
               </div>
             </Card>

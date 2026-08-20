@@ -7,7 +7,12 @@ const styles = {
   APPROVED: "bg-brand/10 text-brandDark dark:bg-brand/15",
   PENDING_APPROVAL: "bg-brand/10 text-brandDark dark:bg-brand/15",
   PENDING_PAYMENT: "bg-brand/10 text-brandDark dark:bg-brand/15",
-  REJECTED: "bg-paper text-brandDark dark:bg-slate-800"
+  REJECTED: "bg-paper text-brandDark dark:bg-slate-800",
+  NEW: "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
+  CONTACTED: "bg-brand/10 text-brandDark dark:bg-brand/15",
+  INTERESTED: "bg-brand/10 text-brandDark dark:bg-brand/15",
+  NOT_INTERESTED: "bg-paper text-brandDark dark:bg-slate-800",
+  CONFIRMED: "bg-brand/10 text-brandDark dark:bg-brand/15"
 };
 
 const Badge = ({ value }) => (

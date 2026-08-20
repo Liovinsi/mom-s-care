@@ -1,11 +1,11 @@
-import { BedDouble, ExternalLink, Mail, MapPin, MessageCircle, Phone, Search, Users } from "lucide-react";
+import { ExternalLink, Mail, MapPin, MessageCircle, Phone, Search, Send, Users } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import InlineStayCalendar from "../../components/booking/InlineStayCalendar";
 import { bookingBranches, bookingRooms, formatCurrency } from "../../data/bookingFlow";
-import { useLiveAvailability } from "../../lib/liveAvailability";
+import { buildLiveBedIndex, useLiveAvailability } from "../../lib/liveAvailability";
 import { BookingAuthToast, useBookingAuth } from "../../hooks/useBookingAuth";
 
 const sharingTypes = ["2 Sharing", "3 Sharing", "4 Sharing"];
@@ -37,8 +37,17 @@ const RoomDetails = () => {
   const { continueToBooking, showSignInNotice } = useBookingAuth();
 
   const allRooms = bookingRooms.filter((room) => room.branchId === branch.id).map((room) => {
-    const storedBeds = liveBeds.filter((bed) => bed.roomId === room.id);
-    const availableBeds = storedBeds.length ? storedBeds.filter((bed) => isAvailableOn(bed, appliedDate)).length : room.bedList.filter((bed) => bed.status === "Available").length;
+    // Indexed by both the raw admin bed id and its "public" id — see
+    // buildLiveBedIndex; a raw-id-only map silently misses canonically-seeded bunk
+    // beds and falls back to a stale static status instead of the real one.
+    const storedBedsById = buildLiveBedIndex(liveBeds, room.id);
+    // room.bedList stays the source of truth for which beds exist; only overlay a
+    // bed's own live status when a record for it exists, so one reserved bed never
+    // makes the rest of the room's beds disappear from this availability count.
+    const availableBeds = room.bedList.filter((staticBed) => {
+      const liveBed = storedBedsById.get(staticBed.id);
+      return liveBed ? isAvailableOn(liveBed, appliedDate) : staticBed.status === "Available";
+    }).length;
     const liveRoom = liveRooms.find((item) => item.id === room.id);
     return { ...room, availableBeds, blocked: liveRoom?.isBlocked || liveRoom?.status === "Blocked", maintenance: liveRoom?.status === "Maintenance" };
   });
@@ -105,7 +114,7 @@ const RoomDetails = () => {
 
         <div className="mb-5 mt-7 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-semibold text-ink">Available Rooms ({visibleRooms.length})</h2><p className="text-sm font-semibold text-secondary">Move-in: {new Date(`${appliedDate}T00:00:00`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · Guests: {appliedGuests}</p></div>
 
-        <div className="grid gap-6 md:grid-cols-2">{visibleRooms.map((room, index) => <Card key={room.id} className="overflow-hidden p-0 hover:translate-y-0"><img src={branch.gallery?.length ? branch.gallery[(index + 2) % branch.gallery.length] : branch.image} alt={`Room ${room.number}`} className="h-60 w-full object-cover" /><div className="p-5"><div className="flex justify-between gap-4"><div><h3 className="text-2xl font-semibold text-ink">Room {room.number}</h3><p className="mt-2 text-sm font-semibold text-brand">{room.sharingType} · {room.roomType}</p><p className="mt-2 text-sm font-semibold text-secondary">🛏️ {room.bedType === "Bunk Cot" ? "Bunk Cot (Upper/Lower)" : "Single Cot"}</p></div><p className="text-xl font-semibold text-ink">{formatCurrency(room.monthlyRent)}<span className="block text-right text-xs font-normal text-muted">/month</span></p></div><p className="mt-4 text-sm font-semibold text-green-700 dark:text-green-400">{room.availableBeds} {room.availableBeds === 1 ? "Bed" : "Beds"} Available</p><div className="mt-5 flex flex-col gap-3 sm:flex-row"><Link to={`/rooms/${room.id}?${detailsQuery.toString()}`}><Button variant="secondary" className="w-full">More Details</Button></Link><Button className="w-full" onClick={() => continueToBooking({ roomId: room.id, redirect: `/booking/${room.id}?${detailsQuery.toString()}` })}><BedDouble className="h-4 w-4" /> Book Now</Button></div></div></Card>)}</div>
+        <div className="grid gap-6 md:grid-cols-2">{visibleRooms.map((room, index) => <Card key={room.id} className="overflow-hidden p-0 hover:translate-y-0"><img src={branch.gallery?.length ? branch.gallery[(index + 2) % branch.gallery.length] : branch.image} alt={`Room ${room.number}`} className="h-60 w-full object-cover" /><div className="p-5"><div className="flex justify-between gap-4"><div><h3 className="text-2xl font-semibold text-ink">Room {room.number}</h3><p className="mt-2 text-sm font-semibold text-brand">{room.sharingType} · {room.roomType}</p><p className="mt-2 text-sm font-semibold text-secondary">🛏️ {room.bedType === "Bunk Cot" ? "Bunk Cot (Upper/Lower)" : "Single Cot"}</p></div><p className="text-xl font-semibold text-ink">{formatCurrency(room.monthlyRent)}<span className="block text-right text-xs font-normal text-muted">/month</span></p></div><p className="mt-4 text-sm font-semibold text-green-700 dark:text-green-400">{room.availableBeds} {room.availableBeds === 1 ? "Bed" : "Beds"} Available</p><div className="mt-5 flex flex-col gap-3 sm:flex-row"><Link to={`/rooms/${room.id}?${detailsQuery.toString()}`}><Button variant="secondary" className="w-full">More Details</Button></Link><Button className="w-full" onClick={() => continueToBooking({ roomId: room.id, redirect: `/booking/${room.id}?${detailsQuery.toString()}` })}><Send className="h-4 w-4" /> Send Enquiry</Button></div></div></Card>)}</div>
         {!visibleRooms.length && <Card className="text-center hover:translate-y-0"><h3 className="text-xl font-semibold text-ink">No matching rooms</h3><p className="mt-2 text-secondary">Try fewer guests, another move-in date, or clear a filter.</p></Card>}
 
         <section className="mt-10" aria-labelledby="branch-location-title">

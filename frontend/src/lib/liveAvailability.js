@@ -45,6 +45,20 @@ export const publicRoomIdFromAdminRoomId = (roomId) => {
   return roomId;
 };
 
+// Guest-facing pages key a room's static bed catalog by a "public" id (e.g.
+// "anna-101-l2"), but admin bed records store their own raw id (e.g.
+// "anna-101-bed-l2" for canonically-seeded bunk beds) — the two only agree via
+// publicBedIdFromAdminBed. A lookup map keyed by raw `bed.id` alone silently
+// misses those beds, so every guest page must index by BOTH forms.
+export const buildLiveBedIndex = (beds, roomId) => {
+  const index = new Map();
+  beds.filter((bed) => bed.roomId === roomId).forEach((bed) => {
+    index.set(bed.id, bed);
+    index.set(publicBedIdFromAdminBed(bed), bed);
+  });
+  return index;
+};
+
 const getRoomBeds = (room, beds) => beds.filter((bed) => bed.roomId === room.id);
 
 export const summarizeRoomAvailability = (room, beds) => {

@@ -70,7 +70,7 @@ const NavLinks = ({ sectionLinks, activeSection, onSectionClick, theme, toggleTh
           {profileOpen && (
             <div className="mt-3 w-full rounded-2xl border border-line bg-white p-2 shadow-luxury dark:border-slate-700 dark:bg-slate-800 md:absolute md:right-0 md:mt-2 md:w-56">
               {[
-                ["My Bookings", "/my-bookings", BedDouble],
+                ["My Enquiries", "/my-bookings", BedDouble],
                 ["Profile", "/profile", UserRound]
               ].map(([label, to, Icon]) => (
                 <Link

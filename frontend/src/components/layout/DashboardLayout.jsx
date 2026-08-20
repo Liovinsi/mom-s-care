@@ -1,9 +1,10 @@
-import { BarChart3, BedDouble, Bell, Building2, CreditCard, FileText, Home, LogOut, Menu, MessageSquareWarning, Moon, Settings, Sun, Users, X } from "lucide-react";
+import { BarChart3, BedDouble, Bell, Building2, CreditCard, FileText, Home, Inbox, LogOut, Menu, MessageSquareWarning, Moon, Settings, Sun, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { loadBookings } from "../../data/adminBookings";
+import { loadEnquiries } from "../../data/adminEnquiries";
 import { loadComplaints } from "../../data/complaints";
 import { loadStatusUpdateRequests } from "../../data/statusUpdateRequests";
 
@@ -12,6 +13,7 @@ const adminLinks = [
   ["Branches", "/pgbooking/admin/branches", Building2],
   ["Rooms", "/pgbooking/admin/rooms", BedDouble],
   ["Beds", "/pgbooking/admin/beds", BedDouble],
+  ["Bed Enquiries", "/pgbooking/admin/enquiries", Inbox],
   ["Bookings", "/pgbooking/admin/bookings", FileText],
   ["Residents", "/pgbooking/admin/residents", Users],
   ["Wardens", "/pgbooking/admin/wardens", Users],
@@ -33,16 +35,20 @@ const DashboardLayout = ({ role }) => {
   const { logout, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [pendingCount, setPendingCount] = useState(() => loadBookings().filter((booking) => booking.bookingStatus === "Pending Approval").length);
+  const [enquiryCount, setEnquiryCount] = useState(() => loadEnquiries().filter((enquiry) => enquiry.status === "NEW").length);
   const [complaintCount, setComplaintCount] = useState(() => loadComplaints().filter((complaint) => complaint.raisedBy === "Warden" && complaint.status === "Open").length);
   const [updateRequestCount, setUpdateRequestCount] = useState(() => loadStatusUpdateRequests().filter((request) => request.status === "Pending Approval").length);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const refreshCount = () => setPendingCount(loadBookings().filter((booking) => booking.bookingStatus === "Pending Approval").length);
+    const refreshEnquiries = () => setEnquiryCount(loadEnquiries().filter((enquiry) => enquiry.status === "NEW").length);
     const refreshComplaints = () => setComplaintCount(loadComplaints().filter((complaint) => complaint.raisedBy === "Warden" && complaint.status === "Open").length);
     const refreshUpdateRequests = () => setUpdateRequestCount(loadStatusUpdateRequests().filter((request) => request.status === "Pending Approval").length);
     window.addEventListener("pg:bookings-updated", refreshCount);
     window.addEventListener("storage", refreshCount);
+    window.addEventListener("pg:enquiries-updated", refreshEnquiries);
+    window.addEventListener("storage", refreshEnquiries);
     window.addEventListener("pg:complaints-updated", refreshComplaints);
     window.addEventListener("storage", refreshComplaints);
     window.addEventListener("pg:status-update-requests-updated", refreshUpdateRequests);
@@ -50,6 +56,8 @@ const DashboardLayout = ({ role }) => {
     return () => {
       window.removeEventListener("pg:bookings-updated", refreshCount);
       window.removeEventListener("storage", refreshCount);
+      window.removeEventListener("pg:enquiries-updated", refreshEnquiries);
+      window.removeEventListener("storage", refreshEnquiries);
       window.removeEventListener("pg:complaints-updated", refreshComplaints);
       window.removeEventListener("storage", refreshComplaints);
       window.removeEventListener("pg:status-update-requests-updated", refreshUpdateRequests);
@@ -107,6 +115,7 @@ const DashboardLayout = ({ role }) => {
               <Icon className="h-4 w-4" />
               {label}
               {role === "ADMIN" && label === "Bookings" && pendingCount > 0 && <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{pendingCount}</span>}
+              {role === "ADMIN" && label === "Bed Enquiries" && enquiryCount > 0 && <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white">{enquiryCount}</span>}
               {role === "ADMIN" && label === "Complaints" && complaintCount > 0 && <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-bold text-white">{complaintCount}</span>}
             </NavLink>
           ))}
@@ -123,7 +132,7 @@ const DashboardLayout = ({ role }) => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {role === "ADMIN" && <span className="relative grid h-10 w-10 place-items-center rounded-md border bg-white text-mint dark:border-slate-700 dark:bg-slate-800" aria-label={`${pendingCount + complaintCount + updateRequestCount} pending notifications`}><Bell className="h-4 w-4" />{pendingCount + complaintCount + updateRequestCount > 0 && <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white">{pendingCount + complaintCount + updateRequestCount}</span>}</span>}
+            {role === "ADMIN" && <span className="relative grid h-10 w-10 place-items-center rounded-md border bg-white text-mint dark:border-slate-700 dark:bg-slate-800" aria-label={`${pendingCount + enquiryCount + complaintCount + updateRequestCount} pending notifications`}><Bell className="h-4 w-4" />{pendingCount + enquiryCount + complaintCount + updateRequestCount > 0 && <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white">{pendingCount + enquiryCount + complaintCount + updateRequestCount}</span>}</span>}
             <button
               type="button"
               onClick={toggleTheme}

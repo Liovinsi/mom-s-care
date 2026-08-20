@@ -1,23 +1,38 @@
-import { BedDouble, Check, MapPin, Star } from "lucide-react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { Check, MapPin, Send, Star } from "lucide-react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import { bookingBranches, bookingRooms, formatCurrency } from "../../data/bookingFlow";
-import { useLiveAvailability } from "../../lib/liveAvailability";
+import { buildLiveBedIndex, useLiveAvailability } from "../../lib/liveAvailability";
 import { BookingAuthToast, useBookingAuth } from "../../hooks/useBookingAuth";
+import { OPEN_ENQUIRY_STATUSES, loadEnquiries } from "../../data/adminEnquiries";
+import { useAuth } from "../../context/AuthContext";
 
 const SelectedRoomDetails = () => {
   const { roomId } = useParams();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const room = bookingRooms.find((item) => item.id === roomId) || bookingRooms[0];
   const branch = bookingBranches.find((item) => item.id === room.branchId) || bookingBranches[0];
   const { beds } = useLiveAvailability();
   const { continueToBooking, showSignInNotice } = useBookingAuth();
-  const roomBeds = beds.filter((bed) => bed.roomId === room.id);
-  const availableBeds = roomBeds.length ? roomBeds.filter((bed) => bed.status === "Available").length : room.bedList.filter((bed) => bed.status === "Available").length;
+  // Indexed by both the raw admin bed id and its "public" id — see
+  // buildLiveBedIndex; a raw-id-only map silently misses canonically-seeded bunk
+  // beds and falls back to a stale static status instead of the real one.
+  const storedBedsById = buildLiveBedIndex(beds, room.id);
+  // room.bedList stays the source of truth for which beds exist; only overlay a
+  // bed's own live status when a record for it exists, so one reserved bed never
+  // hides the room's other beds from this availability count.
+  const availableBeds = room.bedList.filter((staticBed) => {
+    const liveBed = storedBedsById.get(staticBed.id);
+    return liveBed ? liveBed.status === "Available" : staticBed.status === "Available";
+  }).length;
   const checkIn = searchParams.get("checkIn") || "";
   const guests = Math.max(1, Number(searchParams.get("guests")) || 1);
   const gallery = (branch.gallery?.slice(0, 4) || [branch.image]).filter(Boolean);
+  const myActiveEnquiry = user
+    ? loadEnquiries().find((enquiry) => (enquiry.userId === user.id || enquiry.email === user.email) && enquiry.roomId === room.id && [...OPEN_ENQUIRY_STATUSES, "CONFIRMED"].includes(enquiry.status))
+    : null;
 
   return (
     <main className="bg-paper/70 pb-24">
@@ -51,7 +66,22 @@ const SelectedRoomDetails = () => {
         </div>
       </section>
 
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-line bg-white/95 px-4 py-3 shadow-[0_-10px_30px_rgba(30,30,36,0.08)] backdrop-blur"><div className="mx-auto flex max-w-7xl justify-end"><Button onClick={() => continueToBooking({ roomId: room.id, redirect: `/booking/${room.id}?${searchParams.toString()}` })}><BedDouble className="h-4 w-4" /> Book This Room</Button></div></div>
+      <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-line bg-white/95 px-4 py-3 shadow-[0_-10px_30px_rgba(30,30,36,0.08)] backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-end gap-3">
+          {myActiveEnquiry ? (
+            <>
+              <p className="text-sm font-semibold text-secondary">
+                {myActiveEnquiry.status === "CONFIRMED" ? "Your enquiry was approved — complete payment to confirm." : "Enquiry Sent · Admin will contact you shortly."}
+              </p>
+              <Link to="/my-bookings"><Button variant="secondary">View My Enquiries</Button></Link>
+            </>
+          ) : (
+            <Button onClick={() => continueToBooking({ roomId: room.id, redirect: `/booking/${room.id}?${searchParams.toString()}` })}>
+              <Send className="h-4 w-4" /> Send Enquiry
+            </Button>
+          )}
+        </div>
+      </div>
     </main>
   );
 };

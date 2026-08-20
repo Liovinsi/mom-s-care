@@ -3,6 +3,7 @@ import Card from "../../components/ui/Card";
 import StatCard from "../../components/ui/StatCard";
 import { loadBranches } from "../../data/adminBranches";
 import { loadBookings } from "../../data/adminBookings";
+import { loadEnquiries } from "../../data/adminEnquiries";
 import { loadResidents } from "../../data/adminResidents";
 import { loadComplaints } from "../../data/complaints";
 import { loadWardenActivities } from "../../data/wardenActivities";
@@ -13,6 +14,7 @@ import { calculatePaymentAnalytics, formatCurrency, useLivePayments } from "../.
 const AdminDashboard = () => {
   const [summary, setSummary] = useState({});
   const [bookings, setBookings] = useState(() => loadBookings());
+  const [enquiries, setEnquiries] = useState(() => loadEnquiries());
   const [complaints, setComplaints] = useState(() => loadComplaints());
   const [wardenActivities, setWardenActivities] = useState(() => loadWardenActivities());
   const [updateRequests, setUpdateRequests] = useState(() => loadStatusUpdateRequests());
@@ -22,6 +24,14 @@ const AdminDashboard = () => {
   const paymentAnalytics = calculatePaymentAnalytics(payments, residents);
   const pendingBookings = bookings.filter((booking) => booking.bookingStatus === "Pending Approval");
   const blockedBedNotifications = pendingBookings.slice(0, 5);
+  const enquiryStats = {
+    total: enquiries.length,
+    pending: enquiries.filter((enquiry) => enquiry.status === "NEW").length,
+    contacted: enquiries.filter((enquiry) => enquiry.status === "CONTACTED").length,
+    approved: enquiries.filter((enquiry) => enquiry.status === "CONFIRMED").length,
+    rejected: enquiries.filter((enquiry) => enquiry.status === "REJECTED").length
+  };
+  const newEnquiryNotifications = [...enquiries].filter((enquiry) => enquiry.status === "NEW").sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt)).slice(0, 5);
   const wardenComplaintNotifications = complaints.filter((complaint) => complaint.raisedBy === "Warden" && complaint.status === "Open").slice(0, 5);
   const pendingUpdateRequests = updateRequests.filter((request) => request.status === "Pending Approval");
   const requestedAgo = (value) => {
@@ -50,15 +60,22 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const refreshBookings = () => setBookings(loadBookings());
+    const refreshEnquiries = () => setEnquiries(loadEnquiries());
 
     window.addEventListener("focus", refreshBookings);
     window.addEventListener("storage", refreshBookings);
     window.addEventListener("pg:bookings-updated", refreshBookings);
+    window.addEventListener("focus", refreshEnquiries);
+    window.addEventListener("storage", refreshEnquiries);
+    window.addEventListener("pg:enquiries-updated", refreshEnquiries);
 
     return () => {
       window.removeEventListener("focus", refreshBookings);
       window.removeEventListener("storage", refreshBookings);
       window.removeEventListener("pg:bookings-updated", refreshBookings);
+      window.removeEventListener("focus", refreshEnquiries);
+      window.removeEventListener("storage", refreshEnquiries);
+      window.removeEventListener("pg:enquiries-updated", refreshEnquiries);
     };
   }, []);
 
@@ -92,6 +109,14 @@ const AdminDashboard = () => {
         <StatCard label="Revenue" value={`₹${summary.revenue ?? 0}`} />
         <StatCard label="Pending Approval" value={pendingBookings.length} />
         <StatCard label="Pending Update Requests" value={pendingUpdateRequests.length} />
+      </div>
+
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <StatCard label="New Enquiries" value={enquiryStats.total} />
+        <StatCard label="Pending Enquiries" value={enquiryStats.pending} />
+        <StatCard label="Contacted Enquiries" value={enquiryStats.contacted} />
+        <StatCard label="Approved Enquiries" value={enquiryStats.approved} />
+        <StatCard label="Rejected Enquiries" value={enquiryStats.rejected} />
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -155,6 +180,23 @@ const AdminDashboard = () => {
             )}
           </tbody>
         </table>
+      </Card>
+
+      <Card className="mt-5">
+        <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">🔔 New Bed Enquiry</p><h2 className="mt-1 text-lg font-bold text-ink">Pending Enquiry Notifications</h2></div><span className="rounded-full bg-orange-500 px-3 py-1 text-xs font-bold text-white">{enquiryStats.pending}</span></div>
+        <div className="mt-4 grid gap-3">
+          {newEnquiryNotifications.map((enquiry) => (
+            <div key={enquiry.id} className="grid gap-3 rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm sm:grid-cols-2 lg:grid-cols-3 dark:border-orange-500/30 dark:bg-orange-500/15">
+              <p><span className="block text-xs font-bold uppercase text-slate-500">User</span><strong className="text-ink">{enquiry.userName}</strong></p>
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Mobile</span><strong className="text-ink">{enquiry.phone}</strong></p>
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Branch</span><strong className="text-ink">{enquiry.branchName}</strong></p>
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Room</span><strong className="text-ink">{enquiry.roomNumber}</strong></p>
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Bed</span><strong className="text-ink">{enquiry.bedName}</strong></p>
+              <p><span className="block text-xs font-bold uppercase text-slate-500">Submitted</span><strong className="text-ink">{requestedAgo(enquiry.createdAt)}</strong></p>
+            </div>
+          ))}
+          {!newEnquiryNotifications.length && <p className="rounded-xl bg-paper p-4 text-sm font-semibold text-slate-500">No new bed enquiries yet.</p>}
+        </div>
       </Card>
 
       <Card className="mt-5">
